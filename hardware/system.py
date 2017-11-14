@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.6
 # Driver for Microspec FPGA
 # Author: Cameron Dykstra
 # Email: dykstra.cameron@gmail.com
@@ -7,6 +8,7 @@ import os
 import logging
 
 from pynq import Overlay
+from elftools.elf.elffile import ELFFile
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 ol = Overlay(os.path.join(dir_path, 'system.bit'))
@@ -37,3 +39,21 @@ async def wait_for_scan(n):
         await asyncio.sleep(1)
         i = mem_p.read(0x1c)
     return i
+
+def write_elf(path):
+    with open(path, 'rb') as f:
+        elffile = ELFFile(f)
+
+        if elffile['e_machine'] != 189:
+            logging.error('incompatible elf file, not for microblaze')
+
+        for segment in elffile.iter_segments():
+            offset = segment['p_vaddr']
+            data = segment.data()
+            print('writing', len(data), 'bytes at', hex(offset))
+            # hack to write to the correct memory space
+            if offset<mem_i.mmio.length:
+                mem_i.write(offset, data)
+            else:
+                offset-=mem_i.mmio.length
+                mem_d.write(offset, data)
