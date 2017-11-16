@@ -10,6 +10,10 @@ import logging
 from pynq import Overlay
 from elftools.elf.elffile import ELFFile
 
+# constants
+DMA_OFFSET = 0x30000000 # OS has 768M
+DMA_SIZE   = 0x10000000 # 256M of DMA
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 ol = Overlay(os.path.join(dir_path, 'system.bit'))
 
@@ -17,30 +21,34 @@ reset = ol.microblaze_ppu.pp_reset
 mem_i = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_i
 mem_d = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_d
 mem_p = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_p
-
 mailbox = ol.microblaze_ppu.microblaze_core.mailbox
 
-def stop():
+
+def stop() -> None:
     reset.write(0x0, 0)
     if reset.read(0x8)!=1:
         logging.error('stop command failed!')
 
-def run():
+
+def run() -> None:
     reset.write(0x0, 1)
     if reset.read(0x8)!=0:
         logging.error('run command failed!')
 
-def status():
+
+def status() -> int:
     return mem_p.read(0x4)
 
-async def wait_for_scan(n):
+
+async def wait_for_scan(n: int) -> int:
     i = mem_p.read(0x1c)
     while i<n:
         await asyncio.sleep(1)
         i = mem_p.read(0x1c)
     return i
 
-def write_elf(path):
+
+def write_elf(path: str) -> None:
     with open(path, 'rb') as f:
         elffile = ELFFile(f)
 
@@ -57,3 +65,32 @@ def write_elf(path):
             else:
                 offset-=mem_i.mmio.length
                 mem_d.write(offset, data)
+
+
+def write_param(offset: int, value: np.generic) -> None:
+    # offset is a bytes offset since params could have varying size
+    mem_p.write(offset, value.tobytes())
+
+
+def read_dma(
+        offset: int,
+        length: int,
+        dtype: np.dtype=np.dtype(np.int32)) -> np.ndarray:
+    # length and offset are relative to the dtype size
+    length *= dtype.itemsize
+    offset *= dtype.itemsize
+    with open('/dev/mem', 'r+b') as f:
+        mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
+        data = np.frombuffer(mem[offset:offset+length], dtype=dtype)
+    return data
+
+
+def read_mem(
+        offset: int,
+        length: int,
+        dtype: np.dtype=np.dtype(np.int32)) -> np.ndarray:
+    # length and offset are relative to the dtype size
+    length *= dtype.itemsize
+    offset *= dtype.itemsize
+    data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)
+    return data

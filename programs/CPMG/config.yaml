@@ -1,0 +1,63 @@
+# CPMG experiment configuration
+---
+parameters:
+  action:
+    offset: 0x00
+    dtype: uint32
+  status:
+    offset: 0x04
+    dtype: uint32
+  freqTx:
+    offset: 0x80
+    dtype: float64
+  freqRx:
+    offset: 0x88
+    dtype: float64
+  phaseRx:
+    offset: 0x90
+    dtype: float64
+  A90:
+    offset: 0x98
+    dtype: float32
+  P90:
+    offset: 0x9c
+    dtype: float32
+  A180:
+    offset: 0xa0
+    dtype: float32
+  P180:
+    offset: 0xa4
+    dtype: float32
+  T90:
+    offset: 0xa8
+    dtype: uint32
+  T180:
+    offset: 0xac
+    dtype: uint32
+  T1:
+    offset: 0xb0
+    dtype: uint32
+  T2:
+    offset: 0xb4
+    dtype: uint32
+  T3:
+    offset: 0xb8
+    dtype: uint32
+  Tend:
+    offset: 0xbc
+    dtype: uint32
+  loops:
+    offset: 0xc0
+    dtype: uint32
+  samples:
+    offset: 0xc4
+    dtype: uint32
+  ignore_samples:
+    offset: 0xc8
+    dtype: uint32
+  decimation:
+    offset: 0xcc
+    dtype: uint32
+  averages:
+    offset: 0xd0
+    dtype: uint32
