@@ -1,12 +1,29 @@
 # CPMG experiment configuration
 ---
+description:
+  A CPMG experiment.
+executable: CPMG_FIFO_phcycled_2016.elf
+action:
+  offset: 0x0
+  values:
+    stop: 0
+    run: 1
+status:
+  offset: 0x4
+  values:
+    uninitialised: 1
+    running: 2
+    capture: 3
+    finished: 10
+progress:
+  offset: 0x1c
+  dtype: uint32
+output:
+  type: FIFO
+  dtype: int32
+  offset: 0x100
+  length: 0x1F400
 parameters:
-  action:
-    offset: 0x00
-    dtype: uint32
-  status:
-    offset: 0x04
-    dtype: uint32
   freqTx:
     offset: 0x80
     dtype: float64
