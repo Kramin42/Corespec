@@ -2,7 +2,6 @@
 # Author: Cameron Dykstra
 # Email: dykstra.cameron@gmail.com
 
-import asyncio
 import os 
 import logging
 import numpy as np
@@ -40,18 +39,6 @@ def run() -> None:
         logger.error('run command failed!')
 
 
-def status() -> int:
-    return mem_p.read(0x4)
-
-
-async def wait_for_progress(offset: int, n: int) -> int:
-    i = mem_p.read(offset)
-    while i<n:
-        await asyncio.sleep(1)
-        i = mem_p.read(offset)
-    return i
-
-
 def write_elf(path: str) -> None:
     with open(path, 'rb') as f:
         elffile = ELFFile(f)
@@ -62,7 +49,7 @@ def write_elf(path: str) -> None:
         for segment in elffile.iter_segments():
             offset = segment['p_vaddr']
             data = segment.data()
-            print('writing', len(data), 'bytes at', hex(offset))
+            logger.debug('writing 0x%X bytes at 0x%X', len(data), offset)
             # hack to write to the correct memory space
             if offset<mem_i.mmio.length:
                 mem_i.write(offset, data)
@@ -79,6 +66,10 @@ def write_par(
     # offset is a bytes offset since params could have varying size
     mem_p.write(offset, value.tobytes())
 
+def read_par(offset: int, dtype=np.dtype(np.int32)):
+    dtype = np.dtype(dtype)
+    length = dtype.itemsize
+    return np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)[0]
 
 def read_dma(
         offset: int,

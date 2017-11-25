@@ -17,12 +17,12 @@ status:
     finished: 10
 progress:
   offset: 0x1c
-  dtype: uint32
+  limit: ${{averages}-1}
 output:
   type: FIFO
   dtype: int32
   offset: 0x100
-  length: 0x1F400
+  length: ${{loops}*{samples}}
 parameters:
   freqTx:
     offset: 0x80

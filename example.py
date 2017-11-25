@@ -3,15 +3,31 @@
 import asyncio
 
 import hardware.system as system
-from programs import Program
+import logging
+from programs import list_programs, Program
 
-print('driver loaded')
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-CPMG = Program('CPMG')
-CPMG.load_par('CPMG_par.yaml')
+async def main():
+    print('available programs:', ', '.join(list_programs()))
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(CPMG.run())
-loop.close()
+    CPMG = Program('CPMG')
+    CPMG.load_par('CPMG_par.yaml')
 
-print(CPMG.data)
+    outof = CPMG.get_config('progress.limit')+1
+
+    await CPMG.run(progress_handler=lambda p: print('progress:', p, '/', outof))
+
+    data = CPMG.data
+
+    print('data size:', data.size)
+    print('data:', data)
+
+if __name__=='__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    loop.run_until_complete(main())
+    loop.run_until_complete(main())
+    loop.close()

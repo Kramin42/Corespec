@@ -10,9 +10,9 @@ T180: 17900
 T1: 61650
 T2: 51050
 T3: 81050
-Tend: 3000000000
+Tend: 300000000
 loops: 250
 samples: 64
 ignore_samples: 7
 decimation: 50
-averages: 16
+averages: 4
