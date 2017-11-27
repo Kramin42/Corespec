@@ -24,6 +24,7 @@ def list_programs():
 
 class Program:
     def __init__(self, name: str):
+        self.name = name
         self._dir = os.path.join(programs_dir, name)
         with open(os.path.join(self._dir, 'config.yaml'), 'r') as f:
             self._config = yaml.load(f.read())
@@ -46,7 +47,7 @@ class Program:
         with open(filename, 'w') as f:
             f.write(yaml.dump(self.par, default_flow_style=False))
 
-    def get_config(self, key):
+    def config_get(self, key):
         result =  self._config
         for k in key.split('.'):
             result = result[k]
@@ -64,7 +65,7 @@ class Program:
         # progress_handler should return quickly:
         # no heavy processing or blocking IO
         prev_progress = 0
-        while self.status!=self.get_config('status.values.finished'):
+        while self.status!=self.config_get('status.values.finished'):
             cur_progress = self.progress
             if progress_handler is not None and cur_progress!=prev_progress:
                 progress_handler(cur_progress)
@@ -76,10 +77,10 @@ class Program:
         self._data_ready = False
 
         logger.debug('run: writing ELF')
-        system.write_elf(os.path.join(self._dir, self.get_config('executable')))
+        system.write_elf(os.path.join(self._dir, self.config_get('executable')))
 
         logger.debug('run: writing parameters')
-        par_def = self.get_config('parameters')
+        par_def = self.config_get('parameters')
         for par_name in par_def:
             system.write_par(
                 par_def[par_name]['offset'],
@@ -88,11 +89,11 @@ class Program:
 
         logger.debug('run: running')
         # reset progress
-        system.write_par(self.get_config('progress.offset'), 0)
+        system.write_par(self.config_get('progress.offset'), 0)
         # set run action
         system.write_par(
-            self.get_config('action.offset'),
-            self.get_config('action.values.run'))
+            self.config_get('action.offset'),
+            self.config_get('action.values.run'))
         system.run()
 
         # wait until status finished
@@ -108,25 +109,25 @@ class Program:
 
         # read the data
         logger.debug('reading data')
-        if self.get_config('output.type') == 'FIFO':
+        if self.config_get('output.type') == 'FIFO':
             data = system.read_fifo(
-                self.get_config('output.offset'),
-                self.get_config('output.length'),
-                self.get_config('output.dtype'))
-        elif self.get_config('output.type') == 'DMA':
+                self.config_get('output.offset'),
+                self.config_get('output.length'),
+                self.config_get('output.dtype'))
+        elif self.config_get('output.type') == 'DMA':
             data = system.read_dma(
-                self.get_config('output.offset'),
-                self.get_config('output.length'),
-                self.get_config('output.dtype'))
+                self.config_get('output.offset'),
+                self.config_get('output.length'),
+                self.config_get('output.dtype'))
         return data # don't let them change our data!
 
     @property
     def status(self):
-        return system.read_par(self.get_config('status.offset'))
+        return system.read_par(self.config_get('status.offset'))
 
     @property
     def progress(self):
-        return system.read_par(self.get_config('progress.offset'))
+        return system.read_par(self.config_get('progress.offset'))
 
 # safe evaluation for computed properties
 # supported operators
