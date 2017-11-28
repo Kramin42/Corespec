@@ -1,11 +1,14 @@
 #!/usr/bin/env python3.6
 
 import logging
+import tornado.web as web
+from tornado.platform.asyncio import AsyncIOMainLoop
 import asyncio
 import websockets
 import json
 import yaml
 import numpy as np
+import time
 
 from programs import Program, list_programs
 
@@ -39,6 +42,67 @@ async def raw_data(program_name):
     return programs[program_name].data.tolist()
 
 
+async def real_imag_data(program_name):
+    data = programs[program_name].data
+    par = programs[program_name].par
+    # deinterleave
+    data = data.astype(np.float32).view(np.complex64)
+    # phase
+    if 'phaseRx' in par:
+        data = data*np.exp(1j*np.pi*par['phaseRx']/180)
+    return {'real': data.real.tolist(), 'imag': data.imag.tolist(), 'unit': 'μV'}
+
+
+async def cpmg_int_data(program_name):
+    data = programs[program_name].data
+    par = programs[program_name].par
+    # deinterleave
+    data = data.astype(np.float32).view(np.complex64)
+    # phase
+    if 'phaseRx' in par:
+        data = data*np.exp(1j*np.pi*par['phaseRx']/180)
+
+    # number of samples per echo
+    samples = par['samples']
+    echoes = par['loops']
+    echo_time = (par['T180']+par['T2']+par['T3'])/1000000000.0
+
+    x = np.linspace(0, echoes*echo_time, echoes)
+    y = np.zeros(echoes, dtype=np.complex64)
+    for i in range(echoes):
+        y[i] = np.sum(data[i*samples:(i+1)*samples])
+    return {
+        'x': x.tolist(),
+        'y_real': y.real.tolist(),
+        'y_imag': y.imag.tolist(),
+        'x_unit': 's'}
+
+
+async def cpmg_echo_data(program_name):
+    data = programs[program_name].data
+    par = programs[program_name].par
+    # deinterleave
+    data = data.astype(np.float32).view(np.complex64)
+    # phase
+    if 'phaseRx' in par:
+        data = data*np.exp(1j*np.pi*par['phaseRx']/180)
+
+    samples = par['samples']
+    echoes = par['loops']
+    echo_time = (par['T180']+par['T2']+par['T3'])/1000000000.0
+    x = np.linspace(0, echo_time, samples)
+    y = np.zeros(samples, dtype=np.complex64)
+    for i in range(len(data)):
+        y[i%samples] += data[i]
+    y /= echoes
+    return {
+        'x': x.tolist(),
+        'y_real': y.real.tolist(),
+        'y_imag': y.imag.tolist(),
+        'x_unit': 's',
+        'y_unit': 'μV'}
+
+
 #
 # commands
 #
@@ -54,14 +118,14 @@ async def run(ws, program_name):
             'max': float(program.config_get('progress.limit')+1)})))
     await program.run(progress_handler=progress_handler)
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
-    await ws.send(json.dumps({'type': 'message', 'message': 'Program %s finished.' % name}))
+    #await ws.send(json.dumps({'type': 'message', 'message': 'Program %s finished.' % name}))
 
 
 async def set_parameters(ws, program_name, parameters):
     program = programs[program_name]
     for name, value in parameters.items():
         program.set_par(name, value)
-    await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
+    #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
 
 #
@@ -71,9 +135,11 @@ async def set_parameters(ws, program_name, parameters):
 async def consumer(websocket, message):
     data = json.loads(message)
     logger.debug(data)
+    t_i = time.time()
     if data['type'] == 'query':
         try:
             result = await globals()[data['query']](**data['args'])
+            logger.debug('generated result in %s seconds' % (time.time() - t_i))
             await websocket.send(json.dumps({
                 'type': 'result',
                 'ref': data['ref'],
@@ -84,12 +150,29 @@ async def consumer(websocket, message):
     elif data['type'] == 'command':
         try:
             await globals()[data['command']](websocket, **data['args'])
+            logger.debug('executed command in %s seconds' % (time.time() - t_i))
+            await websocket.send(json.dumps({
+                'type': 'finished',
+                'ref': data['ref'],
+            }))
         except Exception as e:
             logger.exception(e)
+    logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
         await consumer(websocket, message)
+
+# web server
+class Handler(web.StaticFileHandler):
+    def parse_url_path(self, url_path):
+        if not url_path:
+            url_path = 'client.html'
+        return url_path
+
+app = web.Application([
+    ('/(.*)', Handler, {'path': '/home/root/microspec-client'})
+])
 
 if __name__=='__main__':
     for name in list_programs():
@@ -97,7 +180,10 @@ if __name__=='__main__':
             programs[name] = Program(name)
         except Exception as e:
             logger.exception(e)
-
+    logger.debug('launching websocket server')
     asyncio.get_event_loop().run_until_complete(
         websockets.serve(consumer_handler, '0.0.0.0', 8765))
+    logger.debug('launching webserver')
+    AsyncIOMainLoop().install()
+    app.listen(80)
     asyncio.get_event_loop().run_forever()

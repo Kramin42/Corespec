@@ -22,7 +22,8 @@ output:
   type: FIFO
   dtype: int32
   offset: 0x100
-  length: ${{loops}*{samples}}
+  length: ${2*{loops}*{samples}}
+  scale_factor: ${0.00000267/{averages}}
 parameters:
   freqTx:
     offset: 0x80

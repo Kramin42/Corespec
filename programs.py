@@ -30,6 +30,7 @@ class Program:
             self._config = yaml.load(f.read())
         self.par = {}
         self._data_ready = False
+        self._data = None
 
     def set_par(self, name: str, value):
         # TODO: check/cast type with config['parameters'][name]['dtype']
@@ -66,10 +67,11 @@ class Program:
         # no heavy processing or blocking IO
         prev_progress = 0
         while self.status!=self.config_get('status.values.finished'):
-            cur_progress = self.progress
-            if progress_handler is not None and cur_progress!=prev_progress:
-                progress_handler(cur_progress)
-                prev_progress = cur_progress
+            if self.has_progress:
+                cur_progress = self.progress
+                if progress_handler is not None and cur_progress!=prev_progress:
+                    progress_handler(cur_progress)
+                    prev_progress = cur_progress
             await asyncio.sleep(0.1)
 
     async def run(self, progress_handler=None):
@@ -89,7 +91,8 @@ class Program:
 
         logger.debug('run: running')
         # reset progress
-        system.write_par(self.config_get('progress.offset'), 0)
+        if self.has_progress:
+            system.write_par(self.config_get('progress.offset'), 0)
         # set run action
         system.write_par(
             self.config_get('action.offset'),
@@ -99,6 +102,19 @@ class Program:
         # wait until status finished
         logger.debug('run: waiting until finished')
         await self.ensure_finished(progress_handler=progress_handler)
+        # read the data
+        logger.debug('reading data')
+        if self.config_get('output.type') == 'FIFO':
+            self._data = system.read_fifo(
+                self.config_get('output.offset'),
+                self.config_get('output.length'),
+                self.config_get('output.dtype'))
+        elif self.config_get('output.type') == 'DMA':
+            self._data = system.read_dma(
+                self.config_get('output.offset'),
+                self.config_get('output.length'),
+                self.config_get('output.dtype'))
+        self._data = self._data*self.config_get('output.scale_factor')
         self._data_ready = True
         logger.debug('run: finished')
 
@@ -106,20 +122,7 @@ class Program:
     def data(self):
         if not self._data_ready:
             raise Exception('Data is not ready to be read!')
-
-        # read the data
-        logger.debug('reading data')
-        if self.config_get('output.type') == 'FIFO':
-            data = system.read_fifo(
-                self.config_get('output.offset'),
-                self.config_get('output.length'),
-                self.config_get('output.dtype'))
-        elif self.config_get('output.type') == 'DMA':
-            data = system.read_dma(
-                self.config_get('output.offset'),
-                self.config_get('output.length'),
-                self.config_get('output.dtype'))
-        return data # don't let them change our data!
+        return np.copy(self._data) # don't let them change our data!
 
     @property
     def status(self):
@@ -128,6 +131,10 @@ class Program:
     @property
     def progress(self):
         return system.read_par(self.config_get('progress.offset'))
+
+    @property
+    def has_progress(self):
+        return 'progress' in self._config
 
 # safe evaluation for computed properties
 # supported operators

@@ -75,10 +75,10 @@ def read_dma(
         offset: int,
         length: int,
         dtype=np.dtype(np.int32)) -> np.ndarray:
-    # length and offset are relative to the dtype size
+    # length is relative to the dtype size
+    # offset is absolute
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
-    offset *= dtype.itemsize
     with open('/dev/mem', 'r+b') as f:
         mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
         data = np.frombuffer(mem[offset:offset+length], dtype=dtype)
@@ -89,9 +89,9 @@ def read_fifo(
         offset: int,
         length: int,
         dtype=np.dtype(np.int32)) -> np.ndarray:
-    # length and offset are relative to the dtype size
+    # length is relative to the dtype size
+    # offset is absolute
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
-    offset *= dtype.itemsize
     data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)
     return data
