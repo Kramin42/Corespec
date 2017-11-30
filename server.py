@@ -103,6 +103,34 @@ async def cpmg_echo_data(program_name):
         'y_unit': 'μV'}
 
 
+async def wobble_data(program_name):
+    data = programs[program_name].data
+    par = programs[program_name].par
+
+    width = par['bandwidth']
+    center = par['freqTx']
+
+    y = data.astype(np.float32)
+    x = np.linspace(center-width/2, center+width/2, len(y))
+    return {
+        'x': x.tolist(),
+        'y': y.tolist(),
+        'x_unit': 'MHz'}
+
+
+async def noise_data(program_name):
+    data = programs[program_name].data
+
+    y = data.astype(np.float32).view(np.complex64)
+    x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
+    return {
+        'x': x.tolist(),
+        'y': y.real.tolist(),
+        'rms': np.sqrt(np.mean(np.abs(y)**2)).item(),
+        'y_unit': 'μV',
+        'x_unit': 'μs'}
+
+
 #
 # commands
 #

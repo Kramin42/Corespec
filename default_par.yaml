@@ -16,3 +16,4 @@ samples: 64
 ignore_samples: 7
 decimation: 50
 averages: 4
+bandwidth: 2.0
