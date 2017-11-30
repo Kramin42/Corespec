@@ -4,7 +4,7 @@ import asyncio
 
 import hardware.system as system
 import logging
-from programs import list_programs, Program
+from program import list_programs, Program
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)

@@ -10,7 +10,7 @@ import yaml
 import numpy as np
 import time
 
-from programs import Program, list_programs
+from program import Program, list_programs
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
