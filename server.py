@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.6
 
+import os
 import logging
 import tornado.web as web
 from tornado.platform.asyncio import AsyncIOMainLoop
@@ -18,6 +19,8 @@ logger.setLevel(logging.DEBUG)
 
 DEFAULT_PARAMETER_FILE = 'default_par.yaml'
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 programs = {}
 
 
@@ -34,7 +37,7 @@ async def program_metadata():
 
 
 async def default_parameters():
-    with open(DEFAULT_PARAMETER_FILE, 'r') as f:
+    with open(os.path.join(dir_path, DEFAULT_PARAMETER_FILE), 'r') as f:
         return yaml.load(f.read())
 
 
