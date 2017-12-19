@@ -27,6 +27,9 @@ output:
 parameters:
   frequency:
     dtype: float64
+  phaseRx:
+    offset: 0x90
+    dtype: float64
   A90:
     offset: 0x98
     dtype: float32
@@ -83,10 +86,6 @@ derived_parameters:
     offset: 0x88
     dtype: float64
     value: ${{frequency}}
-  phaseRx:
-    offset: 0x90
-    dtype: float64
-    value: 0
   P90:
     offset: 0x9c
     dtype: float32

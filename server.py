@@ -78,6 +78,7 @@ async def cpmg_int_data(program_name):
         'x': x.tolist(),
         'y_real': y.real.tolist(),
         'y_imag': y.imag.tolist(),
+        'y_mag': np.absolute(y).tolist(),
         'x_unit': 's'}
 
 
