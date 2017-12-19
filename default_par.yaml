@@ -1,4 +1,4 @@
-frequency: 17.1
+frequency: 2.037
 A90: 0.6
 A180: 1.0
 T90: 5500
@@ -10,4 +10,4 @@ loops: 250
 samples: 64
 decimation: 50
 averages: 4
-bandwidth: 2.0
+bandwidth: 0.5

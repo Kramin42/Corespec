@@ -112,8 +112,10 @@ async def wobble_data(program_name):
 
     width = par['bandwidth']
     center = par['freqTx']
+    samples = par['samples']
 
     y = data.astype(np.float32)
+    y = np.mean(y.reshape(-1, samples), axis=1)
     x = np.linspace(center-width/2, center+width/2, len(y))
     return {
         'x': x.tolist(),
