@@ -91,13 +91,13 @@ class Program:
                     par_def[par_name]['dtype'])
         
         logger.debug('run: writing derived parameters')
-        for par_name in config.get('derived_parameters'):
-            self.par[par_name] = config.get('derived_parameters.'+par_name+'.value')
-            if 'offset' in config.get('derived_parameters.'+par_name):
+        for par_name in self.config_get('derived_parameters'):
+            self.par[par_name] = self.config_get('derived_parameters.'+par_name+'.value')
+            if 'offset' in self.config_get('derived_parameters.'+par_name):
                 system.write_par(
-                    config.get('derived_parameters.'+par_name+'.offset'),
+                    self.config_get('derived_parameters.'+par_name+'.offset'),
                     self.par[par_name],
-                    config.get('derived_parameters.'+par_name+'.dtype'))
+                    self.config_get('derived_parameters.'+par_name+'.dtype'))
 
         logger.debug('run: running')
         # reset progress

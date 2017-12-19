@@ -94,4 +94,4 @@ derived_parameters:
   P180:
     offset: 0xa4
     dtype: float32
-    value: 90
+    value: 180
