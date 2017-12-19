@@ -81,13 +81,23 @@ class Program:
         logger.debug('run: writing ELF')
         system.write_elf(os.path.join(self._dir, self.config_get('executable')))
 
-        logger.debug('run: writing parameters')
+        logger.debug('run: writing user parameters')
         par_def = self.config_get('parameters')
         for par_name in par_def:
-            system.write_par(
-                par_def[par_name]['offset'],
-                self.par[par_name],
-                par_def[par_name]['dtype'])
+            if 'offset' in par_def[par_name]:
+                system.write_par(
+                    par_def[par_name]['offset'],
+                    self.par[par_name],
+                    par_def[par_name]['dtype'])
+        
+        logger.debug('run: writing derived parameters')
+        for par_name in config.get('derived_parameters'):
+            self.par[par_name] = config.get('derived_parameters.'+par_name+'.value')
+            if 'offset' in config.get('derived_parameters.'+par_name):
+                system.write_par(
+                    config.get('derived_parameters.'+par_name+'.offset'),
+                    self.par[par_name],
+                    config.get('derived_parameters.'+par_name+'.dtype'))
 
         logger.debug('run: running')
         # reset progress

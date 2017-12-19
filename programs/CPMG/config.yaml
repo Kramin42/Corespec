@@ -25,26 +25,13 @@ output:
   length: ${2*{loops}*{samples}}
   scale_factor: ${0.00000267/{averages}}
 parameters:
-  freqTx:
-    offset: 0x80
-    dtype: float64
-  freqRx:
-    offset: 0x88
-    dtype: float64
-  phaseRx:
-    offset: 0x90
+  frequency:
     dtype: float64
   A90:
     offset: 0x98
     dtype: float32
-  P90:
-    offset: 0x9c
-    dtype: float32
   A180:
     offset: 0xa0
-    dtype: float32
-  P180:
-    offset: 0xa4
     dtype: float32
   T90:
     offset: 0xa8
@@ -52,15 +39,10 @@ parameters:
   T180:
     offset: 0xac
     dtype: uint32
-  T1:
-    offset: 0xb0
+  Techo:
     dtype: uint32
-  T2:
-    offset: 0xb4
-    dtype: uint32
-  T3:
-    offset: 0xb8
-    dtype: uint32
+  echo_shift:
+    dtype: int32
   Tend:
     offset: 0xbc
     dtype: uint32
@@ -70,12 +52,46 @@ parameters:
   samples:
     offset: 0xc4
     dtype: uint32
-  ignore_samples:
-    offset: 0xc8
-    dtype: uint32
   decimation:
     offset: 0xcc
     dtype: uint32
   averages:
     offset: 0xd0
     dtype: uint32
+derived_parameters:
+  T1:
+    offset: 0xb0
+    dtype: uint32
+    value: ${({Techo} - {T90} - {T180})/2}
+  T2:
+    offset: 0xb4
+    dtype: uint32
+    value: ${({Techo} - {T180} - {samples}*{decimation}*10)/2 + {echo_shift}}
+  T3:
+    offset: 0xb8
+    dtype: uint32
+    value: ${({Techo} - {T180} + {samples}*{decimation}*10)/2 - {echo_shift}}
+  ignore_samples:
+    offset: 0xc8
+    dtype: uint32
+    value: 7
+  freqTx:
+    offset: 0x80
+    dtype: float64
+    value: ${{frequency}}
+  freqRx:
+    offset: 0x88
+    dtype: float64
+    value: ${{frequency}}
+  phaseRx:
+    offset: 0x90
+    dtype: float64
+    value: 0
+  P90:
+    offset: 0x9c
+    dtype: float32
+    value: 90
+  P180:
+    offset: 0xa4
+    dtype: float32
+    value: 90
