@@ -1,4 +1,4 @@
-frequency: 2.035
+frequency: 2.045
 phaseRx: 0
 A90: 0.25
 A180: 0.5
@@ -12,3 +12,5 @@ samples: 64
 decimation: 50
 averages: 4
 bandwidth: 0.5
+acq_delay: 0
+Tdamp: 15000
