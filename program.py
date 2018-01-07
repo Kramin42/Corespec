@@ -80,15 +80,31 @@ class Program:
 
         logger.debug('run: writing ELF')
         system.write_elf(os.path.join(self._dir, self.config_get('executable')))
-
-        logger.debug('run: writing parameters')
-        par_def = self.config_get('parameters')
-        for par_name in par_def:
-            system.write_par(
-                par_def[par_name]['offset'],
-                self.par[par_name],
-                par_def[par_name]['dtype'])
-
+        
+        try:
+            logger.debug('run: writing user parameters')
+            par_def = self.config_get('parameters')
+            for par_name in par_def:
+                if 'offset' in par_def[par_name]:
+                    system.write_par(
+                        par_def[par_name]['offset'],
+                        self.par[par_name],
+                        par_def[par_name]['dtype'])
+        except KeyError as e:
+            logger.warning(e)
+        
+        try:
+            logger.debug('run: writing derived parameters')
+            for par_name in self.config_get('derived_parameters'):
+                self.par[par_name] = self.config_get('derived_parameters.'+par_name+'.value')
+                if 'offset' in self.config_get('derived_parameters.'+par_name):
+                    system.write_par(
+                        self.config_get('derived_parameters.'+par_name+'.offset'),
+                        self.par[par_name],
+                        self.config_get('derived_parameters.'+par_name+'.dtype'))
+        except KeyError as e:
+            logger.warning('Key Error: %s' % e)
+        
         logger.debug('run: running')
         # reset progress
         if self.has_progress:

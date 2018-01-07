@@ -1,8 +1,8 @@
-# CPMG experiment configuration
+# FID experiment configuration
 ---
 description:
-  A CPMG experiment.
-executable: CPMG_FIFO_phcycled_2016.elf
+  A FID experiment.
+executable: FID_FIFO.elf
 action:
   offset: 0x0
   values:
@@ -22,7 +22,7 @@ output:
   type: FIFO
   dtype: int32
   offset: 0x100
-  length: ${2*{loops}*{samples}}
+  length: ${2*{samples}}
   scale_factor: ${0.00000267/{averages}}
 parameters:
   frequency:
@@ -33,27 +33,17 @@ parameters:
   A90:
     offset: 0x98
     dtype: float32
-  A180:
-    offset: 0xa0
-    dtype: float32
   T90:
     offset: 0xa8
-    dtype: uint32
-  T180:
-    offset: 0xac
     dtype: uint32
   Tdamp:
     offset: 0xd4
     dtype: uint32
-  Techo:
+  acq_delay:
+    offset: 0xb0
     dtype: uint32
-  echo_shift:
-    dtype: int32
   Tend:
     offset: 0xbc
-    dtype: uint32
-  loops:
-    offset: 0xc0
     dtype: uint32
   samples:
     offset: 0xc4
@@ -65,18 +55,6 @@ parameters:
     offset: 0xd0
     dtype: uint32
 derived_parameters:
-  T1:
-    offset: 0xb0
-    dtype: uint32
-    value: ${({Techo} - {T90} - {Tdamp} - {T180} - {Tdamp})/2}
-  T2:
-    offset: 0xb4
-    dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} - {samples}*{decimation}*10)/2 + {echo_shift}}
-  T3:
-    offset: 0xb8
-    dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} + {samples}*{decimation}*10)/2 - {echo_shift}}
   ignore_samples:
     offset: 0xc8
     dtype: uint32
@@ -93,7 +71,3 @@ derived_parameters:
     offset: 0x9c
     dtype: float32
     value: 90
-  P180:
-    offset: 0xa4
-    dtype: float32
-    value: 180
