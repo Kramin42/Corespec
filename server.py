@@ -190,6 +190,7 @@ async def consumer(websocket, message):
                 'ref': data['ref'],
             }))
         except Exception as e:
+            await websocket.send(json.dumps({'type': 'error', 'message': str(e)}))
             logger.exception(e)
     logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
@@ -205,7 +206,7 @@ class Handler(web.StaticFileHandler):
         return url_path
 
 app = web.Application([
-    ('/(.*)', Handler, {'path': '/home/root/microspec-client'})
+    ('/(.*)', Handler, {'path': '../microspec-client'})
 ])
 
 if __name__=='__main__':

@@ -2,6 +2,7 @@
 # Email: dykstra.cameron@gmail.com
 
 import os
+import shutil
 import re
 import ast
 import operator as op
@@ -10,14 +11,29 @@ import logging
 import yaml
 import numpy as np
 
-from hardware import system
-
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 programs_dir = os.path.join(dir_path, 'programs')
+
+CONFIG = {}
+def load_global_config():
+    global CONFIG
+    with open(os.path.join(dir_path, 'config.yaml'), 'r') as f:
+        CONFIG = yaml.load(f.read())
+
+try:
+    load_global_config()
+except IOError:
+    shutil.copyfile(os.path.join(dir_path, 'default_config.yaml'), os.path.join(dir_path, 'config.yaml'))
+    load_global_config()
+
+if CONFIG['dummy_hardware']:
+    from dummy import system
+else:
+    from hardware import system
 
 def list_programs():
     return os.listdir(programs_dir)
@@ -29,6 +45,7 @@ class Program:
         with open(os.path.join(self._dir, 'config.yaml'), 'r') as f:
             self._config = yaml.load(f.read())
         self.par = {}
+        self.par_deps = {}
         self._data_ready = False
         self._data = None
 
@@ -57,10 +74,30 @@ class Program:
             if m is not None:
                 pieces = re.split('\{([^{}]*)\}',m.group(1))
                 # now replace odd numbered pieces with appropriate parameter values
+                deps = []
                 for i in range(1,len(pieces),2):
+                    deps.append(pieces[i])
                     pieces[i] = str(self.par[pieces[i]])
+                self.par_deps[key] = deps # update dependency tracking
+                logger.debug('setting %s deps to %s' % (key, ','.join(deps)))
                 result = safe_eval(''.join(pieces))
         return result
+
+    def expand_par_deps(self, key):
+        deps = self.par_deps[key]
+        done = False
+        while not done:
+            logger.debug(deps)
+            done = True
+            new_deps = []
+            for par_name in deps:
+                if 'derived_parameters.'+par_name+'.value' in self.par_deps:
+                    new_deps+=self.par_deps['derived_parameters.'+par_name+'.value']
+                    done = False
+                else:
+                    new_deps.append(par_name)
+            deps = new_deps
+        return deps
 
     async def ensure_finished(self, progress_handler=None):
         # progress_handler should return quickly:
@@ -85,6 +122,14 @@ class Program:
             logger.debug('run: writing user parameters')
             par_def = self.config_get('parameters')
             for par_name in par_def:
+                if 'min' in self.config_get('parameters.'+par_name):
+                    min = self.config_get('parameters.'+par_name+'.min')
+                    if self.par[par_name] < min:
+                        raise Exception('Parameter too small: %s=%s < %s' % (par_name, self.par[par_name], min))
+                if 'max' in self.config_get('parameters.'+par_name):
+                    max = self.config_get('parameters.'+par_name+'.max')
+                    if self.par[par_name] > max:
+                        raise Exception('Parameter too large: %s=%s > %s' % (par_name, self.par[par_name], max))
                 if 'offset' in par_def[par_name]:
                     system.write_par(
                         par_def[par_name]['offset'],
@@ -97,6 +142,18 @@ class Program:
             logger.debug('run: writing derived parameters')
             for par_name in self.config_get('derived_parameters'):
                 self.par[par_name] = self.config_get('derived_parameters.'+par_name+'.value')
+                if 'min' in self.config_get('derived_parameters.'+par_name):
+                    min = self.config_get('derived_parameters.'+par_name+'.min')
+                    if self.par[par_name] < min:
+                        raise Exception('Derived parameter too small: %s=%s < %s, derived from: %s' %
+                                        (par_name, self.par[par_name], min,
+                                         ', '.join(self.expand_par_deps('derived_parameters.' + par_name + '.value'))))
+                if 'max' in self.config_get('derived_parameters.'+par_name):
+                    max = self.config_get('derived_parameters.'+par_name+'.max')
+                    if self.par[par_name] > max:
+                        raise Exception('Derived parameter too large: %s=%s > %s, derived from: %s' %
+                                        (par_name, self.par[par_name], max,
+                                         ', '.join(self.expand_par_deps('derived_parameters.' + par_name + '.value'))))
                 if 'offset' in self.config_get('derived_parameters.'+par_name):
                     system.write_par(
                         self.config_get('derived_parameters.'+par_name+'.offset'),

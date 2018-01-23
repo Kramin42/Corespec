@@ -33,50 +33,69 @@ parameters:
   A90:
     offset: 0x98
     dtype: float32
+    min: 0
+    max: 1
   A180:
     offset: 0xa0
     dtype: float32
+    min: 0
+    max: 1
   T90:
     offset: 0xa8
     dtype: uint32
+    min: 0
   T180:
     offset: 0xac
     dtype: uint32
+    min: 0
   Tdamp:
     offset: 0xd4
     dtype: uint32
+    min: 0
   Techo:
     dtype: uint32
+    min: 0
   echo_shift:
     dtype: int32
   Tend:
     offset: 0xbc
     dtype: uint32
+    min: 0
   loops:
     offset: 0xc0
     dtype: uint32
+    min: 1
   samples:
     offset: 0xc4
     dtype: uint32
+    min: 1
   decimation:
     offset: 0xcc
     dtype: uint32
+    min: 1
   averages:
     offset: 0xd0
     dtype: uint32
+    min: 1
 derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
     value: ${({Techo} - {T90} - {Tdamp} - {T180} - {Tdamp})/2}
+    min: 0
   T2:
     offset: 0xb4
     dtype: uint32
     value: ${({Techo} - {T180} - {Tdamp} - {samples}*{decimation}*10)/2 + {echo_shift}}
+    min: 0
   T3:
     offset: 0xb8
     dtype: uint32
     value: ${({Techo} - {T180} - {Tdamp} + {samples}*{decimation}*10)/2 - {echo_shift}}
+    min: 0
+  duty_cycle:
+    value: ${{T180}/{Techo}}
+    max: 0.5
   ignore_samples:
     offset: 0xc8
     dtype: uint32
