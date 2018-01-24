@@ -1,5 +1,4 @@
-# CPMG experiment configuration
----
+# CPMG program configuration
 description:
   A CPMG experiment.
 executable: CPMG_FIFO_phcycled_2016.elf
@@ -44,10 +43,12 @@ parameters:
     offset: 0xa8
     dtype: uint32
     min: 0
+    max: 500000
   T180:
     offset: 0xac
     dtype: uint32
     min: 0
+    max: 500000
   Tdamp:
     offset: 0xd4
     dtype: uint32

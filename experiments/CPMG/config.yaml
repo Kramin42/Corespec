@@ -1,0 +1,5 @@
+# CPMG experiment configuration
+description:
+  A CPMG experiment.
+programs:
+  - CPMG
