@@ -1,0 +1,5 @@
+# Wobble experiment configuration
+description:
+  A Wobble experiment.
+programs:
+  - Wobble

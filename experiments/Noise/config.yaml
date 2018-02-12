@@ -1,0 +1,5 @@
+# Noise experiment configuration
+description:
+  A Noise experiment.
+programs:
+  - Noise
