@@ -52,7 +52,7 @@ parameters:
   Tdamp:
     offset: 0xd4
     dtype: uint32
-    min: 0
+    min: 500
   Techo:
     dtype: uint32
     min: 0

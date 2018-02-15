@@ -106,7 +106,7 @@ class Program:
             if self.has_progress:
                 cur_progress = self.progress
                 if progress_handler is not None and cur_progress!=prev_progress:
-                    progress_handler(cur_progress)
+                    progress_handler(cur_progress, self.config_get('progress.limit')+1)
                     prev_progress = cur_progress
             await asyncio.sleep(0.1)
 

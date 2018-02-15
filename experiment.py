@@ -32,8 +32,15 @@ class BaseExperiment:
         self.programs = {}
         for prog_name in self._config['programs']:
             self.programs[prog_name] = Program(prog_name)
+        self.exports = {f.replace('export_',''): getattr(self, f)
+                        for f in dir(self) if callable(getattr(self, f))
+                        and f.startswith('export_')}
+        self.plots = {f.replace('plot_',''): getattr(self, f)
+                      for f in dir(self) if callable(getattr(self, f))
+                      and f.startswith('plot_')}
     
     # must be overridden
+    # progress_handler takes arguments (progress, limit)
     async def run(self, progress_handler=None):
         pass
     
@@ -46,7 +53,9 @@ class BaseExperiment:
                 merged_pars[par_name] = par
         return {'name': self.name,
                 'description': self._config['description'],
-                'parameters': merged_pars}
+                'parameters': merged_pars,
+                'exports': self.exports,
+                'plots': self.plots}
     
     # may be overridden in conjunction with get_metadata() 
     def set_parameters(self, parameters):

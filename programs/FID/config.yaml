@@ -39,9 +39,11 @@ parameters:
   Tdamp:
     offset: 0xd4
     dtype: uint32
+    min: 500
   acq_delay:
     offset: 0xb0
     dtype: uint32
+    min: 500
   Tend:
     offset: 0xbc
     dtype: uint32
