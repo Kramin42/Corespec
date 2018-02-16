@@ -54,8 +54,8 @@ class BaseExperiment:
         return {'name': self.name,
                 'description': self._config['description'],
                 'parameters': merged_pars,
-                'exports': self.exports,
-                'plots': self.plots}
+                'exports': list(self.exports.keys()),
+                'plots': list(self.plots.keys())}
     
     # may be overridden in conjunction with get_metadata() 
     def set_parameters(self, parameters):

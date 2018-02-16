@@ -36,13 +36,43 @@ async def default_parameters():
     with open(os.path.join(dir_path, DEFAULT_PARAMETER_FILE), 'r') as f:
         return yaml.load(f.read())
 
+async def export(experiment_name, export_name):
+    return experiments[experiment_name].exports[export_name]()
+
+async def plot(experiment_name, plot_name):
+    return experiments[experiment_name].plots[plot_name]()
+
+async def export_csv(experiment_name, export_name):
+    data = experiments[experiment_name].exports[export_name]()
+    csv = ''
+    row = data.keys()
+    rownum = 0
+    done = False
+    while not done:
+        csv += ','.join(row) + '\n'
+        done = True
+        row = []
+        for k, v in data.items():
+            if type(v) is str:
+                if rownum==0:
+                    row.append(v)
+                else:
+                    row.append('')
+            else:
+                if rownum < len(v):
+                    done = False
+                    row.append(str(v[rownum]))
+                else:
+                    row.append('')
+        rownum += 1
+    return csv
 
 #
 # commands
 #
 
-async def run(ws, exp_name):
-    experiment = experiments[exp_name]
+async def run(ws, experiment_name):
+    experiment = experiments[experiment_name]
     def progress_handler(progress, limit=0):
         # fire and forget
         asyncio.ensure_future(ws.send(json.dumps({
@@ -50,13 +80,14 @@ async def run(ws, exp_name):
             'finished': False,
             'progress': progress,
             'max': limit
+        })))
     await experiment.run(progress_handler=progress_handler)
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
-    await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % exp_name}))
+    await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
 
-async def set_parameters(ws, exp_name, parameters):
-    experiments[exp_name].set_parameters(parameters)
+async def set_parameters(ws, experiment_name, parameters):
+    experiments[experiment_name].set_parameters(parameters)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
 
@@ -108,9 +139,9 @@ app = web.Application([
 ])
 
 if __name__=='__main__':
-    for name in list_programs():
+    for name in list_experiments():
         try:
-            programs[name] = Program(name)
+            experiments[name] = load_experiment(name)
         except Exception as e:
             logger.exception(e)
     logger.debug('launching websocket server')

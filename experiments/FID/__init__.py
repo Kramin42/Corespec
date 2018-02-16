@@ -20,7 +20,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
         data = self.programs['FID'].data
-        par = self.programs['CPMG'].par
+        par = self.programs['FID'].par
         
         y = data.astype(np.float32).view(np.complex64)
         # phase
