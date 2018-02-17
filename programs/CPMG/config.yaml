@@ -82,17 +82,17 @@ derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${({Techo} - {T90} - {Tdamp} - {T180} - {Tdamp})/2}
+    value: ${({Techo} - {T90} - {Tdamp} - 2000 - {T180} - {Tdamp} - 2000)/2}
     min: 0
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} - {samples}*{decimation}*10)/2 + {echo_shift}}
+    value: ${({Techo} - {T180} - {Tdamp} - 2000 - {samples}*{decimation}*10)/2 + {echo_shift}}
     min: 0
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} + {samples}*{decimation}*10)/2 - {echo_shift}}
+    value: ${({Techo} - {T180} - {Tdamp} - 2000 + {samples}*{decimation}*10)/2 - {echo_shift}}
     min: 0
   duty_cycle:
     value: ${{T180}/{Techo}}
