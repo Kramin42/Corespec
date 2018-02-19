@@ -1,5 +1,4 @@
-# CPMG experiment configuration
----
+# CPMG program configuration
 description:
   A CPMG experiment.
 executable: CPMG_FIFO_phcycled_2016.elf
@@ -44,14 +43,16 @@ parameters:
     offset: 0xa8
     dtype: uint32
     min: 0
+    max: 500000
   T180:
     offset: 0xac
     dtype: uint32
     min: 0
+    max: 500000
   Tdamp:
     offset: 0xd4
     dtype: uint32
-    min: 0
+    min: 500
   Techo:
     dtype: uint32
     min: 0
@@ -81,17 +82,17 @@ derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${({Techo} - {T90} - {Tdamp} - {T180} - {Tdamp})/2}
+    value: ${({Techo} - {T90} - {Tdamp} - 2000 - {T180} - {Tdamp} - 2000)/2}
     min: 0
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} - {samples}*{decimation}*10)/2 + {echo_shift}}
+    value: ${({Techo} - {T180} - {Tdamp} - 2000 - {samples}*{decimation}*10)/2 + {echo_shift}}
     min: 0
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} + {samples}*{decimation}*10)/2 - {echo_shift}}
+    value: ${({Techo} - {T180} - {Tdamp} - 2000 + {samples}*{decimation}*10)/2 - {echo_shift}}
     min: 0
   duty_cycle:
     value: ${{T180}/{Techo}}

@@ -1,0 +1,5 @@
+# FID experiment configuration
+description:
+  A FID experiment.
+programs:
+  - FID

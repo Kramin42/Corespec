@@ -11,7 +11,7 @@ import yaml
 import numpy as np
 import time
 
-from program import Program, list_programs
+from experiment import list_experiments, load_experiment
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -21,144 +21,73 @@ DEFAULT_PARAMETER_FILE = 'default_par.yaml'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-programs = {}
+experiments = {}
 
 
 #
 # queries
 #
 
-async def program_metadata():
-    return [{
-        'name': p.name,
-        'description': p.config_get('description'),
-        'parameters': p.config_get('parameters')
-    } for k,p in programs.items()]
+async def experiment_metadata():
+    return [exp.get_metadata() for k,exp in experiments.items()]
 
 
 async def default_parameters():
     with open(os.path.join(dir_path, DEFAULT_PARAMETER_FILE), 'r') as f:
         return yaml.load(f.read())
 
+async def export(experiment_name, export_name):
+    return experiments[experiment_name].exports[export_name]()
 
-async def raw_data(program_name):
-    return programs[program_name].data.tolist()
+async def plot(experiment_name, plot_name):
+    return experiments[experiment_name].plots[plot_name]()
 
-
-async def real_imag_data(program_name):
-    data = programs[program_name].data
-    par = programs[program_name].par
-    # deinterleave
-    data = data.astype(np.float32).view(np.complex64)
-    # phase
-    if 'phaseRx' in par:
-        data = data*np.exp(1j*np.pi*par['phaseRx']/180)
-    return {'real': data.real.tolist(), 'imag': data.imag.tolist(), 'unit': 'μV'}
-
-
-async def cpmg_int_data(program_name):
-    data = programs[program_name].data
-    par = programs[program_name].par
-    # deinterleave
-    data = data.astype(np.float32).view(np.complex64)
-    # phase
-    if 'phaseRx' in par:
-        data = data*np.exp(1j*np.pi*par['phaseRx']/180)
-
-    # number of samples per echo
-    samples = par['samples']
-    echoes = par['loops']
-    echo_time = (par['T180']+par['T2']+par['T3'])/1000000000.0
-
-    x = np.linspace(0, echoes*echo_time, echoes)
-    y = np.zeros(echoes, dtype=np.complex64)
-    for i in range(echoes):
-        y[i] = np.sum(data[i*samples:(i+1)*samples])
-    return {
-        'x': x.tolist(),
-        'y_real': y.real.tolist(),
-        'y_imag': y.imag.tolist(),
-        'y_mag': np.absolute(y).tolist(),
-        'x_unit': 's'}
-
-
-async def cpmg_echo_data(program_name):
-    data = programs[program_name].data
-    par = programs[program_name].par
-    # deinterleave
-    data = data.astype(np.float32).view(np.complex64)
-    # phase
-    if 'phaseRx' in par:
-        data = data*np.exp(1j*np.pi*par['phaseRx']/180)
-
-    samples = par['samples']
-    echoes = par['loops']
-    echo_time = (par['T180']+par['T2']+par['T3'])/1000000000.0
-    x = np.linspace(0, echo_time, samples)
-    y = np.zeros(samples, dtype=np.complex64)
-    for i in range(len(data)):
-        y[i%samples] += data[i]
-    y /= echoes
-    return {
-        'x': x.tolist(),
-        'y_real': y.real.tolist(),
-        'y_imag': y.imag.tolist(),
-        'x_unit': 's',
-        'y_unit': 'μV'}
-
-
-async def wobble_data(program_name):
-    data = programs[program_name].data
-    par = programs[program_name].par
-
-    width = par['bandwidth']
-    center = par['freqTx']
-    samples = par['samples']
-
-    y = data.astype(np.float32)
-    y = np.mean(y.reshape(-1, samples), axis=1)
-    x = np.linspace(center-width/2, center+width/2, len(y))
-    return {
-        'x': x.tolist(),
-        'y': y.tolist(),
-        'x_unit': 'MHz'}
-
-
-async def noise_data(program_name):
-    data = programs[program_name].data
-
-    y = data.astype(np.float32).view(np.complex64)
-    x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
-    return {
-        'x': x.tolist(),
-        'y': y.real.tolist(),
-        'rms': np.sqrt(np.mean(np.abs(y)**2)).item(),
-        'y_unit': 'μV',
-        'x_unit': 'μs'}
-
+async def export_csv(experiment_name, export_name):
+    data = experiments[experiment_name].exports[export_name]()
+    csv = ''
+    row = data.keys()
+    rownum = 0
+    done = False
+    while not done:
+        csv += ','.join(row) + '\n'
+        done = True
+        row = []
+        for k, v in data.items():
+            if type(v) is str:
+                if rownum==0:
+                    row.append(v)
+                else:
+                    row.append('')
+            else:
+                if rownum < len(v):
+                    done = False
+                    row.append(str(v[rownum]))
+                else:
+                    row.append('')
+        rownum += 1
+    return csv
 
 #
 # commands
 #
 
-async def run(ws, program_name):
-    program = programs[program_name]
-    def progress_handler(progress):
+async def run(ws, experiment_name):
+    experiment = experiments[experiment_name]
+    def progress_handler(progress, limit=0):
         # fire and forget
         asyncio.ensure_future(ws.send(json.dumps({
             'type': 'progress',
             'finished': False,
-            'progress': float(progress),
-            'max': float(program.config_get('progress.limit')+1)})))
-    await program.run(progress_handler=progress_handler)
+            'progress': int(progress),
+            'max': int(limit)
+        })))
+    await experiment.run(progress_handler=progress_handler)
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
-    #await ws.send(json.dumps({'type': 'message', 'message': 'Program %s finished.' % name}))
+    await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
 
-async def set_parameters(ws, program_name, parameters):
-    program = programs[program_name]
-    for name, value in parameters.items():
-        program.set_par(name, value)
+async def set_parameters(ws, experiment_name, parameters):
+    experiments[experiment_name].set_parameters(parameters)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
 
@@ -206,13 +135,13 @@ class Handler(web.StaticFileHandler):
         return url_path
 
 app = web.Application([
-    ('/(.*)', Handler, {'path': '../microspec-client'})
+    ('/(.*)', Handler, {'path': '/home/root/microspec-client'})
 ])
 
 if __name__=='__main__':
-    for name in list_programs():
+    for name in list_experiments():
         try:
-            programs[name] = Program(name)
+            experiments[name] = load_experiment(name)
         except Exception as e:
             logger.exception(e)
     logger.debug('launching websocket server')
