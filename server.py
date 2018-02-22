@@ -78,8 +78,8 @@ async def run(ws, experiment_name):
         asyncio.ensure_future(ws.send(json.dumps({
             'type': 'progress',
             'finished': False,
-            'progress': progress,
-            'max': limit
+            'progress': int(progress),
+            'max': int(limit)
         })))
     await experiment.run(progress_handler=progress_handler)
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
@@ -135,7 +135,7 @@ class Handler(web.StaticFileHandler):
         return url_path
 
 app = web.Application([
-    ('/(.*)', Handler, {'path': '../microspec-client'})
+    ('/(.*)', Handler, {'path': '/home/root/microspec-client'})
 ])
 
 if __name__=='__main__':
