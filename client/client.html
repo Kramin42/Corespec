@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <title>Microspec</title>
+  <meta charset="utf-8">
+  <link href="client.css" rel="stylesheet">
+  <!-- Plotly.js -->
+  <script type="text/javascript" src="plotly-latest.min.js"></script>
+  <!-- Client code -->
+  <script type="text/javascript" src="client.js"></script>
+</head>
+<body>
+  <div id="experiment_tabs" class="tab">
+    <template id="experiment_tab_template">
+      <button class="tablinks"></button>
+    </template>
+  </div>
+
+  <div id="experiment_panes">
+    <template id="experiment_pane_template">
+      <div id="" class="tabcontent">
+        <!-- plot -->
+        <div class="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
+        <select class="plot-list"></select>
+        <!-- progress bar -->
+        <progress value="0" max="100"></progress><br>
+        <!-- control buttons -->
+        <button class="get-default-parameters">Get Default Parameters</button>
+        <button class="run-experiment">Run</button>
+        <button class="run-experiment-continuously">Run Continuous</button>
+        <button class="abort-experiment">Abort</button>
+        <br>
+        <select class="export-list"></select>
+        <button class="btn-export">Save Data</button>
+        <!-- parameters -->
+        <ul class="parameters">
+        </ul>
+      </div>
+    </template>
+    <template id="parameter_template">
+      <li>
+        <label for=""></label>
+        <input type="number" id="" name="">
+      </li>
+    </template>
+  </div>
+
+  <div id='message_box'>
+  </div>
+
+  <hr/>
+  <input type="button" name="connect" value="connect" onclick="connect()"></p>
+</body>
+</html>
