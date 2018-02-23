@@ -30,6 +30,7 @@ class BaseExperiment:
         with open(os.path.join(self._dir, 'config.yaml'), 'r') as f:
             self._config = yaml.load(f.read())
         self.programs = {}
+        self.par = {}
         for prog_name in self._config['programs']:
             self.programs[prog_name] = Program(prog_name)
         self.exports = {f.replace('export_',''): getattr(self, f)
@@ -43,7 +44,18 @@ class BaseExperiment:
     # progress_handler takes arguments (progress, limit)
     async def run(self, progress_handler=None):
         pass
-    
+
+    # must be overridden, must return a numpy array
+    def raw_data(self):
+        pass
+
+    def save(self, dir):
+        np.save(os.path.join(dir, 'raw.npy'), self.raw_data())
+        with open(os.path.join(dir, 'par.yaml'), 'w') as f:
+            yaml.dump(self.par, f, default_flow_style=False)
+        with open(os.path.join(dir, 'config.yaml'), 'w') as f:
+            yaml.dump({'experiment': self.name}, f, default_flow_style=False)
+
     # may be overridden to add/remove parameters
     # exposed to the user
     def get_metadata(self):
@@ -59,8 +71,9 @@ class BaseExperiment:
     
     # may be overridden in conjunction with get_metadata() 
     def set_parameters(self, parameters):
+        self.par.update(parameters)
         for prog_name, prog in self.programs.items():
-            for name, value in parameters.items():
+            for name, value in self.par.items():
                 if name in prog.config_get('parameters'):
                     prog.set_par(name, value)
 

@@ -12,6 +12,7 @@ import numpy as np
 import time
 
 from experiment import list_experiments, load_experiment
+from workspace import list_workspaces, Workspace
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ DEFAULT_PARAMETER_FILE = 'default_par.yaml'
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 experiments = {}
-
+workspace = None
 
 #
 # queries
@@ -31,6 +32,8 @@ experiments = {}
 async def experiment_metadata():
     return [exp.get_metadata() for k,exp in experiments.items()]
 
+async def workspace_metadata():
+    return list_workspaces()
 
 async def default_parameters():
     with open(os.path.join(dir_path, DEFAULT_PARAMETER_FILE), 'r') as f:
@@ -82,6 +85,7 @@ async def run(ws, experiment_name):
             'max': int(limit)
         })))
     await experiment.run(progress_handler=progress_handler)
+    experiment.save(workspace.new_data_dir(experiment.name))
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
     await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
@@ -90,6 +94,10 @@ async def set_parameters(ws, experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
+async def set_workspace(ws, workspace_name):
+    global workspace
+    workspace = Workspace(workspace_name)
+    await ws.send(json.dumps({'type': 'message', 'message': 'switched to workspace %s.' % workspace.name}))
 
 #
 # websocket server
@@ -135,7 +143,7 @@ class Handler(web.StaticFileHandler):
         return url_path
 
 app = web.Application([
-    ('/(.*)', Handler, {'path': '/home/root/microspec-client'})
+    ('/(.*)', Handler, {'path': os.path.join(dir_path, 'client')})
 ])
 
 if __name__=='__main__':
@@ -144,6 +152,9 @@ if __name__=='__main__':
             experiments[name] = load_experiment(name)
         except Exception as e:
             logger.exception(e)
+    for name in list_workspaces():
+        if name=='default':
+            workspace = Workspace(name)
     logger.debug('launching websocket server')
     asyncio.get_event_loop().run_until_complete(
         websockets.serve(consumer_handler, '0.0.0.0', 8765))

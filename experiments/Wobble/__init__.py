@@ -19,12 +19,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_wobble(self):
-        data = self.programs['Wobble'].data
-        par = self.programs['Wobble'].par
-        
-        width = par['bandwidth']
-        center = par['freqTx']
-        samples = par['samples']
+        data = self.raw_data()
+        width = self.par['bandwidth']
+        center = self.par['freqTx']
+        samples = self.par['samples']
 
         y = data.astype(np.float32)
         y = np.mean(y.reshape(-1, samples), axis=1)
@@ -48,3 +46,5 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']}
                 }}
 
+    def raw_data(self):
+        return self.programs['Wobble'].data

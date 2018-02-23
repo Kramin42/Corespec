@@ -19,9 +19,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_noise(self):
-        data = self.programs['Noise'].data
-
-        y = data.astype(np.float32).view(np.complex64)
+        y = self.raw_data()
         x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
         return {
             'x': x.tolist(),
@@ -51,3 +49,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'yaxis': {'title': data['y_unit']}
                 }}
 
+    def raw_data(self):
+        data = self.programs['Noise'].data
+        return data.astype(np.float32).view(np.complex64)
