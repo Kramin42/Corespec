@@ -26,7 +26,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.raw_data()
         samples = self.par['samples']
         echoes = self.par['loops']
-        echo_time = (self.par['T180']+self.par['T2']+self.par['T3'])/1000000000.0
+        echo_time = (self.par['T180']+self.programs['CPMG'].par['T2']+self.programs['CPMG'].par['T3'])/1000000000.0
         x = np.linspace(0, echoes*echo_time, echoes)
         y = np.zeros(echoes, dtype=np.complex64)
         for i in range(echoes):

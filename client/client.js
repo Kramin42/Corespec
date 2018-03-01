@@ -25,6 +25,7 @@ function connect() {
 	    }))
 	    pending[ref] = (data) => {
 	    	data.result.forEach(createExperimentTab)
+	    	refresh_par_set_list()
 	    	loaded_experiment_tabs = true
 	    }
 	}
@@ -171,6 +172,29 @@ function exportCSV(experiment, exportName, callback) {
 	}
 }
 
+function refresh_par_set_list() {
+    var ref1 = generateUID()
+	console.log('fetching parameter sets')
+	connection.send(JSON.stringify({
+		'type': 'query',
+		'query': 'list_parameter_sets',
+		'ref': ref1,
+		'args': {}
+	}))
+	pending[ref1] = response => {
+	    parSetNames = response.result
+		document.querySelectorAll('.par-list').forEach(parList => {
+		    parList.innerHTML = '' // remove existing
+		    parSetNames.forEach(parSetName => {
+		        var opt = document.createElement('option')
+                opt.value = parSetName
+                opt.innerHTML = parSetName
+                parList.appendChild(opt)
+		    })
+		})
+	}
+}
+
 function createExperimentTab(exp) {
 	var tab = document.importNode(document.querySelector('#experiment_tab_template').content, true)
 	var btn = tab.querySelector('button')
@@ -183,18 +207,39 @@ function createExperimentTab(exp) {
 	var pane = document.importNode(document.querySelector('#experiment_pane_template').content, true)
 	pane.querySelector('div').id = exp.name
 	pane.querySelector('.plot').id = exp.name+'_plot'
-	pane.querySelector('.get-default-parameters').addEventListener('click', e => {
+	pane.querySelector('.par-list').id = exp.name+'_par_list'
+	pane.querySelector('.par-list-input').setAttribute('list', exp.name+'_par_list')
+	pane.querySelector('.btn-load-par').addEventListener('click', e => {
 		var ref = generateUID()
 		connection.send(JSON.stringify({
 			'type': 'query',
-	    	'query': 'default_parameters',
+	    	'query': 'load_parameter_set',
 	    	'ref': ref,
-	    	'args': {}
+	    	'args': {
+	    	    'par_set_name': document.getElementById(exp.name).querySelector('.par-list-input').value
+	    	}
 		}))
 		pending[ref] = data => {
 			document.getElementById(exp.name).querySelectorAll('.parameters input').forEach(input => {
-				input.value = data.result[input.name]
+			    if (data.result[input.name]!==undefined && data.result[input.name]!==null) {
+				    input.value = data.result[input.name]
+				}
 			})
+		}
+	}, false)
+	pane.querySelector('.btn-save-par').addEventListener('click', e => {
+		var ref = generateUID()
+		connection.send(JSON.stringify({
+			'type': 'command',
+	    	'command': 'save_parameter_set',
+	    	'ref': ref,
+	    	'args': {
+	    	    'par_set_name': document.getElementById(exp.name).querySelector('.par-list-input').value,
+	    	    'parameters': getParameters(exp.name)
+	    	}
+		}))
+		pending[ref] = data => {
+			refresh_par_set_list()
 		}
 	}, false)
 	pane.querySelector('.run-experiment').addEventListener('click', e => {
@@ -234,6 +279,7 @@ function createExperimentTab(exp) {
 		var input = par.querySelector('input').name = pName
 		pane.querySelector('.parameters').appendChild(par)
 	})
+	//populate pa
 	document.getElementById('experiment_panes').appendChild(pane)
 }
 

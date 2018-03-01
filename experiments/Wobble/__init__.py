@@ -21,7 +21,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_wobble(self):
         data = self.raw_data()
         width = self.par['bandwidth']
-        center = self.par['freqTx']
+        center = self.par['frequency']
         samples = self.par['samples']
 
         y = data.astype(np.float32)

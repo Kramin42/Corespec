@@ -18,23 +18,28 @@
 
   <div id="experiment_panes">
     <template id="experiment_pane_template">
-      <div id="" class="tabcontent">
+      <div id="${exp.name}" class="tabcontent">
         <!-- plot -->
         <div class="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
         <select class="plot-list"></select>
-        <!-- progress bar -->
-        <progress value="0" max="100"></progress><br>
+
+        Parameter Set:
+        <input type="text" list="${exp.name}_par_list" class="par-list-input"/>
+        <datalist id="${exp.name}_par_list" class="par-list"></datalist>
+        <button class="btn-load-par">Load</button>
+        <button class="btn-save-par">Save</button>
+        <!-- parameters -->
+        <ul class="parameters">
+        </ul>
         <!-- control buttons -->
-        <button class="get-default-parameters">Get Default Parameters</button>
         <button class="run-experiment">Run</button>
         <button class="run-experiment-continuously">Run Continuous</button>
         <button class="abort-experiment">Abort</button>
         <br>
         <select class="export-list"></select>
-        <button class="btn-export">Save Data</button>
-        <!-- parameters -->
-        <ul class="parameters">
-        </ul>
+        <button class="btn-export">Export Data</button>
+        <!-- progress bar -->
+        <progress value="0" max="100"></progress><br>
       </div>
     </template>
     <template id="parameter_template">

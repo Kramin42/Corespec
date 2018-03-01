@@ -67,6 +67,10 @@ div.tab button.active {
     color: red;
 }
 
+#message_box :nth-last-child(n+2) {
+    opacity: 0.7;
+}
+
 .plot-list {
     margin: 0 auto;
     display: block;

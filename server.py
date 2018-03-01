@@ -39,6 +39,12 @@ async def default_parameters():
     with open(os.path.join(dir_path, DEFAULT_PARAMETER_FILE), 'r') as f:
         return yaml.load(f.read())
 
+async def load_parameter_set(par_set_name):
+    return workspace.load_par_set(par_set_name)
+
+async def list_parameter_sets():
+    return workspace.list_par_sets()
+
 async def export(experiment_name, export_name):
     return experiments[experiment_name].exports[export_name]()
 
@@ -94,10 +100,14 @@ async def set_parameters(ws, experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
+async def save_parameter_set(ws, par_set_name, parameters):
+    workspace.save_par_set(par_set_name, parameters)
+    await ws.send(json.dumps({'type': 'message', 'message': 'Saved parameter set %s.' % par_set_name}))
+
 async def set_workspace(ws, workspace_name):
     global workspace
     workspace = Workspace(workspace_name)
-    await ws.send(json.dumps({'type': 'message', 'message': 'switched to workspace %s.' % workspace.name}))
+    await ws.send(json.dumps({'type': 'message', 'message': 'Switched to workspace %s.' % workspace.name}))
 
 #
 # websocket server
