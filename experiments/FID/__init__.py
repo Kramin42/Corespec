@@ -21,8 +21,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_real_imag(self):
         y = self.raw_data()
         # phase
-        if 'phaseRx' in self.par:
-            y = y*np.exp(1j*np.pi*self.par['phaseRx']/180)
+        if 'phase' in self.par:
+            y = y*np.exp(1j*np.pi*self.par['phase']/180)
         x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
         return {
             'x': x.tolist(),

@@ -23,29 +23,36 @@
         <div class="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
         <select class="plot-list"></select>
 
-        Parameter Set:
-        <input type="text" list="${exp.name}_par_list" class="par-list-input"/>
-        <datalist id="${exp.name}_par_list" class="par-list"></datalist>
-        <button class="btn-load-par">Load</button>
-        <button class="btn-save-par">Save</button>
-        <!-- parameters -->
-        <ul class="parameters">
-        </ul>
-        <!-- control buttons -->
-        <button class="run-experiment">Run</button>
-        <button class="run-experiment-continuously">Run Continuous</button>
-        <button class="abort-experiment">Abort</button>
-        <br>
-        <select class="export-list"></select>
-        <button class="btn-export">Export Data</button>
-        <!-- progress bar -->
-        <progress value="0" max="100"></progress><br>
+        <div class="pane">
+          <label>Parameter Set</label>
+          <input type="text" list="${exp.name}_par_list" class="par-list-input"/>
+          <datalist id="${exp.name}_par_list" class="par-list"></datalist>
+          <button class="btn-load-par">Load</button>
+          <button class="btn-save-par">Save</button>
+        </div>
+        <div class="pane">
+          <!-- parameters -->
+          <ul class="parameters">
+          </ul>
+        </div>
+        <div class="pane">
+          <!-- control buttons -->
+          <button class="run-experiment">Run</button>
+          <button class="run-experiment-continuously">Run Loop</button>
+          <button class="abort-experiment">Abort</button>
+          <!-- progress bar -->
+          <progress value="0" max="100"></progress>
+        </div>
+        <div class="pane">
+          <select class="export-list"></select>
+          <button class="btn-export">Export Data</button>
+        </div>
       </div>
     </template>
     <template id="parameter_template">
       <li>
-        <label for=""></label>
-        <input type="number" id="" name="">
+        <label for=""><span class="par-name"></span><span class="par-unit"></span></label>
+        <input type="number" step="any" id="" name="">
       </li>
     </template>
   </div>

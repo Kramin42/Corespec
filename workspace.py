@@ -38,7 +38,7 @@ class Workspace:
 
     def save_par_set(self, name, parameters):
         with open(os.path.join(self._par_dir, name+'.yaml'), 'w') as f:
-            yaml.dump(parameters, f)
+            yaml.dump(parameters, f, default_flow_style=False)
 
     def new_data_dir(self, prefix):
         basedirname = prefix + '_' + datetime.now().strftime('%Y-%m-%d@%H-%M-%S')

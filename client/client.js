@@ -25,7 +25,8 @@ function connect() {
 	    }))
 	    pending[ref] = (data) => {
 	    	data.result.forEach(createExperimentTab)
-	    	refresh_par_set_list()
+	    	refreshParSetList()
+	    	loadLanguage('english')
 	    	loaded_experiment_tabs = true
 	    }
 	}
@@ -172,7 +173,7 @@ function exportCSV(experiment, exportName, callback) {
 	}
 }
 
-function refresh_par_set_list() {
+function refreshParSetList() {
     var ref1 = generateUID()
 	console.log('fetching parameter sets')
 	connection.send(JSON.stringify({
@@ -239,7 +240,7 @@ function createExperimentTab(exp) {
 	    	}
 		}))
 		pending[ref] = data => {
-			refresh_par_set_list()
+			refreshParSetList()
 		}
 	}, false)
 	pane.querySelector('.run-experiment').addEventListener('click', e => {
@@ -274,13 +275,38 @@ function createExperimentTab(exp) {
 	Object.keys(exp.parameters).forEach(pName => {
 		var par = document.importNode(document.querySelector('#parameter_template').content, true)
 		par.querySelector('label').for = exp.name+'-'+pName
-		par.querySelector('label').innerText = pName+':'
-		var input = par.querySelector('input').id = exp.name+'-'+pName
-		var input = par.querySelector('input').name = pName
+		par.querySelector('label .par-name').innerText = pName
+		if ('unit' in exp.parameters[pName]) {
+		    par.querySelector('label .par-unit').innerText = '('+exp.parameters[pName]['unit']+')'
+		}
+		par.querySelector('input').id = exp.name+'-'+pName
+		par.querySelector('input').name = pName
 		pane.querySelector('.parameters').appendChild(par)
 	})
-	//populate pa
+	//populate pane
 	document.getElementById('experiment_panes').appendChild(pane)
+}
+
+function loadLanguage(lang_name) {
+    var ref = generateUID()
+    connection.send(JSON.stringify({
+        'type': 'query',
+        'query': 'load_language',
+        'ref': ref,
+        'args': {
+            'lang_name': lang_name
+        }
+    }))
+    pending[ref] = data => {
+        var lang = data.result
+        console.log(lang)
+        document.querySelectorAll('.parameters li').forEach(par_li => {
+            var par_name = par_li.querySelector('input').name
+            if (par_name in lang['parameters']) {
+                par_li.querySelector('label .par-name').innerText = lang['parameters'][par_name]['label']
+            }
+        })
+    }
 }
 
 function openExperimentTab(event, experimentName) {
@@ -326,4 +352,14 @@ function downloadString(text, fileType, fileName) {
 	a.click();
   	document.body.removeChild(a);
   	setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
+}
+
+// polyfills
+if (window.NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = function (callback, thisArg) {
+        thisArg = thisArg || window;
+        for (var i = 0; i < this.length; i++) {
+            callback.call(thisArg, this[i], i, this);
+        }
+    };
 }

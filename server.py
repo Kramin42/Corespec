@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 DEFAULT_PARAMETER_FILE = 'default_par.yaml'
+DEFAULT_LANGUAGE_FILE = 'lang.yaml'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -28,6 +29,11 @@ workspace = None
 #
 # queries
 #
+
+async def load_language(lang_name):
+    with open(os.path.join(dir_path, DEFAULT_LANGUAGE_FILE), 'r') as f:
+        langs = yaml.load(f.read())
+    return langs[lang_name]
 
 async def experiment_metadata():
     return [exp.get_metadata() for k,exp in experiments.items()]

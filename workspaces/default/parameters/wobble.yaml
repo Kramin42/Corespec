@@ -1,1 +1,6 @@
-{A90: 0.25, bandwidth: 0.5, decimation: 800, frequency: 2.047, loops: 2000, samples: 4}
+amp: 25
+bandwidth: 0.5
+decimation: 800
+freq: 2.047
+samples: 4
+steps: 2000

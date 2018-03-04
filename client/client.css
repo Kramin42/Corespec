@@ -1,6 +1,36 @@
 
-progress {
-	width: 100%;
+.pane {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+.pane button {
+    padding: 3px;
+    margin: 3px;
+}
+
+.pane label {
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 3px;
+    align-self: center;
+}
+
+.pane input, .pane select {
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 3px;
+    align-self: center;
+}
+
+.pane progress {
+    align-self: center;
+    flex-grow: 1;
+    margin: 3px;
 }
 
 ul.parameters {
@@ -13,10 +43,24 @@ ul.parameters li {
 	float: left;
 }
 
+ul.parameters li input {
+    width: 6em;
+}
+
 ul.parameters li label {
 	display: inline-block;
 	text-align: right;
-	width: 100px;
+	width: 12em;
+}
+
+ul.parameters li label span {
+    padding-right: 5px;
+}
+
+.par-unit {
+    display: inline-block;
+    text-align: left;
+    width: 3em;
 }
 
 /* Style the tab */
@@ -50,7 +94,6 @@ div.tab button.active {
 /* Style the tab content */
 .tabcontent {
     display: none;
-    padding: 6px 12px;
     border: 1px solid #ccc;
     border-top: none;
 }
@@ -74,12 +117,4 @@ div.tab button.active {
 .plot-list {
     margin: 0 auto;
     display: block;
-}
-
-progress {
-    margin-top: 6px;
-}
-
-.tabcontent button {
-    margin-top: 6px;
 }

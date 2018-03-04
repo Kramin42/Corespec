@@ -19,26 +19,35 @@ output:
   type: FIFO
   dtype: int32
   offset: 0x100
-  length: ${{loops}*{samples}}
+  length: ${{steps}*{samples}}
   scale_factor: 0.00000267
 parameters:
-  frequency:
+  freq:
     dtype: float64
-  A90:
+    unit: MHz
+  amp:
     offset: 0x98
     dtype: float32
-  loops:
+    min: 0
+    max: 100
+    unit: '%'
+    scaling: 0.01
+  steps:
     offset: 0xc0
     dtype: uint32
+    min: 1
   samples:
     offset: 0xc4
     dtype: uint32
+    min: 1
   decimation:
     offset: 0xcc
     dtype: uint32
+    min: 50
   bandwidth:
     offset: 0xd4
     dtype: float64
+    unit: MHz
 derived_parameters:
   ignore_samples:
     offset: 0xc8
@@ -47,11 +56,11 @@ derived_parameters:
   freqTx:
     offset: 0x80
     dtype: float64
-    value: ${{frequency}}
+    value: ${{freq}}
   freqRx:
     offset: 0x88
     dtype: float64
-    value: ${{frequency}}
+    value: ${{freq}}
   phaseRx:
     offset: 0x90
     dtype: float64

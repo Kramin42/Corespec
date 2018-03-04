@@ -1,0 +1,38 @@
+english:
+  parameters:
+    freq:
+      label: Frequency
+    phase:
+      label: Phase
+    amp_90:
+      label: 90 power
+    amp_180:
+      label: 180 power
+    width_90:
+      label: 90 width
+    width_180:
+      label: 180 width
+    damp_time:
+      label: Damping
+    echo_time:
+      label: Echo time
+    echo_shift:
+      label: Echo shift
+    rep_time:
+      label: Rep. time
+    echo_count:
+      label: Echo count
+    samples:
+      label: Samples
+    decimation:
+      label: Decimation
+    scans:
+      label: Scans
+    acq_delay:
+      label: Acq. delay
+    bandwidth:
+      label: Bandwidth
+    steps:
+      label: Steps
+    amp:
+      label: Power

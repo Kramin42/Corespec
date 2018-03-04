@@ -54,7 +54,6 @@ class Program:
         self._data_ready = False # any parameter change requires re-running
 
     def load_par(self, filename: str):
-        new_par = {}
         with open(filename, 'r') as f:
             new_par = yaml.load(f.read())
         for name, value in new_par.items():
@@ -65,7 +64,7 @@ class Program:
             f.write(yaml.dump(self.par, default_flow_style=False))
 
     def config_get(self, key):
-        result =  self._config
+        result = self._config
         for k in key.split('.'):
             result = result[k]
         if type(result)==str:
@@ -76,11 +75,19 @@ class Program:
                 deps = []
                 for i in range(1,len(pieces),2):
                     deps.append(pieces[i])
-                    pieces[i] = str(self.par[pieces[i]])
+                    pieces[i] = str(self.get_scaled_par(pieces[i]))
                 self.par_deps[key] = deps # update dependency tracking
                 logger.debug('setting %s deps to %s' % (key, ','.join(deps)))
                 result = safe_eval(''.join(pieces))
         return result
+
+    # TODO: possibly this should be the only way to read the parameter values
+    def get_scaled_par(self, par_name):
+        par_def = self.config_get('parameters.'+par_name)
+        value = self.par[par_name]
+        if 'scaling' in par_def:
+            value *= par_def['scaling']
+        return value
 
     def expand_par_deps(self, key):
         deps = self.par_deps[key]
@@ -116,10 +123,14 @@ class Program:
 
         logger.debug('run: writing ELF')
         system.write_elf(os.path.join(self._dir, self.config_get('executable')))
-        
+
+        logger.debug('run: writing user parameters')
         try:
-            logger.debug('run: writing user parameters')
             par_def = self.config_get('parameters')
+        except KeyError as e:
+            logger.warning(e)
+            par_def = None
+        if par_def is not None:
             for par_name in par_def:
                 if 'min' in self.config_get('parameters.'+par_name):
                     min = self.config_get('parameters.'+par_name+'.min')
@@ -132,14 +143,17 @@ class Program:
                 if 'offset' in par_def[par_name]:
                     system.write_par(
                         par_def[par_name]['offset'],
-                        self.par[par_name],
+                        self.get_scaled_par(par_name),
                         par_def[par_name]['dtype'])
+
+        logger.debug('run: writing derived parameters')
+        try:
+            der_par_def = self.config_get('derived_parameters')
         except KeyError as e:
             logger.warning(e)
-        
-        try:
-            logger.debug('run: writing derived parameters')
-            for par_name in self.config_get('derived_parameters'):
+            der_par_def = None
+        if der_par_def is not None:
+            for par_name in der_par_def:
                 self.par[par_name] = self.config_get('derived_parameters.'+par_name+'.value')
                 if 'min' in self.config_get('derived_parameters.'+par_name):
                     min = self.config_get('derived_parameters.'+par_name+'.min')
@@ -158,8 +172,6 @@ class Program:
                         self.config_get('derived_parameters.'+par_name+'.offset'),
                         self.par[par_name],
                         self.config_get('derived_parameters.'+par_name+'.dtype'))
-        except KeyError as e:
-            logger.warning('Key Error: %s' % e)
         
         logger.debug('run: running')
         # reset progress
