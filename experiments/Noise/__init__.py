@@ -38,7 +38,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Real',
                     'type': 'scatter',
                     'x': data['x'],
-                    'y': data['y_real'],
+                    'y': data['y_real']}, {
                     'name': 'Imag',
                     'type': 'scatter',
                     'x': data['x'],
