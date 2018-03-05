@@ -1,0 +1,120 @@
+
+.pane {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+.pane button {
+    padding: 3px;
+    margin: 3px;
+}
+
+.pane label {
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 3px;
+    align-self: center;
+}
+
+.pane input, .pane select {
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 3px;
+    align-self: center;
+}
+
+.pane progress {
+    align-self: center;
+    flex-grow: 1;
+    margin: 3px;
+}
+
+ul.parameters {
+	list-style-type: none;
+	overflow: hidden;
+	padding: 0;
+}
+
+ul.parameters li {
+	float: left;
+}
+
+ul.parameters li input {
+    width: 6em;
+}
+
+ul.parameters li label {
+	display: inline-block;
+	text-align: right;
+	width: 12em;
+}
+
+ul.parameters li label span {
+    padding-right: 5px;
+}
+
+.par-unit {
+    display: inline-block;
+    text-align: left;
+    width: 3em;
+}
+
+/* Style the tab */
+div.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+div.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+div.tab button:hover {
+    background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+div.tab button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+#message_box {
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    border-top: none;
+    height: 5em;
+    overflow-y: scroll;
+}
+
+#message_box .error {
+    color: red;
+}
+
+#message_box :nth-last-child(n+2) {
+    opacity: 0.7;
+}
+
+.plot-list {
+    margin: 0 auto;
+    display: block;
+}

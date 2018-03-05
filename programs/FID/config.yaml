@@ -17,45 +17,65 @@ status:
     finished: 10
 progress:
   offset: 0x1c
-  limit: ${{averages}-1}
+  limit: ${{scans}-1}
 output:
   type: FIFO
   dtype: int32
   offset: 0x100
   length: ${2*{samples}}
-  scale_factor: ${0.00000267/{averages}}
+  scale_factor: ${0.00000267/{scans}}
 parameters:
-  frequency:
+  freq:
     dtype: float64
-  phaseRx:
+    unit: MHz
+  phase:
     offset: 0x90
     dtype: float64
-  A90:
+  amp_90:
     offset: 0x98
     dtype: float32
-  T90:
+    min: 0
+    max: 100
+    unit: '%'
+    scaling: 0.01
+  width_90:
     offset: 0xa8
     dtype: uint32
-  Tdamp:
+    min: 0
+    max: 500
+    unit: us
+    scaling: 1000
+  damp_time:
     offset: 0xd4
     dtype: uint32
-    min: 500
+    min: 0.5
+    unit: us
+    scaling: 1000
   acq_delay:
     offset: 0xb0
     dtype: uint32
-    min: 500
-  Tend:
+    min: 0.5
+    unit: us
+    scaling: 1000
+  rep_time:
     offset: 0xbc
     dtype: uint32
+    min: 0
+    max: 4
+    unit: s
+    scaling: 1000000000
   samples:
     offset: 0xc4
     dtype: uint32
+    min: 1
   decimation:
     offset: 0xcc
     dtype: uint32
-  averages:
+    min: 50
+  scans:
     offset: 0xd0
     dtype: uint32
+    min: 1
 derived_parameters:
   ignore_samples:
     offset: 0xc8
@@ -64,11 +84,11 @@ derived_parameters:
   freqTx:
     offset: 0x80
     dtype: float64
-    value: ${{frequency}}
+    value: ${{freq}}
   freqRx:
     offset: 0x88
     dtype: float64
-    value: ${{frequency}}
+    value: ${{freq}}
   P90:
     offset: 0x9c
     dtype: float32

@@ -19,19 +19,17 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
-        data = self._real_imag()
+        data = self.raw_data()
         return {'real': data.real.tolist(), 'imag': data.imag.tolist(), 'unit': 'μV'}
     
     def export_echo_integrals(self):
-        data = self._real_imag()
-        par = self.programs['CPMG'].par
-        
-        samples = par['samples']
-        echoes = par['loops']
-        echo_time = (par['T180']+par['T2']+par['T3'])/1000000000.0
-        x = np.linspace(0, echoes*echo_time, echoes)
-        y = np.zeros(echoes, dtype=np.complex64)
-        for i in range(echoes):
+        data = self.raw_data()
+        samples = self.par['samples']
+        echo_count = self.par['echo_count']
+        echo_time = self.par['echo_time']/1000000.0
+        x = np.linspace(0, echo_count*echo_time, echo_count)
+        y = np.zeros(echo_count, dtype=np.complex64)
+        for i in range(echo_count):
             y[i] = np.sum(data[i*samples:(i+1)*samples])
         return {
             'x': x.tolist(),
@@ -41,17 +39,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x_unit': 's'}
     
     def export_echo_envelope(self):
-        data = self._real_imag()
-        par = self.programs['CPMG'].par
-        
-        samples = par['samples']
-        echoes = par['loops']
-        echo_time = (par['T180']+par['T2']+par['T3'])/1000000000.0
+        data = self.raw_data()
+        samples = self.par['samples']
+        echo_count = self.par['echo_count']
+        echo_time = self.par['echo_time']/1000000.0
         x = np.linspace(0, echo_time, samples)
         y = np.zeros(samples, dtype=np.complex64)
         for i in range(len(data)):
             y[i%samples] += data[i]
-        y /= echoes
+        y /= echo_count
         return {
             'x': x.tolist(),
             'y_real': y.real.tolist(),
@@ -115,12 +111,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'yaxis': {'title': data['y_unit']}
                 }}
     
-    def _real_imag(self):
+    def raw_data(self):
         data = self.programs['CPMG'].data
-        par = self.programs['CPMG'].par
         # deinterleave
-        return data.astype(np.float32).view(np.complex64)
+        data = data.astype(np.float32).view(np.complex64)
         # phase
-        if 'phaseRx' in par:
-            data = data*np.exp(1j*np.pi*par['phaseRx']/180)
+        if 'phaseRx' in self.par:
+            data = data*np.exp(1j*np.pi*self.par['phaseRx']/180)
+        return data
 

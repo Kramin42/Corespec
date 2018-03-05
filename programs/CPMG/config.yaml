@@ -16,53 +16,72 @@ status:
     finished: 10
 progress:
   offset: 0x1c
-  limit: ${{averages}-1}
+  limit: ${{scans}-1}
 output:
   type: FIFO
   dtype: int32
   offset: 0x100
-  length: ${2*{loops}*{samples}}
-  scale_factor: ${0.00000267/{averages}}
+  length: ${2*{echo_count}*{samples}}
+  scale_factor: ${0.00000267/{scans}}
 parameters:
-  frequency:
+  freq:
     dtype: float64
-  phaseRx:
+    unit: MHz
+  phase:
     offset: 0x90
     dtype: float64
-  A90:
+    unit: deg
+  amp_90:
     offset: 0x98
     dtype: float32
     min: 0
-    max: 1
-  A180:
+    max: 100
+    unit: '%'
+    scaling: 0.01
+  amp_180:
     offset: 0xa0
     dtype: float32
     min: 0
-    max: 1
-  T90:
+    max: 100
+    unit: '%'
+    scaling: 0.01
+  width_90:
     offset: 0xa8
     dtype: uint32
     min: 0
-    max: 500000
-  T180:
+    max: 500
+    unit: us
+    scaling: 1000
+  width_180:
     offset: 0xac
     dtype: uint32
     min: 0
-    max: 500000
-  Tdamp:
+    max: 500
+    unit: us
+    scaling: 1000
+  damp_time:
     offset: 0xd4
     dtype: uint32
-    min: 500
-  Techo:
+    min: 0.5
+    unit: us
+    scaling: 1000
+  echo_time:
     dtype: uint32
-    min: 0
+    min: 0.5
+    unit: us
+    scaling: 1000
   echo_shift:
     dtype: int32
-  Tend:
+    unit: us
+    scaling: 1000
+  rep_time:
     offset: 0xbc
     dtype: uint32
     min: 0
-  loops:
+    max: 4
+    unit: s
+    scaling: 1000000000
+  echo_count:
     offset: 0xc0
     dtype: uint32
     min: 1
@@ -73,8 +92,8 @@ parameters:
   decimation:
     offset: 0xcc
     dtype: uint32
-    min: 1
-  averages:
+    min: 50
+  scans:
     offset: 0xd0
     dtype: uint32
     min: 1
@@ -82,21 +101,21 @@ derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${({Techo} - {T90} - {Tdamp} - 2000 - {T180} - {Tdamp} - 2000)/2}
+    value: ${({echo_time} - {width_90} - {damp_time} - 2000 - {width_180} - {damp_time} - 2000)/2}
     min: 0
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} - 2000 - {samples}*{decimation}*10)/2 + {echo_shift}}
+    value: ${({echo_time} - {width_180} - {damp_time} - 2000 - {samples}*{decimation}*10)/2 + {echo_shift}}
     min: 0
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({Techo} - {T180} - {Tdamp} - 2000 + {samples}*{decimation}*10)/2 - {echo_shift}}
+    value: ${({echo_time} - {width_180} - {damp_time} - 2000 + {samples}*{decimation}*10)/2 - {echo_shift}}
     min: 0
   duty_cycle:
-    value: ${{T180}/{Techo}}
-    max: 0.5
+    value: ${{width_180}/{echo_time}}
+    max: 0.25
   ignore_samples:
     offset: 0xc8
     dtype: uint32
@@ -104,11 +123,11 @@ derived_parameters:
   freqTx:
     offset: 0x80
     dtype: float64
-    value: ${{frequency}}
+    value: ${{freq}}
   freqRx:
     offset: 0x88
     dtype: float64
-    value: ${{frequency}}
+    value: ${{freq}}
   P90:
     offset: 0x9c
     dtype: float32

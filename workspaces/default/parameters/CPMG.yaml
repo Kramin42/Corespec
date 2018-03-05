@@ -1,0 +1,14 @@
+amp_180: 50
+amp_90: 25
+damp_time: 15
+decimation: 50
+echo_count: 250
+echo_shift: 0
+echo_time: 500
+freq: 2.047
+phase: 0
+rep_time: 3
+samples: 64
+scans: 4
+width_180: 20
+width_90: 20

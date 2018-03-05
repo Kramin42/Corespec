@@ -28,7 +28,7 @@ def write_par(
         offset: int,
         value,
         dtype=np.dtype(np.int32)) -> None:
-    pass
+    logger.debug('writing %s at 0x%X', value, offset)
 
 def read_par(offset: int, dtype=np.dtype(np.int32)):
     if offset==4:
