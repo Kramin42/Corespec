@@ -5,6 +5,7 @@ import os
 import asyncio
 import yaml
 import numpy as np
+import scipy.io as sio
 import logging
 import importlib
 
@@ -50,7 +51,7 @@ class BaseExperiment:
         pass
 
     def save(self, dir):
-        np.save(os.path.join(dir, 'raw.npy'), self.raw_data())
+        sio.savemat(os.path.join(dir, 'raw_data.mat'), {'raw_data': self.raw_data()})
         with open(os.path.join(dir, 'par.yaml'), 'w') as f:
             yaml.dump(self.par, f, default_flow_style=False)
         with open(os.path.join(dir, 'config.yaml'), 'w') as f:

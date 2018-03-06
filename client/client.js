@@ -173,6 +173,28 @@ function exportCSV(experiment, exportName, callback) {
 	}
 }
 
+function exportMATLAB(experiment, exportName, callback) {
+	var ref1 = generateUID()
+	console.log('getting export data')
+	connection.send(JSON.stringify({
+		'type': 'query',
+		'query': 'export_matlab',
+		'ref': ref1,
+		'args': {
+			'experiment_name': experiment,
+			'export_name': exportName
+		}
+	}))
+	pending[ref1] = response => {
+		console.log(`exporting ${experiment} ${exportName}`)
+		var bytes = Uint8Array.from(atob(response.result), c => c.charCodeAt(0))
+		downloadBytes(bytes, `${experiment}-${exportName}.mat`)
+		if (callback) {
+			callback()
+		}
+	}
+}
+
 function refreshParSetList() {
     var ref1 = generateUID()
 	console.log('fetching parameter sets')
@@ -270,7 +292,14 @@ function createExperimentTab(exp) {
 		exportList.appendChild(opt)
 	})
 	pane.querySelector('.btn-export').addEventListener('click', e => {
-		exportCSV(exp.name, exportList.value)
+	    switch(document.getElementById(exp.name).querySelector('.export-format').value) {
+	        case 'mat':
+	            exportMATLAB(exp.name, exportList.value)
+	            break
+	        case 'csv':
+	        default:
+	            exportCSV(exp.name, exportList.value)
+	    }
 	})
 	Object.keys(exp.parameters).forEach(pName => {
 		var par = document.importNode(document.querySelector('#parameter_template').content, true)
@@ -285,6 +314,8 @@ function createExperimentTab(exp) {
 	})
 	//populate pane
 	document.getElementById('experiment_panes').appendChild(pane)
+	//create blank plot
+	Plotly.newPlot(exp.name+'_plot', {}, {})
 }
 
 function loadLanguage(lang_name) {
@@ -352,6 +383,14 @@ function downloadString(text, fileType, fileName) {
 	a.click();
   	document.body.removeChild(a);
   	setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
+}
+
+function downloadBytes(bytes, fileName) {
+    var blob = new Blob([bytes]);
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
 }
 
 // polyfills

@@ -15,7 +15,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None):
         await self.programs['CPMG'].run(progress_handler=progress_handler)
-    
+
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
@@ -37,7 +37,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_imag': y.imag.tolist(),
             'y_mag': np.absolute(y).tolist(),
             'x_unit': 's'}
-    
+
     def export_echo_envelope(self):
         data = self.raw_data()
         samples = self.par['samples']
@@ -54,7 +54,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_imag': y.imag.tolist(),
             'x_unit': 's',
             'y_unit': 'μV'}
-    
+
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_real_imag(self):
@@ -93,7 +93,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'title': 'Echo Integrals',
                     'xaxis': {'title': data['x_unit']}
                 }}
-    
+
     def plot_echo_envelope(self):
         data = self.export_echo_envelope()
         return {'data': [{

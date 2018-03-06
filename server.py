@@ -9,7 +9,10 @@ import websockets
 import json
 import yaml
 import numpy as np
+import scipy.io as sio
+from base64 import b64encode, b64decode
 import time
+import tempfile
 
 from experiment import list_experiments, load_experiment
 from workspace import list_workspaces, Workspace
@@ -81,6 +84,19 @@ async def export_csv(experiment_name, export_name):
                     row.append('')
         rownum += 1
     return csv
+
+async def export_matlab(experiment_name, export_name):
+    data = experiments[experiment_name].exports[export_name]()
+    f = tempfile.NamedTemporaryFile(delete=False)
+    logger.debug('creating temp file %s' % f.name)
+    try:
+        sio.savemat(f.name, data, appendmat=False)
+        buf = f.read()
+        return b64encode(buf).decode('utf-8')
+    finally:
+        f.close()
+        os.remove(f.name)
+
 
 #
 # commands

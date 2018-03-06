@@ -24,7 +24,7 @@
         <select class="plot-list"></select>
 
         <div class="pane">
-          <label>Parameter Set</label>
+          <label>Parameter sets:</label>
           <input type="text" list="${exp.name}_par_list" class="par-list-input"/>
           <datalist id="${exp.name}_par_list" class="par-list"></datalist>
           <button class="btn-load-par">Load</button>
@@ -44,7 +44,13 @@
           <progress value="0" max="100"></progress>
         </div>
         <div class="pane">
+          <label>Data set:</label>
           <select class="export-list"></select>
+          <label>Format:</label>
+          <select class="export-format">
+            <option value="csv">CSV</option>
+            <option value="mat">MATLAB</option>
+          </select>
           <button class="btn-export">Export Data</button>
         </div>
       </div>
