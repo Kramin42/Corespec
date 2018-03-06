@@ -12,7 +12,7 @@ import yaml
 import numpy as np
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 programs_dir = os.path.join(dir_path, 'programs')

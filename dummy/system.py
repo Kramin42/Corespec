@@ -1,23 +1,22 @@
 import os 
 import logging
 import numpy as np
-from time import sleep
+from time import sleep, time
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 status = 0
+run_time = time()
 
 def stop() -> None:
     pass
 
 
 def run() -> None:
-    global status
-    status = 2
-    sleep(1)
-    status = 10
+    global run_time
+    run_time = time()
 
 
 def write_elf(path: str) -> None:
@@ -32,7 +31,10 @@ def write_par(
 
 def read_par(offset: int, dtype=np.dtype(np.int32)):
     if offset==4:
-        return status
+        if time()-run_time > 1:
+            return 10
+        else:
+            return 2
     return 0
 
 def read_dma(

@@ -1,0 +1,5 @@
+# Pulse Calibration experiment configuration
+description:
+  An experiment for calibrating pulse power/width.
+programs:
+  - FID

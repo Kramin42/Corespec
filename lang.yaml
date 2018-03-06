@@ -12,6 +12,10 @@ english:
       label: 90 width
     width_180:
       label: 180 width
+    start_width:
+      label: Min width
+    end_width:
+      label: Max width
     damp_time:
       label: Damping
     echo_time:
