@@ -221,7 +221,7 @@ function refreshParSetList() {
 function createExperimentTab(exp) {
 	var tab = document.importNode(document.querySelector('#experiment_tab_template').content, true)
 	var btn = tab.querySelector('button')
-	btn.innerText = exp.name
+	btn.innerText = exp.name.replace(/_/g, ' ')
 	btn.addEventListener('click', e => {
 		openExperimentTab(e, exp.name)
 	}, false)
