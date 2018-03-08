@@ -9,7 +9,7 @@ import scipy.io as sio
 import logging
 import importlib
 
-from program import Program, list_programs
+from program import Program
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -68,10 +68,6 @@ class BaseExperiment:
             yaml.dump({'experiment': self.name}, f, default_flow_style=False)
 
     def get_metadata(self):
-        merged_pars = {}
-        for prog_name, prog in self.programs.items():
-            for par_name, par in prog.config_get('parameters').items():
-                merged_pars[par_name] = par
         return {'name': self.name,
                 'description': self._config['description'],
                 'parameters': self.par_def,
@@ -81,7 +77,8 @@ class BaseExperiment:
     def set_parameters(self, parameters):
         self.par.update(parameters)
         for prog_name, prog in self.programs.items():
+            prog_par_config = prog.config_get('parameters')
             for name, value in self.par.items():
-                if name in prog.config_get('parameters'):
+                if name in prog_par_config:
                     prog.set_par(name, value)
 

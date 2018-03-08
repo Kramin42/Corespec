@@ -10,7 +10,7 @@ import json
 import yaml
 import numpy as np
 import scipy.io as sio
-from base64 import b64encode, b64decode
+from base64 import b64encode
 import time
 import tempfile
 
@@ -159,7 +159,7 @@ async def consumer(websocket, message):
                 'ref': data['ref'],
             }))
         except Exception as e:
-            await websocket.send(json.dumps({'type': 'error', 'message': str(e)}))
+            await websocket.send(json.dumps({'type': 'error', 'message': repr(e)}))
             logger.exception(e)
     logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
