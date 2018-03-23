@@ -60,7 +60,7 @@ html, body {
 }
 
 .parameters-container {
-    min-width: 22em;
+    //min-width: 22em;
 }
 
 ul.parameters {

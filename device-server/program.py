@@ -132,6 +132,8 @@ class Program:
             par_def = None
         if par_def is not None:
             for par_name in par_def:
+                if self.par[par_name] is None:
+                    raise Exception('Parameter not set: %s' % par_name)
                 if 'min' in self.config_get('parameters.'+par_name):
                     min = self.config_get('parameters.'+par_name+'.min')
                     if self.par[par_name] < min:
