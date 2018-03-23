@@ -1,10 +1,36 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.tabcontent {
+    height: calc(100vh - 25px);
+}
+
+.gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('grips/vertical.png');
+    cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('grips/horizontal.png');
+    cursor: ns-resize;
+}
 
 .pane {
     display: flex;
     flex-direction: row;
     width: 100%;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    //border-top: 1px solid #ccc;
+    //border-bottom: 1px solid #ccc;
     background-color: #f1f1f1;
 }
 
@@ -31,6 +57,10 @@
     align-self: center;
     flex-grow: 1;
     margin: 3px;
+}
+
+.parameters-container {
+    min-width: 22em;
 }
 
 ul.parameters {
@@ -77,7 +107,7 @@ div.tab button {
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 14px 16px;
+    padding: 5px 10px;
     transition: 0.3s;
 }
 
@@ -98,23 +128,44 @@ div.tab button.active {
     border-top: none;
 }
 
-#message_box {
+.message-box {
     border: 1px solid #ccc;
+    background: white;
     padding: 6px 12px;
-    border-top: none;
-    height: 5em;
     overflow-y: scroll;
+    height: 5em;
 }
 
-#message_box .error {
+.message-box .error {
     color: red;
 }
 
-#message_box :nth-last-child(n+2) {
+.message-box :nth-last-child(n+2) {
     opacity: 0.7;
 }
 
 .plot-list {
     margin: 0 auto;
     display: block;
+}
+
+.plot-box {
+    height: 100%;
+    overflow: hidden;
+}
+
+.plot {
+    height: calc(100% - 25px);
+}
+
+.split-col {
+    overflow-x: hidden;
+}
+
+.split-row {
+    overflow-y: hidden;
+}
+
+.plotlyjsicon {
+    display: none;
 }
