@@ -49,11 +49,13 @@ function connect() {
   		}
   	}
 
-  	var message_box = document.getElementById('message_box')
+  	var message_boxes = document.querySelectorAll('.message-box')
   	if (data.type=='message' || data.type=='error') {
-  		message_box.innerHTML+=
-  			`<div class="${data.type}">${data.message}</div>`
-  		message_box.scrollTop = message_box.scrollHeight
+  	    message_boxes.forEach(message_box => {
+            message_box.innerHTML+=
+                `<div class="${data.type}">${data.message}</div>`
+            message_box.scrollTop = message_box.scrollHeight
+  		})
   	}
   }
 }
@@ -145,7 +147,7 @@ function plot(experiment, plotName, callback) {
 	}))
 	pending[ref1] = response => {
 		console.log(`plotting ${experiment} ${plotName}`)
-		Plotly.newPlot(experiment+'_plot', response.result.data, response.result.layout)
+		Plotly.newPlot(experiment+'_plot_0', response.result.data, response.result.layout)
 		if (callback) {
 			callback()
 		}
@@ -229,7 +231,8 @@ function createExperimentTab(exp) {
 
 	var pane = document.importNode(document.querySelector('#experiment_pane_template').content, true)
 	pane.querySelector('div').id = exp.name
-	pane.querySelector('.plot').id = exp.name+'_plot'
+	pane.querySelector('.plot-0 .plot').id = exp.name+'_plot_0'
+	pane.querySelector('.plot-1 .plot').id = exp.name+'_plot_1'
 	pane.querySelector('.par-list').id = exp.name+'_par_list'
 	pane.querySelector('.par-list-input').setAttribute('list', exp.name+'_par_list')
 	pane.querySelector('.btn-load-par').addEventListener('click', e => {
@@ -312,10 +315,39 @@ function createExperimentTab(exp) {
 		par.querySelector('input').name = pName
 		pane.querySelector('.parameters').appendChild(par)
 	})
+
+	Split([
+	    pane.querySelector('.plots-container'),
+	    pane.querySelector('.controls-parameters-container')],
+	    {
+	        sizes: [50, 50],
+	        direction: 'vertical',
+	        onDrag: () => {
+	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+	        }
+	    })
+	Split([
+	    pane.querySelector('.plot-0'),
+	    pane.querySelector('.plot-1')],
+	    {
+	        sizes: [50, 50],
+	        onDrag: () => {
+	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+	        }
+	    })
+	Split([
+	    pane.querySelector('.controls-container'),
+	    pane.querySelector('.parameters-container')],
+	    {
+	        sizes: [50, 50]
+	    })
 	//populate pane
 	document.getElementById('experiment_panes').appendChild(pane)
 	//create blank plot
-	Plotly.newPlot(exp.name+'_plot', {}, {})
+	//Plotly.newPlot(exp.name+'_plot_0', {}, {})
+	//Plotly.newPlot(exp.name+'_plot_1', {}, {})
 }
 
 function loadLanguage(lang_name) {
