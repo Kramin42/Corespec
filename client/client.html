@@ -4,9 +4,13 @@
   <title>Microspec</title>
   <meta charset="utf-8">
   <link href="client.css" rel="stylesheet">
+  <link href="d3plot.css" rel="stylesheet">
   <!-- Plotly.js -->
-  <script type="text/javascript" src="plotly-latest.min.js"></script>
+  <!--<script type="text/javascript" src="plotly-latest.min.js"></script>-->
   <script type="text/javascript" src="split.min.js"></script>
+  <script type="text/javascript" src="d3.min.js"></script>
+  <script type="text/javascript" src="d3-xyzoom.min.js"></script>
+  <script type="text/javascript" src="d3plot.js"></script>
   <!-- Client code -->
   <script type="text/javascript" src="client.js"></script>
 </head>
@@ -23,11 +27,11 @@
         <!-- plot -->
         <div class="pane plots-container split-row">
           <div class="plot-box split-col plot-0">
-            <div class="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
+            <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
             <select class="plot-list"></select>
           </div>
           <div class="plot-box split-col plot-1">
-            <div class="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
+            <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
             <select class="plot-list"></select>
           </div>
         </div>

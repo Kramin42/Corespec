@@ -80,7 +80,7 @@ ul.parameters li input {
 ul.parameters li label {
 	display: inline-block;
 	text-align: right;
-	width: 12em;
+	width: 10em;
 }
 
 ul.parameters li label span {

@@ -147,7 +147,8 @@ function plot(experiment, plotName, callback) {
 	}))
 	pending[ref1] = response => {
 		console.log(`plotting ${experiment} ${plotName}`)
-		Plotly.newPlot(experiment+'_plot_0', response.result.data, response.result.layout)
+		//Plotly.newPlot(experiment+'_plot_0', response.result.data, response.result.layout)
+		d3plot(d3.select('#'+experiment+' .plot-0 svg'), response.result)
 		if (callback) {
 			callback()
 		}
@@ -323,8 +324,8 @@ function createExperimentTab(exp) {
 	        sizes: [50, 50],
 	        direction: 'vertical',
 	        onDrag: () => {
-	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
-	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
 	        }
 	    })
 	Split([
@@ -333,8 +334,8 @@ function createExperimentTab(exp) {
 	    {
 	        sizes: [50, 50],
 	        onDrag: () => {
-	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
-	            Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
 	        }
 	    })
 	Split([
