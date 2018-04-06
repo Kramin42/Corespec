@@ -81,11 +81,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_real']}, {
-                    'name': 'Imag',
+                    'name': 'Imaginary',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_imag']}, {
-                    'name': 'Mag',
+                    'name': 'Magnitude',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_mag']}],

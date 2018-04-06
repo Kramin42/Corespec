@@ -5,13 +5,13 @@ function d3plot(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000
   var width = 400
   var height = 300
-  var m = 40
+  var margin = {left: 40, right: 40, top: 30, bottom: 30}
   var f_w = 40
   var fontS = 8
   var fontM = 12
   var fontL = 16
-  var w = width-2*m
-  var h = height-2*m
+  var w = width-margin.left-margin.right
+  var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()
   svg.attr('viewBox', '0 0 '+width+' '+height)
   var plotColors = ['#0072bd', '#d95319', '#edb120', '#7e2f8e', '#77ac30','#4dbeee','#a2142f']
@@ -64,7 +64,7 @@ function d3plot(svg, plotDef) {
     .x(d => scale_x(d.x))
     .y(d => scale_y(d.y))
   var g = svg.append('g')
-    .attr('transform', 'translate('+m+','+m+')')
+    .attr('transform', 'translate('+margin.left+','+margin.top+')')
     .append('g')
 //    .on("mousedown", function() {
 //      var e = d3.event.currentTarget,
@@ -117,7 +117,7 @@ function d3plot(svg, plotDef) {
       .attr('font-size', fontL)
       .attr('fill', '#333')
       .attr('x', width/2)
-      .attr('y', m/2 + fontL/2)
+      .attr('y', margin.top/2 + fontL/2)
       .style('text-anchor', 'middle')
       .text(plotDef.layout.title)
   }
@@ -154,7 +154,7 @@ function d3plot(svg, plotDef) {
       .attr('font-size', fontM)
       .attr('fill', '#333')
       .attr('dx', w/2)
-      .attr('dy', m-10)
+      .attr('dy', margin.bottom)
       .style('text-anchor', 'middle')
       .text(plotDef.layout.xaxis.title)
   }
@@ -167,7 +167,7 @@ function d3plot(svg, plotDef) {
     .attr('fill', '#333')
     .attr('transform', 'rotate(-90)')
     .attr('dx', -h/2)
-    .attr('dy', -(m-10))
+    .attr('dy', -margin.left)
     .style('text-anchor', 'middle')
     .text(plotDef.layout.yaxis.title)
   }
@@ -201,13 +201,13 @@ function d3plot(svg, plotDef) {
       .attr('class', 'legend')
     legend.append('rect')
       .attr('x', w+2).attr('y', offsetY)
-      .attr('width', m-4).attr('height', 2)
+      .attr('width', margin.right-4).attr('height', 2)
       .attr('fill', plotColors[i])
     legend.append('text')
       .attr('font-size', fontS)
       .attr('x', w+2).attr('y', offsetY + 2 + fontS)
       .text(dataLabels[i])
-      .call(wrap, m-2)
+      .call(wrap, margin.right-2)
     legends.push(legend)
     prevLegendBBox = legend.node().getBBox()
   }
@@ -277,7 +277,7 @@ function d3plot(svg, plotDef) {
   g.append('rect')
     .attr('class', 'zoom-x overlay')
     .attr('width', w)
-    .attr('height', m)
+    .attr('height', margin.bottom)
     .attr('transform', 'translate('+0+','+h+')')
     .call(zoom_x)
     .on('mouseover', () => {d3.selectAll('.focus').style('display', null)})
@@ -286,9 +286,9 @@ function d3plot(svg, plotDef) {
 
   g.append('rect')
     .attr('class', 'zoom-y overlay')
-    .attr('width', m)
+    .attr('width', margin.left)
     .attr('height', h)
-    .attr('transform', 'translate('+(-m)+','+0+')')
+    .attr('transform', 'translate('+(-margin.left)+','+0+')')
     .call(zoom_y)
 
   function zoomed() {
@@ -324,7 +324,7 @@ function d3plot(svg, plotDef) {
     var max_x = scale_x.domain()[1]
     var cut_data = []
     var y_maximiser = function(prev, cur) {return (prev.y > cur.y) ? prev : cur}
-    var y_minimiser = function(prev, cur) {return (prev.y > cur.y) ? prev : cur}
+    var y_minimiser = function(prev, cur) {return (prev.y < cur.y) ? prev : cur}
     for (var i=0; i<data.length; i++) {
       var i0 = bisect_x(data[i], min_x, 1)-1
       var i1 = bisect_x(data[i], max_x, 1)+1
