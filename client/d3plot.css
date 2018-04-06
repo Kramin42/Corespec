@@ -3,12 +3,6 @@ svg {
   height: 100%;
 }
 
-path.line {
-  vector-effect: non-scaling-stroke;
-  stroke-width: 1;
-  fill: none;
-}
-
 rect {
   shape-rendering: crispEdges;
 }

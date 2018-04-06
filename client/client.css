@@ -6,7 +6,15 @@ html, body {
 }
 
 .tabcontent {
+    display: flex;
+    flex-direction: column;
     height: calc(100vh - 25px);
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.tabcontent {
+  display: none;
 }
 
 .gutter {
@@ -47,9 +55,6 @@ html, body {
 }
 
 .pane input, .pane select {
-    padding-left: 3px;
-    padding-right: 3px;
-    margin: 3px;
     align-self: center;
 }
 
@@ -121,19 +126,49 @@ div.tab button.active {
     background-color: #ccc;
 }
 
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    border: 1px solid #ccc;
-    border-top: none;
+.plot-list {
+    margin: 0 auto;
+    display: block;
+}
+
+.plot-box {
+}
+
+.plot {
+    height: calc(100% - 25px);
+}
+
+.split-col {
+    overflow-x: hidden;
+    flex-grow: 1;
+}
+
+.split-row {
+    overflow-y: hidden;
+    flex-grow: 1;
+}
+
+.controls-parameters-container {
+  flex-shrink: 0;
+  height: 150px;
+}
+
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .message-box {
-    border: 1px solid #ccc;
-    background: white;
-    padding: 6px 12px;
-    overflow-y: scroll;
-    height: 5em;
+  border: 1px solid #ccc;
+  background: white;
+  padding: 6px 12px;
+  overflow-y: scroll;
+  height: 2em;
+  flex-grow: 1;
+  flex-shrink: 0;
 }
 
 .message-box .error {
@@ -144,26 +179,10 @@ div.tab button.active {
     opacity: 0.7;
 }
 
-.plot-list {
-    margin: 0 auto;
-    display: block;
-}
-
-.plot-box {
-    height: 100%;
-    overflow: hidden;
-}
-
-.plot {
-    height: calc(100% - 25px);
-}
-
-.split-col {
-    overflow-x: hidden;
-}
-
-.split-row {
-    overflow-y: hidden;
+.parameters-container {
+  width: 200px;
+  flex-grow: 1;
+  flex-shrink: 0;
 }
 
 .plotlyjsicon {

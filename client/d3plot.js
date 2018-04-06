@@ -2,6 +2,7 @@
 // dykstra.cameron@gmail.com
 
 function d3plot(svg, plotDef) {
+  var MAX_DISPLAY_POINTS = 1000
   var width = 400
   var height = 300
   var m = 40
@@ -27,7 +28,7 @@ function d3plot(svg, plotDef) {
     else domain.bot = d3.min(d.y)
     if (domain.top) domain.top = Math.max(domain.top, d3.max(d.y))
     else domain.top = d3.max(d.y)
-    data.push(zip([d.x, d.y]))
+    data.push(xyzip(d.x, d.y))
     dataLabels.push(d.name)
   })
 
@@ -43,6 +44,7 @@ function d3plot(svg, plotDef) {
     .scale(scale_x)
   var axis_y = d3.axisLeft()
     .scale(scale_y)
+  var bisect_x = d3.bisector(d => {return d.x}).left
   var zoom = d3.xyzoom()
     .extent([[0, 0], [w, h]])
     .scaleExtent([[1, Infinity],[1, Infinity]])
@@ -59,8 +61,8 @@ function d3plot(svg, plotDef) {
     .translateExtent([[0, 0], [w, h]])
     .on('zoom', zoomed_y)
   var line = d3.line()
-    .x(d => scale_x(d[0]))
-    .y(d => scale_y(d[1]))
+    .x(d => scale_x(d.x))
+    .y(d => scale_y(d.y))
   var g = svg.append('g')
     .attr('transform', 'translate('+m+','+m+')')
     .append('g')
@@ -135,8 +137,9 @@ function d3plot(svg, plotDef) {
     .attr('x2', w+0.5).attr('y2', h+1)
 
   // plot area clip
+  var clipID = uuidv4()
   g.append('clipPath')
-    .attr('id', 'clip')
+    .attr('id', clipID)
     .append('rect')
     .attr('width', w)
     .attr('height', h)
@@ -176,11 +179,15 @@ function d3plot(svg, plotDef) {
       .datum(data[i])
       .attr("class", "line")
       .attr('d', line)
-      .attr('clip-path', 'url(#clip)')
+      .attr('clip-path', 'url(#'+clipID+')')
       .attr('fill', 'none')
       .attr('stroke', plotColors[i])
+      .attr('stroke-width', 1.5)
+      .attr('stroke-miterlimit', 2)
+      .attr('vector-effect', 'non-scaling-stroke')
     plotPaths.push(path)
   }
+  update()
 
   //legends
   var legends = []
@@ -212,7 +219,7 @@ function d3plot(svg, plotDef) {
     .attr('y1', 0)
     .attr('y2', h)
     .attr('stroke', '#333')
-    .attr('clip-path', 'url(#clip)')
+    .attr('clip-path', 'url(#'+clipID+')')
   var crosshairs = []
   for (var i=0; i<data.length; i++) {
     var crosshair = g.append('line')
@@ -221,7 +228,7 @@ function d3plot(svg, plotDef) {
       .attr('x1', 0)
       .attr('x2', w)
       .attr('stroke', plotColors[i])
-      .attr('clip-path', 'url(#clip)')
+      .attr('clip-path', 'url(#'+clipID+')')
     crosshairs.push(crosshair)
   }
 
@@ -244,17 +251,17 @@ function d3plot(svg, plotDef) {
       .style('display', 'none')
     focus.append('circle')
       .attr('r', 1)
-      .attr('clip-path', 'url(#clip)')
+      .attr('clip-path', 'url(#'+clipID+')')
     focus.append('rect')
       .attr('width', f_w)
       .attr('height', fontS)
       .style('fill', plotColors[i])
-      .attr('clip-path', 'url(#clip)')
+      .attr('clip-path', 'url(#'+clipID+')')
     focus.append('text')
       .attr('font-size', fontS)
       .attr('dx', '0.25em')
       .attr('dy', '0.85em')
-      .attr('clip-path', 'url(#clip)')
+      .attr('clip-path', 'url(#'+clipID+')')
     lineFoci.push(focus)
   }
 
@@ -312,12 +319,37 @@ function d3plot(svg, plotDef) {
   }
 
   function update() {
-    line.x(d => scale_x(d[0]))
-        .y(d => scale_y(d[1]))
+    // possibly we should simplify the paths
+    var min_x = scale_x.domain()[0]
+    var max_x = scale_x.domain()[1]
+    var cut_data = []
+    var y_maximiser = function(prev, cur) {return (prev.y > cur.y) ? prev : cur}
+    var y_minimiser = function(prev, cur) {return (prev.y > cur.y) ? prev : cur}
+    for (var i=0; i<data.length; i++) {
+      var i0 = bisect_x(data[i], min_x, 1)-1
+      var i1 = bisect_x(data[i], max_x, 1)+1
+      cut_data[i] = data[i].slice(i0, i1)
+      var decimation = Math.floor(cut_data[i].length / (MAX_DISPLAY_POINTS / 2))
+      if (decimation > 2) {
+        var dec_data = []
+        for (var j=0; j < cut_data[i].length; j+=decimation) {
+          var p_max = cut_data[i].slice(j, j+decimation).reduce(y_maximiser)
+          var p_min = cut_data[i].slice(j, j+decimation).reduce(y_minimiser)
+          dec_data.push(p_min)
+          dec_data.push(p_max)
+          //dec_data.push(cut_data[i][j])
+        }
+        cut_data[i] = dec_data
+      }
+
+      plotPaths[i].datum(cut_data[i])
+      //plotPaths[i].datum(simplify(data[i], 0.1))
+    }
+    line.x(d => scale_x(d.x).toFixed(2))
+        .y(d => scale_y(d.y).toFixed(2))
     svg.selectAll('.line').attr('d', line)
   }
 
-  var bisect_x = d3.bisector(d => {return d[0]}).left
   function update_hover() {
     var x0 = scale_x.invert(d3.mouse(overlay.node())[0])
     var prev_f_y = null
@@ -325,10 +357,10 @@ function d3plot(svg, plotDef) {
       var index = bisect_x(data[i], x0, 1)
       var p0 = data[i][index-1]
       var p1 = data[i][index]
-      p = p1 && (x0-p0[0] > p1[0]-x0) ? p1 : p0
+      var p = p1 && (x0-p0.x > p1.x-x0) ? p1 : p0
 
-      var f_x = scale_x(p[0])
-      var f_y = scale_y(p[1])
+      var f_x = scale_x(p.x)
+      var f_y = scale_y(p.y)
       crosshairs[i].attr('y1', f_y).attr('y2', f_y)
       lineFoci[i].select('circle').attr('cx', f_x).attr('cy', f_y)
       if (w - f_x < f_w+fontS/2) // no room on right for focus label
@@ -346,7 +378,7 @@ function d3plot(svg, plotDef) {
         }
       }
       lineFoci[i].select('rect').attr('x', f_x).attr('y', f_y)
-      lineFoci[i].select('text').attr('x', f_x).attr('y', f_y).text(p[1].toPrecision(4))
+      lineFoci[i].select('text').attr('x', f_x).attr('y', f_y).text(p.y.toPrecision(4))
       prev_f_y = f_y
     }
 
@@ -434,5 +466,17 @@ function d3plot(svg, plotDef) {
     return arrays[0].map(function(_,i){
         return arrays.map(function(array){return array[i]})
     });
+  }
+
+  function xyzip(xs, ys) {
+    return xs.map(function(_,i){
+      return {x: xs[i], y: ys[i]}
+    })
+  }
+
+  function uuidv4() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    )
   }
 }

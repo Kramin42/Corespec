@@ -10,6 +10,7 @@
   <script type="text/javascript" src="split.min.js"></script>
   <script type="text/javascript" src="d3.min.js"></script>
   <script type="text/javascript" src="d3-xyzoom.min.js"></script>
+  <script type="text/javascript" src="d3-decimate.min.js"></script>
   <script type="text/javascript" src="d3plot.js"></script>
   <!-- Client code -->
   <script type="text/javascript" src="client.js"></script>
@@ -30,10 +31,12 @@
             <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
             <select class="plot-list"></select>
           </div>
+          <!--
           <div class="plot-box split-col plot-1">
-            <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
+            <svg class="plot"></svg>
             <select class="plot-list"></select>
           </div>
+          -->
         </div>
         <div class="pane controls-parameters-container split-row">
           <div class="controls-container split-col">
@@ -60,7 +63,7 @@
                 <option value="csv">CSV</option>
                 <option value="mat">MATLAB</option>
               </select>
-              <button class="btn-export">Export Data</button>
+              <button class="btn-export">Export</button>
             </div>
             <!-- messages -->
             <div class="message-box"></div>

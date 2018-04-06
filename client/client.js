@@ -233,7 +233,7 @@ function createExperimentTab(exp) {
 	var pane = document.importNode(document.querySelector('#experiment_pane_template').content, true)
 	pane.querySelector('div').id = exp.name
 	pane.querySelector('.plot-0 .plot').id = exp.name+'_plot_0'
-	pane.querySelector('.plot-1 .plot').id = exp.name+'_plot_1'
+	//pane.querySelector('.plot-1 .plot').id = exp.name+'_plot_1'
 	pane.querySelector('.par-list').id = exp.name+'_par_list'
 	pane.querySelector('.par-list-input').setAttribute('list', exp.name+'_par_list')
 	pane.querySelector('.btn-load-par').addEventListener('click', e => {
@@ -317,33 +317,33 @@ function createExperimentTab(exp) {
 		pane.querySelector('.parameters').appendChild(par)
 	})
 
-	Split([
-	    pane.querySelector('.plots-container'),
-	    pane.querySelector('.controls-parameters-container')],
-	    {
-	        sizes: [50, 50],
-	        direction: 'vertical',
-	        onDrag: () => {
-	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
-	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
-	        }
-	    })
-	Split([
-	    pane.querySelector('.plot-0'),
-	    pane.querySelector('.plot-1')],
-	    {
-	        sizes: [50, 50],
-	        onDrag: () => {
-	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
-	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
-	        }
-	    })
-	Split([
-	    pane.querySelector('.controls-container'),
-	    pane.querySelector('.parameters-container')],
-	    {
-	        sizes: [50, 50]
-	    })
+//	Split([
+//	    pane.querySelector('.plots-container'),
+//	    pane.querySelector('.controls-parameters-container')],
+//	    {
+//	        sizes: [50, 50],
+//	        direction: 'vertical',
+//	        onDrag: () => {
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+//	        }
+//	    })
+//	Split([
+//	    pane.querySelector('.plot-0'),
+//	    pane.querySelector('.plot-1')],
+//	    {
+//	        sizes: [50, 50],
+//	        onDrag: () => {
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+//	        }
+//	    })
+//	Split([
+//	    pane.querySelector('.controls-container'),
+//	    pane.querySelector('.parameters-container')],
+//	    {
+//	        sizes: [50, 50]
+//	    })
 	//populate pane
 	document.getElementById('experiment_panes').appendChild(pane)
 	//create blank plot
@@ -390,7 +390,7 @@ function openExperimentTab(event, experimentName) {
     }
 
     // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(experimentName).style.display = "block";
+    document.getElementById(experimentName).style.display = "flex";
     event.currentTarget.className += " active";
 }
 
