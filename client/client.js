@@ -121,7 +121,7 @@ function runExperiment(experiment, callback) {
 	}
 	pending[ref2] = data => {
 		var plotName = document.getElementById(experiment).querySelector('.plot-list').value
-		plot(experiment, plotName, callback)
+		plot(experiment, 0, plotName, callback)
 		running_experiment = null
 	}
 }
@@ -133,7 +133,7 @@ function runExperimentContinuously(experiment) {
 	loop()
 }
 
-function plot(experiment, plotName, callback) {
+function plot(experiment, plotNum, plotName, callback) {
 	var ref1 = generateUID()
 	console.log('getting plot data')
 	connection.send(JSON.stringify({
@@ -148,7 +148,7 @@ function plot(experiment, plotName, callback) {
 	pending[ref1] = response => {
 		console.log(`plotting ${experiment} ${plotName}`)
 		//Plotly.newPlot(experiment+'_plot_0', response.result.data, response.result.layout)
-		d3plot(d3.select('#'+experiment+' .plot-0 svg'), response.result)
+		d3plot(d3.select('#'+experiment+'_plot_'+plotNum+' svg'), response.result)
 		if (callback) {
 			callback()
 		}
@@ -232,8 +232,6 @@ function createExperimentTab(exp) {
 
 	var pane = document.importNode(document.querySelector('#experiment_pane_template').content, true)
 	pane.querySelector('div').id = exp.name
-	pane.querySelector('.plot-0 .plot').id = exp.name+'_plot_0'
-	//pane.querySelector('.plot-1 .plot').id = exp.name+'_plot_1'
 	pane.querySelector('.par-list').id = exp.name+'_par_list'
 	pane.querySelector('.par-list-input').setAttribute('list', exp.name+'_par_list')
 	pane.querySelector('.btn-load-par').addEventListener('click', e => {
@@ -278,16 +276,24 @@ function createExperimentTab(exp) {
 	pane.querySelector('.abort-experiment').addEventListener('click', e => {
 		abortExperiment(exp.name)
 	}, false)
-	var plotList = pane.querySelector('.plot-list')
-	exp.plots.forEach(plotName => {
-		var opt = document.createElement('option')
-		opt.value = plotName
-		opt.innerHTML = plotName
-		plotList.appendChild(opt)
-	})
-	plotList.addEventListener('change', e => {
-		plot(exp.name, e.target.value)
-	})
+	// add plots
+	for (var i=0; i<2; i++) {
+	  var plotbox = document.importNode(document.querySelector('#plot_template').content, true)
+	  plotbox.querySelector('.plot-box').id = exp.name+'_plot_'+i
+	  var plotList = plotbox.querySelector('.plot-list')
+      exp.plots.forEach(plotName => {
+          var opt = document.createElement('option')
+          opt.value = plotName
+          opt.innerHTML = plotName
+          plotList.appendChild(opt)
+      });
+      (function (i) { // need a new scope to remember the current i
+        plotList.addEventListener('change', e => {
+          plot(exp.name, i, e.target.value)
+        })
+	  })(i)
+	  pane.querySelector('.plots-container').appendChild(plotbox)
+	}
 	var exportList = pane.querySelector('.export-list')
 	exp.exports.forEach(exportName => {
 		var opt = document.createElement('option')

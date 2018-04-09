@@ -10,7 +10,6 @@
   <script type="text/javascript" src="split.min.js"></script>
   <script type="text/javascript" src="d3.min.js"></script>
   <script type="text/javascript" src="d3-xyzoom.min.js"></script>
-  <script type="text/javascript" src="d3-decimate.min.js"></script>
   <script type="text/javascript" src="d3plot.js"></script>
   <!-- Client code -->
   <script type="text/javascript" src="client.js"></script>
@@ -27,16 +26,6 @@
       <div id="${exp.name}" class="tabcontent">
         <!-- plot -->
         <div class="pane plots-container split-row">
-          <div class="plot-box split-col plot-0">
-            <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
-            <select class="plot-list"></select>
-          </div>
-          <!--
-          <div class="plot-box split-col plot-1">
-            <svg class="plot"></svg>
-            <select class="plot-list"></select>
-          </div>
-          -->
         </div>
         <div class="pane controls-parameters-container split-row">
           <div class="controls-container split-col">
@@ -80,6 +69,12 @@
         <label for=""><span class="par-name"></span><span class="par-unit"></span></label>
         <input type="number" step="any" id="" name="">
       </li>
+    </template>
+    <template id="plot_template">
+      <div class="plot-box split-col">
+        <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
+        <select class="plot-list"></select>
+      </div>
     </template>
   </div>
 

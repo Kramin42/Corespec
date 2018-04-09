@@ -15,6 +15,7 @@ function d3plot(svg, plotDef) {
   svg.selectAll('*').remove()
   svg.attr('viewBox', '0 0 '+width+' '+height)
   var plotColors = ['#0072bd', '#d95319', '#edb120', '#7e2f8e', '#77ac30','#4dbeee','#a2142f']
+  var numPlotColors = 7
 
   var data = []
   var dataLabels = []
@@ -167,7 +168,7 @@ function d3plot(svg, plotDef) {
     .attr('fill', '#333')
     .attr('transform', 'rotate(-90)')
     .attr('dx', -h/2)
-    .attr('dy', -margin.left)
+    .attr('dy', -margin.left+fontM)
     .style('text-anchor', 'middle')
     .text(plotDef.layout.yaxis.title)
   }
@@ -181,7 +182,7 @@ function d3plot(svg, plotDef) {
       .attr('d', line)
       .attr('clip-path', 'url(#'+clipID+')')
       .attr('fill', 'none')
-      .attr('stroke', plotColors[i])
+      .attr('stroke', plotColors[i%numPlotColors])
       .attr('stroke-width', 1.5)
       .attr('stroke-miterlimit', 2)
       .attr('vector-effect', 'non-scaling-stroke')
@@ -202,7 +203,7 @@ function d3plot(svg, plotDef) {
     legend.append('rect')
       .attr('x', w+2).attr('y', offsetY)
       .attr('width', margin.right-4).attr('height', 2)
-      .attr('fill', plotColors[i])
+      .attr('fill', plotColors[i%numPlotColors])
     legend.append('text')
       .attr('font-size', fontS)
       .attr('x', w+2).attr('y', offsetY + 2 + fontS)
@@ -227,7 +228,7 @@ function d3plot(svg, plotDef) {
       .style('display', 'none')
       .attr('x1', 0)
       .attr('x2', w)
-      .attr('stroke', plotColors[i])
+      .attr('stroke', plotColors[i%numPlotColors])
       .attr('clip-path', 'url(#'+clipID+')')
     crosshairs.push(crosshair)
   }
@@ -255,7 +256,7 @@ function d3plot(svg, plotDef) {
     focus.append('rect')
       .attr('width', f_w)
       .attr('height', fontS)
-      .style('fill', plotColors[i])
+      .style('fill', plotColors[i%numPlotColors])
       .attr('clip-path', 'url(#'+clipID+')')
     focus.append('text')
       .attr('font-size', fontS)
@@ -270,8 +271,8 @@ function d3plot(svg, plotDef) {
     .attr('width', w)
     .attr('height', h)
     .call(zoom)
-    .on('mouseover', () => {d3.selectAll('.focus').style('display', null)})
-    .on('mouseout', () => {d3.selectAll('.focus').style('display', 'none')})
+    .on('mouseover', () => {g.selectAll('.focus').style('display', null)})
+    .on('mouseout', () => {g.selectAll('.focus').style('display', 'none')})
     .on('mousemove', update_hover)
 
   g.append('rect')
@@ -280,8 +281,8 @@ function d3plot(svg, plotDef) {
     .attr('height', margin.bottom)
     .attr('transform', 'translate('+0+','+h+')')
     .call(zoom_x)
-    .on('mouseover', () => {d3.selectAll('.focus').style('display', null)})
-    .on('mouseout', () => {d3.selectAll('.focus').style('display', 'none')})
+    .on('mouseover', () => {g.selectAll('.focus').style('display', null)})
+    .on('mouseout', () => {g.selectAll('.focus').style('display', 'none')})
     .on('mousemove', update_hover)
 
   g.append('rect')
