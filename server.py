@@ -108,6 +108,7 @@ async def run(ws, experiment_name):
         # fire and forget
         asyncio.ensure_future(ws.send(json.dumps({
             'type': 'progress',
+            'experiment': experiment_name,
             'finished': False,
             'progress': int(progress),
             'max': int(limit)
@@ -117,6 +118,8 @@ async def run(ws, experiment_name):
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
     await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
+async def abort(ws, experiment_name):
+    experiments[experiment_name].abort()
 
 async def set_parameters(ws, experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
@@ -165,7 +168,7 @@ async def consumer(websocket, message):
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
-        await consumer(websocket, message)
+        asyncio.ensure_future(consumer(websocket, message))
 
 # web server
 class Handler(web.StaticFileHandler):

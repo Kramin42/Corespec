@@ -60,6 +60,11 @@ class BaseExperiment:
     def override(self):
         pass
 
+    def abort(self):
+        logger.debug('aborting experiment...')
+        for prog_name, prog in self.programs.items():
+            prog.abort()
+
     def save(self, dir):
         sio.savemat(os.path.join(dir, 'raw_data.mat'), {'raw_data': self.raw_data()})
         with open(os.path.join(dir, 'par.yaml'), 'w') as f:
@@ -73,10 +78,11 @@ class BaseExperiment:
             for par_name, par in prog.config_get('parameters').items():
                 merged_pars[par_name] = par
         return {'name': self.name,
-                'description': self._config['description'],
+                'description': self._config['description'] if 'description' in self._config else '',
                 'parameters': self.par_def,
                 'exports': list(self.exports.keys()),
-                'plots': list(self.plots.keys())}
+                'plots': list(self.plots.keys()),
+                'defaults': self._config['defaults'] if 'defaults' in self._config else {}}
 
     def set_parameters(self, parameters):
         self.par.update(parameters)
@@ -84,4 +90,3 @@ class BaseExperiment:
             for name, value in self.par.items():
                 if name in prog.config_get('parameters'):
                     prog.set_par(name, value)
-

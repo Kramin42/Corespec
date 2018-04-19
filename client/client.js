@@ -11,7 +11,7 @@ var loaded_experiment_tabs = false
 function connect() {
   var serverUrl = `ws://${window.location.hostname}:8765`
 
-  connection = new WebSocket(serverUrl)
+  connection = new ReconnectingWebSocket(serverUrl)
 
   connection.onopen = function(evt) {
   	if (!loaded_experiment_tabs) {
@@ -28,6 +28,7 @@ function connect() {
 	    	refreshParSetList()
 	    	loadLanguage('english')
 	    	loaded_experiment_tabs = true
+	    	openExperimentTab(data.result[0].name)
 	    }
 	}
   }
@@ -46,6 +47,7 @@ function connect() {
   			setProgress(1,1)
   		} else {
   			setProgress(data.progress, data.max)
+  			replot(data.experiment)
   		}
   	}
 
@@ -91,6 +93,15 @@ function abortExperiment(experiment) {
 	// clear any pending operations
 	pending = {}
 	// TODO send an abort signal to system
+	var ref = generateUID()
+	connection.send(JSON.stringify({
+		'type': 'command',
+    	'command': 'abort',
+    	'ref': ref,
+    	'args': {
+			'experiment_name': experiment
+		}
+	}))
 }
 
 function runExperiment(experiment, callback) {
@@ -120,8 +131,10 @@ function runExperiment(experiment, callback) {
 		}))
 	}
 	pending[ref2] = data => {
-		var plotName = document.getElementById(experiment).querySelector('.plot-list').value
-		plot(experiment, 0, plotName, callback)
+	    replot(experiment)
+		if (callback) {
+			callback()
+		}
 		running_experiment = null
 	}
 }
@@ -153,6 +166,14 @@ function plot(experiment, plotNum, plotName, callback) {
 			callback()
 		}
 	}
+}
+
+function replot(experiment) {
+  var plotCount = document.getElementById(experiment).querySelectorAll('.plot-box').length
+  for (var i=0; i<plotCount; i++) {
+    var plotName = document.getElementById(experiment+'_plot_'+i).querySelector('.plot-list').value
+    plot(experiment, i, plotName)
+  }
 }
 
 function exportCSV(experiment, exportName, callback) {
@@ -224,9 +245,10 @@ function refreshParSetList() {
 function createExperimentTab(exp) {
 	var tab = document.importNode(document.querySelector('#experiment_tab_template').content, true)
 	var btn = tab.querySelector('button')
+	btn.id = exp.name+'_tablink'
 	btn.innerText = exp.name.replace(/_/g, ' ')
 	btn.addEventListener('click', e => {
-		openExperimentTab(e, exp.name)
+		openExperimentTab(exp.name)
 	}, false)
 	document.getElementById('experiment_tabs').appendChild(tab)
 
@@ -277,22 +299,42 @@ function createExperimentTab(exp) {
 		abortExperiment(exp.name)
 	}, false)
 	// add plots
-	for (var i=0; i<2; i++) {
-	  var plotbox = document.importNode(document.querySelector('#plot_template').content, true)
-	  plotbox.querySelector('.plot-box').id = exp.name+'_plot_'+i
-	  var plotList = plotbox.querySelector('.plot-list')
-      exp.plots.forEach(plotName => {
-          var opt = document.createElement('option')
-          opt.value = plotName
-          opt.innerHTML = plotName
-          plotList.appendChild(opt)
-      });
-      (function (i) { // need a new scope to remember the current i
+	var plotCount = 1
+	var defaultPlotsDefined = exp.defaults && exp.defaults.plots
+	if (defaultPlotsDefined) {
+	  plotCount = exp.defaults.plots.length
+	}
+	for (var i=0; i<plotCount; i++) {
+	  (function (i) { // need a new scope to remember the current i
+        var plotbox = document.importNode(document.querySelector('#plot_template').content, true)
+        var plotboxID = exp.name+'_plot_'+i
+        plotbox.querySelector('.plot-box').id = plotboxID
+        var plotList = plotbox.querySelector('.plot-list')
+        exp.plots.forEach(plotName => {
+            var opt = document.createElement('option')
+            opt.value = plotName
+            opt.innerHTML = plotName
+            plotList.appendChild(opt)
+        });
+
+        if (defaultPlotsDefined) {
+          plotList.value = exp.defaults.plots[i]
+        }
+
         plotList.addEventListener('change', e => {
           plot(exp.name, i, e.target.value)
         })
+        plotbox.querySelector('.btn-plot-save').addEventListener('click', e => {
+          if (document.querySelector('#'+plotboxID+' .plot-save-format').value==='png') {
+            saveSvgAsPng(document.querySelector('#'+plotboxID+' svg.plot'), 'plot.png', {
+              scale: 2,
+              backgroundColor: 'white'
+            })
+          }
+        }, false)
+
+        pane.querySelector('.plots-container').appendChild(plotbox)
 	  })(i)
-	  pane.querySelector('.plots-container').appendChild(plotbox)
 	}
 	var exportList = pane.querySelector('.export-list')
 	exp.exports.forEach(exportName => {
@@ -379,7 +421,7 @@ function loadLanguage(lang_name) {
     }
 }
 
-function openExperimentTab(event, experimentName) {
+function openExperimentTab(experimentName) {
 	// Declare all variables
     var i, tabcontent, tablinks;
 
@@ -397,7 +439,7 @@ function openExperimentTab(event, experimentName) {
 
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(experimentName).style.display = "flex";
-    event.currentTarget.className += " active";
+    document.getElementById(experimentName+'_tablink').className += " active";
 }
 
 function generateUID() {
@@ -441,3 +483,7 @@ if (window.NodeList && !NodeList.prototype.forEach) {
         }
     };
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    connect()
+}, false);

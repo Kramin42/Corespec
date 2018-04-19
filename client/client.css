@@ -37,25 +37,30 @@ html, body {
     display: flex;
     flex-direction: row;
     width: 100%;
+    padding: 1px;
     //border-top: 1px solid #ccc;
     //border-bottom: 1px solid #ccc;
     background-color: #f1f1f1;
 }
 
 .pane button {
-    padding: 3px;
-    margin: 3px;
+    padding: 0 3px;
+    margin: 0 1px;
 }
 
 .pane label {
     padding-left: 3px;
     padding-right: 3px;
-    margin: 3px;
+    margin: 1px 3px;
     align-self: center;
 }
 
 .pane input, .pane select {
     align-self: center;
+}
+
+.pane input {
+  margin: 1px 3px;
 }
 
 .pane progress {
@@ -101,7 +106,7 @@ ul.parameters li label span {
 /* Style the tab */
 div.tab {
     overflow: hidden;
-    border: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
     background-color: #f1f1f1;
 }
 
@@ -127,11 +132,16 @@ div.tab button.active {
 }
 
 .plot-list {
-    margin: 0 auto;
-    display: block;
+    margin: 0 3px;
+    margin-right: auto;
+}
+
+.plot-controls {
+  margin: 0 auto;
 }
 
 .plot-box {
+    padding: 0 1px;
 }
 
 .plot {
@@ -143,9 +153,17 @@ div.tab button.active {
     flex-grow: 1;
 }
 
+.split-col:not(:first-child) {
+  border-left: 1px solid #ccc;
+}
+
 .split-row {
     overflow-y: hidden;
     flex-grow: 1;
+}
+
+.split-row:not(:first-child) {
+  border-top: 1px solid #ccc;
 }
 
 .controls-parameters-container {

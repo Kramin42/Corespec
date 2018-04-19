@@ -23,7 +23,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         widths = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         count = len(widths)
         index = 0
-        self.data = np.array([])
+        self.data = None
 
         #def my_progress_handler(progress, limit=0):
         #    logger.debug('calling progress handler with %s/%s' % (progress+index*count, limit*count))
@@ -34,14 +34,18 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['FID'].set_par('width_90', width)
             await self.programs['FID'].run()
             run_data = self.programs['FID'].data.astype(np.float32).view(np.complex64)
-            self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
+            #self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
+            if self.data is None:
+                self.data = np.array([run_data])
+            else:
+                self.data = np.append(self.data, [run_data], axis=0)
             progress_handler(index+1, count)
             index+=1
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
-    def export_calibration(self):
-        y = self.raw_data()
+    def export_Calibration(self):
+        y = np.amax(np.abs(np.fft.fft(self.raw_data(), axis=1)), axis=1)
         x = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         return {
             'x': x.tolist(),
@@ -50,11 +54,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
-    def plot_calibration(self):
-        data = self.export_calibration()
+    def plot_Calibration(self):
+        data = self.export_Calibration()
         # return object according to plotly schema
         return {'data': [{
-                    'name': 'Real',
+                    'name': '',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y']}],
@@ -63,6 +67,27 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': 'FFT Max'}
                 }}
+
+    def plot_FID(self):
+        y = self.raw_data()[-1,:]
+        # phase
+        if 'phase' in self.par:
+            y = y * np.exp(1j * np.pi * self.par['phase'] / 180)
+        x = np.linspace(0, self.par['decimation'] * 0.01 * len(y), len(y), endpoint=False)
+        return {'data': [{
+            'name': 'Real',
+            'type': 'scatter',
+            'x': x.tolist(),
+            'y': y.real.tolist()}, {
+            'name': 'Imag',
+            'type': 'scatter',
+            'x': x.tolist(),
+            'y': y.real.tolist()}],
+            'layout': {
+                'title': 'FID',
+                'xaxis': {'title': 'μs'},
+                'yaxis': {'title': 'μV'}
+            }}
 
     def raw_data(self):
         return self.data

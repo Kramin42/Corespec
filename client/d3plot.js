@@ -9,7 +9,7 @@ function d3plot(svg, plotDef) {
   var f_w = 40
   var fontS = 8
   var fontM = 12
-  var fontL = 16
+  var fontL = 14
   var w = width-margin.left-margin.right
   var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()

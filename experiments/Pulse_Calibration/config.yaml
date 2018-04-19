@@ -3,3 +3,7 @@ description:
   An experiment for calibrating pulse power/width.
 programs:
   - FID
+defaults:
+  plots:
+    - FID
+    - Calibration

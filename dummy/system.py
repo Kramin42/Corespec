@@ -11,7 +11,7 @@ status = 0
 run_time = time()
 
 def stop() -> None:
-    pass
+    logger.debug('stopping')
 
 
 def run() -> None:
@@ -49,5 +49,10 @@ def read_fifo(
         offset: int,
         length: int,
         dtype=np.dtype(np.int32)) -> np.ndarray:
-    data = np.random.randint(-1000000, 1000000, size=length, dtype=dtype)
-    return data
+    #data = np.random.randcompl(-1000000, 1000000, size=length, dtype=dtype)
+    data = np.zeros(int(length/2), dtype=np.complex64)
+    x = np.linspace(0,data.size,data.size,endpoint=False)
+    for i in range(10):
+        data += 1000000*np.exp(1j*np.random.random_sample()*10*x)*np.exp(-np.random.random_sample()*0.05*x)
+    data += (1j*np.random.sample(data.size)+np.random.sample(data.size)-0.5j-0.5)*100000
+    return data.view(np.float32).astype(np.int32)

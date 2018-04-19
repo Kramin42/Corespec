@@ -7,10 +7,12 @@
   <link href="d3plot.css" rel="stylesheet">
   <!-- Plotly.js -->
   <!--<script type="text/javascript" src="plotly-latest.min.js"></script>-->
-  <script type="text/javascript" src="split.min.js"></script>
+  <!--<script type="text/javascript" src="split.min.js"></script>-->
+  <script type="text/javascript" src="websocket.min.js"></script>
   <script type="text/javascript" src="d3.min.js"></script>
   <script type="text/javascript" src="d3-xyzoom.min.js"></script>
   <script type="text/javascript" src="d3plot.js"></script>
+  <script type="text/javascript" src="saveSvgAsPng.js"></script>
   <!-- Client code -->
   <script type="text/javascript" src="client.js"></script>
 </head>
@@ -73,12 +75,16 @@
     <template id="plot_template">
       <div class="plot-box split-col">
         <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
-        <select class="plot-list"></select>
+        <div class="pane plot-controls">
+          <select class="plot-list"></select>
+          <select class="plot-save-format">
+            <option value="png">PNG</option>
+            <option value="svg">SVG</option>
+          </select>
+          <button class="btn-plot-save">Save</button>
+        </div>
       </div>
     </template>
   </div>
-
-  <hr/>
-  <input type="button" name="connect" value="connect" onclick="connect()"></p>
 </body>
 </html>

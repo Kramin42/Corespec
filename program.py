@@ -47,6 +47,7 @@ class Program:
         self.par_deps = {}
         self._data_ready = False
         self._data = None
+        self._aborted = False
 
     def set_par(self, name: str, value):
         # TODO: check/cast type with config['parameters'][name]['dtype']
@@ -110,6 +111,8 @@ class Program:
         # no heavy processing or blocking IO
         prev_progress = 0
         while self.status!=self.config_get('status.values.finished'):
+            if self._aborted:
+                raise Exception('Aborted')
             if self.has_progress:
                 cur_progress = self.progress
                 if progress_handler is not None and cur_progress!=prev_progress:
@@ -119,6 +122,7 @@ class Program:
 
     async def run(self, progress_handler=None):
         system.stop()
+        self._aborted = False
         self._data_ready = False
 
         logger.debug('run: writing ELF')
@@ -187,7 +191,7 @@ class Program:
         logger.debug('run: waiting until finished')
         await self.ensure_finished(progress_handler=progress_handler)
         # read the data
-        logger.debug('reading data')
+        logger.debug('run: reading data')
         if self.config_get('output.type') == 'FIFO':
             self._data = system.read_fifo(
                 self.config_get('output.offset'),
@@ -201,6 +205,12 @@ class Program:
         self._data = self._data*self.config_get('output.scale_factor')
         self._data_ready = True
         logger.debug('run: finished')
+
+    def abort(self):
+        logger.debug('aborting run...')
+        system.stop()
+        # trigger ensure_finished to exit
+        self._aborted = True
 
     @property
     def data(self):

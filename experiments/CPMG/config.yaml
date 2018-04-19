@@ -3,3 +3,7 @@ description:
   A CPMG experiment.
 programs:
   - CPMG
+defaults:
+  plots:
+    - real_imag
+    - echo_integrals

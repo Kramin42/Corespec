@@ -30,13 +30,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         x = np.linspace(0, echo_count*echo_time, echo_count)
         y = np.zeros(echo_count, dtype=np.complex64)
         for i in range(echo_count):
-            y[i] = np.sum(data[i*samples:(i+1)*samples])
+            y[i] = np.mean(data[i*samples:(i+1)*samples])
         return {
             'x': x.tolist(),
             'y_real': y.real.tolist(),
             'y_imag': y.imag.tolist(),
             'y_mag': np.absolute(y).tolist(),
-            'x_unit': 's'}
+            'x_unit': 's',
+            'y_unit': 'μV'}
 
     def export_echo_envelope(self):
         data = self.raw_data()
@@ -91,7 +92,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'y': data['y_mag']}],
                 'layout': {
                     'title': 'Echo Integrals',
-                    'xaxis': {'title': data['x_unit']}
+                    'xaxis': {'title': data['x_unit']},
+                    'yaxis': {'title': data['y_unit']}
                 }}
 
     def plot_echo_envelope(self):
