@@ -2,7 +2,7 @@
 ---
 description:
   A Wobble experiment.
-executable: WOBBLE_FIFO_2016.elf
+executable: WOBBLE_FIFO.elf
 action:
   offset: 0x0
   values:
@@ -45,7 +45,7 @@ parameters:
     dtype: uint32
     min: 50
   bandwidth:
-    offset: 0xd4
+    offset: 0xdc
     dtype: float64
     unit: MHz
 derived_parameters:

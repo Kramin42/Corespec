@@ -484,6 +484,7 @@ if (window.NodeList && !NodeList.prototype.forEach) {
     };
 }
 
+
 document.addEventListener('DOMContentLoaded', function() {
     connect()
 }, false);
