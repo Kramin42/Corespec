@@ -44,7 +44,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'x': data['x'],
                     'y': data['y']}],
                 'layout': {
-                    'title': 'Wobble, Min: ({:.2f},{:.2f})'.format(data['x'][min_i], data['y'][min_i]),
+                    'title': 'Wobble, Min: ({:.4g},{:.4g})'.format(data['x'][min_i], data['y'][min_i]),
                     'xaxis': {'title': data['x_unit']}
                 }}
 

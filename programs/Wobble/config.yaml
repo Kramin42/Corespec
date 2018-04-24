@@ -43,10 +43,12 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
-  decimation:
+  dwell_time:
     offset: 0xcc
     dtype: uint32
-    min: 50
+    min: 0.5
+    unit: us
+    scaling: 100
   bandwidth:
     offset: 0xdc
     dtype: float64

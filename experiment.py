@@ -38,6 +38,9 @@ class BaseExperiment:
         for prog_name, prog in self.programs.items():
             for par_name, par in prog.config_get('parameters').items():
                 self.par_def[par_name] = par
+        if 'parameters' in self._config:
+            for par_name, par in self._config['parameters'].items():
+                self.par_def[par_name] = par
         self.exports = {f.replace('export_',''): getattr(self, f)
                         for f in dir(self) if callable(getattr(self, f))
                         and f.startswith('export_')}

@@ -155,7 +155,7 @@ function d3plot(svg, plotDef) {
       .attr('font-size', fontM)
       .attr('fill', '#333')
       .attr('dx', w/2)
-      .attr('dy', margin.bottom)
+      .attr('dy', margin.bottom-fontM/2)
       .style('text-anchor', 'middle')
       .text(plotDef.layout.xaxis.title)
   }

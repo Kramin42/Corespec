@@ -14,9 +14,6 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     def override(self):
         del self.par_def['width_90']
-        self.par_def['start_width'] = {'unit': 'us'}
-        self.par_def['end_width'] = {'unit': 'us'}
-        self.par_def['steps'] = {}
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None):
@@ -45,7 +42,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_Calibration(self):
-        y = np.amax(np.abs(np.fft.fft(self.raw_data(), axis=1)), axis=1)
+        fft_mag = np.abs(np.fft.fft(self.raw_data(), axis=1))
+        halfwidth = int(fft_mag.shape[1]*self.par['int_width']*self.par['dwell_time']/2000)+1
+        y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)
+        y /= (2*halfwidth+1)
         x = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         return {
             'x': x.tolist(),
@@ -65,7 +65,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'layout': {
                     'title': 'Pulse Width Calibration',
                     'xaxis': {'title': data['x_unit']},
-                    'yaxis': {'title': 'FFT Max'}
+                    'yaxis': {'title': 'FFT Integral'}
                 }}
 
     def plot_FID(self):
@@ -73,7 +73,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         # phase
         if 'phase' in self.par:
             y = y * np.exp(1j * np.pi * self.par['phase'] / 180)
-        x = np.linspace(0, self.par['decimation'] * 0.01 * len(y), len(y), endpoint=False)
+        x = np.linspace(0, self.par['dwell_time'] * len(y), len(y), endpoint=False)
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',

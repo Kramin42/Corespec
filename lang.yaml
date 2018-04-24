@@ -28,8 +28,8 @@ english:
       label: Echo count
     samples:
       label: Samples
-    decimation:
-      label: Decimation
+    dwell_time:
+      label: Dwell time
     scans:
       label: Scans
     acq_delay:
@@ -40,3 +40,5 @@ english:
       label: Steps
     amp:
       label: Power
+    int_width:
+      label: Int. window

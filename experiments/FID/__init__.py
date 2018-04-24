@@ -23,7 +23,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         # phase
         if 'phase' in self.par:
             y = y*np.exp(1j*np.pi*self.par['phase']/180)
-        x = np.linspace(0, self.par['decimation']*0.01*len(y), len(y), endpoint=False)
+        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
         return {
             'x': x.tolist(),
             'y_real': y.real.tolist(),
@@ -38,7 +38,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         if 'phase' in self.par:
             y = y * np.exp(1j * np.pi * self.par['phase'] / 180)
         fft = np.fft.fft(y)
-        freq = np.fft.fftfreq(y.size, d=self.par['decimation']*0.01*0.001)
+        freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
         # sort the frequency axis
         p = freq.argsort()
         freq = freq[p]

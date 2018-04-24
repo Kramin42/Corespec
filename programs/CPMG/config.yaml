@@ -88,10 +88,12 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
-  decimation:
+  dwell_time:
     offset: 0xcc
     dtype: uint32
-    min: 50
+    min: 0.5
+    unit: us
+    scaling: 100
   scans:
     offset: 0xd0
     dtype: uint32
@@ -105,12 +107,12 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({echo_time} - {width_180} - {damp_time} - 2000 - {samples}*{decimation}*10)/2 + {echo_shift}}
+    value: ${({echo_time} - {width_180} - {damp_time} - 2000 - {samples}*{dwell_time}*10)/2 + {echo_shift}}
     min: 0
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({echo_time} - {width_180} - {damp_time} - 2000 + {samples}*{decimation}*10)/2 - {echo_shift}}
+    value: ${({echo_time} - {width_180} - {damp_time} - 2000 + {samples}*{dwell_time}*10)/2 - {echo_shift}}
     min: 0
   duty_cycle:
     value: ${{width_180}/{echo_time}}
