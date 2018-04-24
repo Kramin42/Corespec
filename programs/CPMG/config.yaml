@@ -1,7 +1,7 @@
 # CPMG program configuration
 description:
   A CPMG experiment.
-executable: CPMG_FIFO_phcycled_2016.elf
+executable: CPMG_FIFO.elf
 action:
   offset: 0x0
   values:
@@ -60,7 +60,7 @@ parameters:
     unit: us
     scaling: 1000
   damp_time:
-    offset: 0xd4
+    offset: 0xbc
     dtype: uint32
     min: 0.5
     unit: us
@@ -75,10 +75,9 @@ parameters:
     unit: us
     scaling: 1000
   rep_time:
-    offset: 0xbc
-    dtype: uint32
+    offset: 0xd4
+    dtype: uint64
     min: 0
-    max: 4
     unit: s
     scaling: 1000000000
   echo_count:

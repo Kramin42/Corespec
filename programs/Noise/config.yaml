@@ -19,6 +19,26 @@ output:
   type: FIFO
   dtype: int32
   offset: 0x100
-  length: 8192
+  length: ${2*{samples}}
   scale_factor: 0.00000267
-parameters: {}
+parameters:
+  freq:
+    dtype: float64
+    unit: MHz
+  samples:
+    offset: 0xc4
+    dtype: uint32
+    min: 1
+  decimation:
+    offset: 0xcc
+    dtype: uint32
+    min: 50
+derived_parameters:
+  ignore_samples:
+    offset: 0xc8
+    dtype: uint32
+    value: 7
+  freqRx:
+    offset: 0x88
+    dtype: float64
+    value: ${{freq}}

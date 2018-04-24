@@ -46,7 +46,7 @@ parameters:
     unit: us
     scaling: 1000
   damp_time:
-    offset: 0xd4
+    offset: 0xbc
     dtype: uint32
     min: 0.5
     unit: us
@@ -58,10 +58,9 @@ parameters:
     unit: us
     scaling: 1000
   rep_time:
-    offset: 0xbc
-    dtype: uint32
+    offset: 0xd4
+    dtype: uint64
     min: 0
-    max: 4
     unit: s
     scaling: 1000000000
   samples:

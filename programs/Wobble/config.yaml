@@ -15,6 +15,9 @@ status:
     running: 2
     capture: 3
     finished: 10
+progress:
+  offset: 0x1c
+  limit: 100
 output:
   type: FIFO
   dtype: int32
