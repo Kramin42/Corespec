@@ -18,7 +18,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
-    def export_noise(self):
+    def export_Noise(self):
         y = self.raw_data()
         x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
         return {
@@ -28,11 +28,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'rms': np.sqrt(np.mean(np.abs(y)**2)).item(),
             'y_unit': 'μV',
             'x_unit': 'μs'}
+
+    def export_FFT(self):
+        y = self.raw_data()
+        fft = np.fft.fft(y)
+        freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
+        # sort the frequency axis
+        p = freq.argsort()
+        freq = freq[p]
+        fft = fft[p]
+        return {
+            'freq': freq.tolist(),
+            'fft_real': fft.real.tolist(),
+            'fft_imag': fft.imag.tolist(),
+            'fft_unit': 'μV',
+            'freq_unit': 'kHz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
-    def plot_noise(self):
-        data = self.export_noise()
+    def plot_Noise(self):
+        data = self.export_Noise()
         # return object according to plotly schema
         return {'data': [{
                     'name': 'Real',
@@ -48,6 +63,23 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
+
+    def plot_FFT(self):
+        data = self.export_FFT()
+        return {'data': [{
+            'name': 'Real',
+            'type': 'scatter',
+            'x': data['freq'],
+            'y': data['fft_real']}, {
+            'name': 'Imag',
+            'type': 'scatter',
+            'x': data['freq'],
+            'y': data['fft_imag']}],
+            'layout': {
+                'title': 'FFT',
+                'xaxis': {'title': data['freq_unit']},
+                'yaxis': {'title': data['fft_unit']}
+            }}
 
     def raw_data(self):
         data = self.programs['Noise'].data
