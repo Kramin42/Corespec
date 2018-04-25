@@ -5,6 +5,7 @@ import os
 import asyncio
 import yaml
 import numpy as np
+import scipy.io as sio
 import logging
 import importlib
 
@@ -33,12 +34,20 @@ class BaseExperiment:
         self.par = {}
         for prog_name in self._config['programs']:
             self.programs[prog_name] = Program(prog_name)
+        self.par_def = {}
+        for prog_name, prog in self.programs.items():
+            for par_name, par in prog.config_get('parameters').items():
+                self.par_def[par_name] = par
+        if 'parameters' in self._config:
+            for par_name, par in self._config['parameters'].items():
+                self.par_def[par_name] = par
         self.exports = {f.replace('export_',''): getattr(self, f)
                         for f in dir(self) if callable(getattr(self, f))
                         and f.startswith('export_')}
         self.plots = {f.replace('plot_',''): getattr(self, f)
                       for f in dir(self) if callable(getattr(self, f))
                       and f.startswith('plot_')}
+        self.override()
     
     # must be overridden
     # progress_handler takes arguments (progress, limit)
@@ -49,31 +58,38 @@ class BaseExperiment:
     def raw_data(self):
         pass
 
+    # may be overridden to add/remove parameters exposed to the user
+    # among other things, will be called at initialisation
+    def override(self):
+        pass
+
+    def abort(self):
+        logger.debug('aborting experiment...')
+        for prog_name, prog in self.programs.items():
+            prog.abort()
+
     def save(self, dir):
-        np.save(os.path.join(dir, 'raw.npy'), self.raw_data())
+        sio.savemat(os.path.join(dir, 'raw_data.mat'), {'raw_data': self.raw_data()})
         with open(os.path.join(dir, 'par.yaml'), 'w') as f:
             yaml.dump(self.par, f, default_flow_style=False)
         with open(os.path.join(dir, 'config.yaml'), 'w') as f:
             yaml.dump({'experiment': self.name}, f, default_flow_style=False)
 
-    # may be overridden to add/remove parameters
-    # exposed to the user
     def get_metadata(self):
         merged_pars = {}
         for prog_name, prog in self.programs.items():
             for par_name, par in prog.config_get('parameters').items():
                 merged_pars[par_name] = par
         return {'name': self.name,
-                'description': self._config['description'],
-                'parameters': merged_pars,
+                'description': self._config['description'] if 'description' in self._config else '',
+                'parameters': self.par_def,
                 'exports': list(self.exports.keys()),
-                'plots': list(self.plots.keys())}
-    
-    # may be overridden in conjunction with get_metadata() 
+                'plots': list(self.plots.keys()),
+                'defaults': self._config['defaults'] if 'defaults' in self._config else {}}
+
     def set_parameters(self, parameters):
         self.par.update(parameters)
         for prog_name, prog in self.programs.items():
             for name, value in self.par.items():
                 if name in prog.config_get('parameters'):
                     prog.set_par(name, value)
-

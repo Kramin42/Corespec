@@ -11,7 +11,7 @@ var loaded_experiment_tabs = false
 function connect() {
   var serverUrl = `ws://${window.location.hostname}:8765`
 
-  connection = new WebSocket(serverUrl)
+  connection = new ReconnectingWebSocket(serverUrl)
 
   connection.onopen = function(evt) {
   	if (!loaded_experiment_tabs) {
@@ -28,6 +28,7 @@ function connect() {
 	    	refreshParSetList()
 	    	loadLanguage('english')
 	    	loaded_experiment_tabs = true
+	    	openExperimentTab(data.result[0].name)
 	    }
 	}
   }
@@ -46,14 +47,17 @@ function connect() {
   			setProgress(1,1)
   		} else {
   			setProgress(data.progress, data.max)
+  			replot(data.experiment)
   		}
   	}
 
-  	var message_box = document.getElementById('message_box')
+  	var message_boxes = document.querySelectorAll('.message-box')
   	if (data.type=='message' || data.type=='error') {
-  		message_box.innerHTML+=
-  			`<div class="${data.type}">${data.message}</div>`
-  		message_box.scrollTop = message_box.scrollHeight
+  	    message_boxes.forEach(message_box => {
+            message_box.innerHTML+=
+                `<div class="${data.type}">${data.message}</div>`
+            message_box.scrollTop = message_box.scrollHeight
+  		})
   	}
   }
 }
@@ -89,6 +93,15 @@ function abortExperiment(experiment) {
 	// clear any pending operations
 	pending = {}
 	// TODO send an abort signal to system
+	var ref = generateUID()
+	connection.send(JSON.stringify({
+		'type': 'command',
+    	'command': 'abort',
+    	'ref': ref,
+    	'args': {
+			'experiment_name': experiment
+		}
+	}))
 }
 
 function runExperiment(experiment, callback) {
@@ -118,8 +131,10 @@ function runExperiment(experiment, callback) {
 		}))
 	}
 	pending[ref2] = data => {
-		var plotName = document.getElementById(experiment).querySelector('.plot-list').value
-		plot(experiment, plotName, callback)
+	    replot(experiment)
+		if (callback) {
+			callback()
+		}
 		running_experiment = null
 	}
 }
@@ -131,7 +146,7 @@ function runExperimentContinuously(experiment) {
 	loop()
 }
 
-function plot(experiment, plotName, callback) {
+function plot(experiment, plotNum, plotName, callback) {
 	var ref1 = generateUID()
 	console.log('getting plot data')
 	connection.send(JSON.stringify({
@@ -145,11 +160,20 @@ function plot(experiment, plotName, callback) {
 	}))
 	pending[ref1] = response => {
 		console.log(`plotting ${experiment} ${plotName}`)
-		Plotly.newPlot(experiment+'_plot', response.result.data, response.result.layout)
+		//Plotly.newPlot(experiment+'_plot_0', response.result.data, response.result.layout)
+		d3plot(d3.select('#'+experiment+'_plot_'+plotNum+' svg'), response.result)
 		if (callback) {
 			callback()
 		}
 	}
+}
+
+function replot(experiment) {
+  var plotCount = document.getElementById(experiment).querySelectorAll('.plot-box').length
+  for (var i=0; i<plotCount; i++) {
+    var plotName = document.getElementById(experiment+'_plot_'+i).querySelector('.plot-list').value
+    plot(experiment, i, plotName)
+  }
 }
 
 function exportCSV(experiment, exportName, callback) {
@@ -167,6 +191,28 @@ function exportCSV(experiment, exportName, callback) {
 	pending[ref1] = response => {
 		console.log(`exporting ${experiment} ${exportName}`)
 		downloadString(response.result, "text/csv", `${experiment}-${exportName}.csv`)
+		if (callback) {
+			callback()
+		}
+	}
+}
+
+function exportMATLAB(experiment, exportName, callback) {
+	var ref1 = generateUID()
+	console.log('getting export data')
+	connection.send(JSON.stringify({
+		'type': 'query',
+		'query': 'export_matlab',
+		'ref': ref1,
+		'args': {
+			'experiment_name': experiment,
+			'export_name': exportName
+		}
+	}))
+	pending[ref1] = response => {
+		console.log(`exporting ${experiment} ${exportName}`)
+		var bytes = Uint8Array.from(atob(response.result), c => c.charCodeAt(0))
+		downloadBytes(bytes, `${experiment}-${exportName}.mat`)
 		if (callback) {
 			callback()
 		}
@@ -199,15 +245,15 @@ function refreshParSetList() {
 function createExperimentTab(exp) {
 	var tab = document.importNode(document.querySelector('#experiment_tab_template').content, true)
 	var btn = tab.querySelector('button')
-	btn.innerText = exp.name
+	btn.id = exp.name+'_tablink'
+	btn.innerText = exp.name.replace(/_/g, ' ')
 	btn.addEventListener('click', e => {
-		openExperimentTab(e, exp.name)
+		openExperimentTab(exp.name)
 	}, false)
 	document.getElementById('experiment_tabs').appendChild(tab)
 
 	var pane = document.importNode(document.querySelector('#experiment_pane_template').content, true)
 	pane.querySelector('div').id = exp.name
-	pane.querySelector('.plot').id = exp.name+'_plot'
 	pane.querySelector('.par-list').id = exp.name+'_par_list'
 	pane.querySelector('.par-list-input').setAttribute('list', exp.name+'_par_list')
 	pane.querySelector('.btn-load-par').addEventListener('click', e => {
@@ -252,16 +298,44 @@ function createExperimentTab(exp) {
 	pane.querySelector('.abort-experiment').addEventListener('click', e => {
 		abortExperiment(exp.name)
 	}, false)
-	var plotList = pane.querySelector('.plot-list')
-	exp.plots.forEach(plotName => {
-		var opt = document.createElement('option')
-		opt.value = plotName
-		opt.innerHTML = plotName
-		plotList.appendChild(opt)
-	})
-	plotList.addEventListener('change', e => {
-		plot(exp.name, e.target.value)
-	})
+	// add plots
+	var plotCount = 1
+	var defaultPlotsDefined = exp.defaults && exp.defaults.plots
+	if (defaultPlotsDefined) {
+	  plotCount = exp.defaults.plots.length
+	}
+	for (var i=0; i<plotCount; i++) {
+	  (function (i) { // need a new scope to remember the current i
+        var plotbox = document.importNode(document.querySelector('#plot_template').content, true)
+        var plotboxID = exp.name+'_plot_'+i
+        plotbox.querySelector('.plot-box').id = plotboxID
+        var plotList = plotbox.querySelector('.plot-list')
+        exp.plots.forEach(plotName => {
+            var opt = document.createElement('option')
+            opt.value = plotName
+            opt.innerHTML = plotName
+            plotList.appendChild(opt)
+        });
+
+        if (defaultPlotsDefined) {
+          plotList.value = exp.defaults.plots[i]
+        }
+
+        plotList.addEventListener('change', e => {
+          plot(exp.name, i, e.target.value)
+        })
+        plotbox.querySelector('.btn-plot-save').addEventListener('click', e => {
+          if (document.querySelector('#'+plotboxID+' .plot-save-format').value==='png') {
+            saveSvgAsPng(document.querySelector('#'+plotboxID+' svg.plot'), 'plot.png', {
+              scale: 2,
+              backgroundColor: 'white'
+            })
+          }
+        }, false)
+
+        pane.querySelector('.plots-container').appendChild(plotbox)
+	  })(i)
+	}
 	var exportList = pane.querySelector('.export-list')
 	exp.exports.forEach(exportName => {
 		var opt = document.createElement('option')
@@ -270,7 +344,14 @@ function createExperimentTab(exp) {
 		exportList.appendChild(opt)
 	})
 	pane.querySelector('.btn-export').addEventListener('click', e => {
-		exportCSV(exp.name, exportList.value)
+	    switch(document.getElementById(exp.name).querySelector('.export-format').value) {
+	        case 'mat':
+	            exportMATLAB(exp.name, exportList.value)
+	            break
+	        case 'csv':
+	        default:
+	            exportCSV(exp.name, exportList.value)
+	    }
 	})
 	Object.keys(exp.parameters).forEach(pName => {
 		var par = document.importNode(document.querySelector('#parameter_template').content, true)
@@ -283,8 +364,39 @@ function createExperimentTab(exp) {
 		par.querySelector('input').name = pName
 		pane.querySelector('.parameters').appendChild(par)
 	})
+
+//	Split([
+//	    pane.querySelector('.plots-container'),
+//	    pane.querySelector('.controls-parameters-container')],
+//	    {
+//	        sizes: [50, 50],
+//	        direction: 'vertical',
+//	        onDrag: () => {
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+//	        }
+//	    })
+//	Split([
+//	    pane.querySelector('.plot-0'),
+//	    pane.querySelector('.plot-1')],
+//	    {
+//	        sizes: [50, 50],
+//	        onDrag: () => {
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_0'))
+//	            //Plotly.Plots.resize(document.getElementById(exp.name+'_plot_1'))
+//	        }
+//	    })
+//	Split([
+//	    pane.querySelector('.controls-container'),
+//	    pane.querySelector('.parameters-container')],
+//	    {
+//	        sizes: [50, 50]
+//	    })
 	//populate pane
 	document.getElementById('experiment_panes').appendChild(pane)
+	//create blank plot
+	//Plotly.newPlot(exp.name+'_plot_0', {}, {})
+	//Plotly.newPlot(exp.name+'_plot_1', {}, {})
 }
 
 function loadLanguage(lang_name) {
@@ -309,7 +421,7 @@ function loadLanguage(lang_name) {
     }
 }
 
-function openExperimentTab(event, experimentName) {
+function openExperimentTab(experimentName) {
 	// Declare all variables
     var i, tabcontent, tablinks;
 
@@ -326,8 +438,8 @@ function openExperimentTab(event, experimentName) {
     }
 
     // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(experimentName).style.display = "block";
-    event.currentTarget.className += " active";
+    document.getElementById(experimentName).style.display = "flex";
+    document.getElementById(experimentName+'_tablink').className += " active";
 }
 
 function generateUID() {
@@ -354,6 +466,14 @@ function downloadString(text, fileType, fileName) {
   	setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
 }
 
+function downloadBytes(bytes, fileName) {
+    var blob = new Blob([bytes]);
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+}
+
 // polyfills
 if (window.NodeList && !NodeList.prototype.forEach) {
     NodeList.prototype.forEach = function (callback, thisArg) {
@@ -363,3 +483,8 @@ if (window.NodeList && !NodeList.prototype.forEach) {
         }
     };
 }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    connect()
+}, false);

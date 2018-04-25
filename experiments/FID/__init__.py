@@ -23,13 +23,33 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         # phase
         if 'phase' in self.par:
             y = y*np.exp(1j*np.pi*self.par['phase']/180)
-        x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
+        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
         return {
             'x': x.tolist(),
             'y_real': y.real.tolist(),
             'y_imag': y.imag.tolist(),
             'y_unit': 'μV',
             'x_unit': 'μs'}
+
+
+    def export_FFT(self):
+        y = self.raw_data()
+        # phase
+        if 'phase' in self.par:
+            y = y * np.exp(1j * np.pi * self.par['phase'] / 180)
+        fft = np.fft.fft(y)
+        freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
+        # sort the frequency axis
+        p = freq.argsort()
+        freq = freq[p]
+        fft = fft[p]
+        return {
+            'freq': freq.tolist(),
+            'fft_real': fft.real.tolist(),
+            'fft_imag': fft.imag.tolist(),
+            'fft_unit': 'μV',
+            'freq_unit': 'kHz'}
+
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
@@ -50,6 +70,24 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
+
+
+    def plot_FFT(self):
+        data = self.export_FFT()
+        return {'data': [{
+            'name': 'Real',
+            'type': 'scatter',
+            'x': data['freq'],
+            'y': data['fft_real']}, {
+            'name': 'Imag',
+            'type': 'scatter',
+            'x': data['freq'],
+            'y': data['fft_imag']}],
+            'layout': {
+                'title': 'FFT',
+                'xaxis': {'title': data['freq_unit']},
+                'yaxis': {'title': data['fft_unit']}
+            }}
 
     def raw_data(self):
         data = self.programs['FID'].data

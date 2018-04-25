@@ -3,3 +3,7 @@ description:
   A Noise experiment.
 programs:
   - Noise
+defaults:
+  plots:
+    - Noise
+    - FFT

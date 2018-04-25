@@ -36,13 +36,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def plot_wobble(self):
         data = self.export_wobble()
+        min_i = np.argmin(data['y'])
         # return object according to plotly schema
         return {'data': [{
+                    'name': 'Wobble',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y']}],
                 'layout': {
-                    'title': 'Wobble',
+                    'title': 'Wobble, Min: ({:.4g},{:.4g})'.format(data['x'][min_i], data['y'][min_i]),
                     'xaxis': {'title': data['x_unit']}
                 }}
 

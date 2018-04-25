@@ -1,0 +1,19 @@
+# Pulse Calibration experiment configuration
+description:
+  An experiment for calibrating pulse power/width.
+programs:
+  - FID
+parameters:
+  start_width:
+    unit: us
+  end_width:
+    unit: us
+  steps:
+    dtype: int32
+  int_width:
+    min: 0
+    unit: kHz
+defaults:
+  plots:
+    - FID
+    - Calibration

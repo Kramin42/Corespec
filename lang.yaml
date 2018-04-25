@@ -12,6 +12,10 @@ english:
       label: 90 width
     width_180:
       label: 180 width
+    start_width:
+      label: Min width
+    end_width:
+      label: Max width
     damp_time:
       label: Damping
     echo_time:
@@ -24,8 +28,8 @@ english:
       label: Echo count
     samples:
       label: Samples
-    decimation:
-      label: Decimation
+    dwell_time:
+      label: Dwell time
     scans:
       label: Scans
     acq_delay:
@@ -36,3 +40,5 @@ english:
       label: Steps
     amp:
       label: Power
+    int_width:
+      label: Int. window

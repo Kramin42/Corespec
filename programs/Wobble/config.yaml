@@ -2,7 +2,7 @@
 ---
 description:
   A Wobble experiment.
-executable: WOBBLE_FIFO_2016.elf
+executable: WOBBLE_FIFO.elf
 action:
   offset: 0x0
   values:
@@ -15,6 +15,9 @@ status:
     running: 2
     capture: 3
     finished: 10
+progress:
+  offset: 0x1c
+  limit: 100
 output:
   type: FIFO
   dtype: int32
@@ -40,12 +43,14 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
-  decimation:
+  dwell_time:
     offset: 0xcc
     dtype: uint32
-    min: 50
+    min: 0.5
+    unit: us
+    scaling: 100
   bandwidth:
-    offset: 0xd4
+    offset: 0xdc
     dtype: float64
     unit: MHz
 derived_parameters:

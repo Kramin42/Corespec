@@ -4,8 +4,15 @@
   <title>Microspec</title>
   <meta charset="utf-8">
   <link href="client.css" rel="stylesheet">
+  <link href="d3plot.css" rel="stylesheet">
   <!-- Plotly.js -->
-  <script type="text/javascript" src="plotly-latest.min.js"></script>
+  <!--<script type="text/javascript" src="plotly-latest.min.js"></script>-->
+  <!--<script type="text/javascript" src="split.min.js"></script>-->
+  <script type="text/javascript" src="websocket.min.js"></script>
+  <script type="text/javascript" src="d3.min.js"></script>
+  <script type="text/javascript" src="d3-xyzoom.min.js"></script>
+  <script type="text/javascript" src="d3plot.js"></script>
+  <script type="text/javascript" src="saveSvgAsPng.js"></script>
   <!-- Client code -->
   <script type="text/javascript" src="client.js"></script>
 </head>
@@ -20,32 +27,42 @@
     <template id="experiment_pane_template">
       <div id="${exp.name}" class="tabcontent">
         <!-- plot -->
-        <div class="plot"><!-- Plotly chart will be drawn inside this DIV --></div>
-        <select class="plot-list"></select>
-
-        <div class="pane">
-          <label>Parameter Set</label>
-          <input type="text" list="${exp.name}_par_list" class="par-list-input"/>
-          <datalist id="${exp.name}_par_list" class="par-list"></datalist>
-          <button class="btn-load-par">Load</button>
-          <button class="btn-save-par">Save</button>
+        <div class="pane plots-container split-row">
         </div>
-        <div class="pane">
+        <div class="pane controls-parameters-container split-row">
+          <div class="controls-container split-col">
+            <div class="pane">
+              <!-- control buttons -->
+              <button class="run-experiment">Run</button>
+              <button class="run-experiment-continuously">Run Loop</button>
+              <button class="abort-experiment">Abort</button>
+              <!-- progress bar -->
+              <progress value="0" max="100"></progress>
+            </div>
+            <div class="pane">
+              <label>Parameter sets:</label>
+              <input type="text" list="${exp.name}_par_list" class="par-list-input"/>
+              <datalist id="${exp.name}_par_list" class="par-list"></datalist>
+              <button class="btn-load-par">Load</button>
+              <button class="btn-save-par">Save</button>
+            </div>
+            <div class="pane">
+              <label>Data set:</label>
+              <select class="export-list"></select>
+              <label>Format:</label>
+              <select class="export-format">
+                <option value="csv">CSV</option>
+                <option value="mat">MATLAB</option>
+              </select>
+              <button class="btn-export">Export</button>
+            </div>
+            <!-- messages -->
+            <div class="message-box"></div>
+          </div>
           <!-- parameters -->
-          <ul class="parameters">
-          </ul>
-        </div>
-        <div class="pane">
-          <!-- control buttons -->
-          <button class="run-experiment">Run</button>
-          <button class="run-experiment-continuously">Run Loop</button>
-          <button class="abort-experiment">Abort</button>
-          <!-- progress bar -->
-          <progress value="0" max="100"></progress>
-        </div>
-        <div class="pane">
-          <select class="export-list"></select>
-          <button class="btn-export">Export Data</button>
+          <div class="parameters-container split-col">
+            <ul class="parameters"></ul>
+          </div>
         </div>
       </div>
     </template>
@@ -55,12 +72,19 @@
         <input type="number" step="any" id="" name="">
       </li>
     </template>
+    <template id="plot_template">
+      <div class="plot-box split-col">
+        <svg class="plot"><!-- d3plot chart will be drawn inside this --></svg>
+        <div class="pane plot-controls">
+          <select class="plot-list"></select>
+          <select class="plot-save-format">
+            <option value="png">PNG</option>
+            <option value="svg">SVG</option>
+          </select>
+          <button class="btn-plot-save">Save</button>
+        </div>
+      </div>
+    </template>
   </div>
-
-  <div id='message_box'>
-  </div>
-
-  <hr/>
-  <input type="button" name="connect" value="connect" onclick="connect()"></p>
 </body>
 </html>

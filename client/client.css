@@ -1,36 +1,76 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.tabcontent {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 25px);
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.tabcontent {
+  display: none;
+}
+
+.gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('grips/vertical.png');
+    cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('grips/horizontal.png');
+    cursor: ns-resize;
+}
 
 .pane {
     display: flex;
     flex-direction: row;
     width: 100%;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    padding: 1px;
+    //border-top: 1px solid #ccc;
+    //border-bottom: 1px solid #ccc;
     background-color: #f1f1f1;
 }
 
 .pane button {
-    padding: 3px;
-    margin: 3px;
+    padding: 0 3px;
+    margin: 0 1px;
 }
 
 .pane label {
     padding-left: 3px;
     padding-right: 3px;
-    margin: 3px;
+    margin: 1px 3px;
     align-self: center;
 }
 
 .pane input, .pane select {
-    padding-left: 3px;
-    padding-right: 3px;
-    margin: 3px;
     align-self: center;
+}
+
+.pane input {
+  margin: 1px 3px;
 }
 
 .pane progress {
     align-self: center;
     flex-grow: 1;
     margin: 3px;
+}
+
+.parameters-container {
+    //min-width: 22em;
 }
 
 ul.parameters {
@@ -50,7 +90,7 @@ ul.parameters li input {
 ul.parameters li label {
 	display: inline-block;
 	text-align: right;
-	width: 12em;
+	width: 10em;
 }
 
 ul.parameters li label span {
@@ -66,7 +106,7 @@ ul.parameters li label span {
 /* Style the tab */
 div.tab {
     overflow: hidden;
-    border: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
     background-color: #f1f1f1;
 }
 
@@ -77,7 +117,7 @@ div.tab button {
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 14px 16px;
+    padding: 5px 10px;
     transition: 0.3s;
 }
 
@@ -91,30 +131,78 @@ div.tab button.active {
     background-color: #ccc;
 }
 
-/* Style the tab content */
-.tabcontent {
-    display: none;
-    border: 1px solid #ccc;
-    border-top: none;
+.plot-list {
+    margin: 0 3px;
+    margin-right: auto;
 }
 
-#message_box {
-    border: 1px solid #ccc;
-    padding: 6px 12px;
-    border-top: none;
-    height: 5em;
-    overflow-y: scroll;
+.plot-controls {
+  margin: 0 auto;
 }
 
-#message_box .error {
+.plot-box {
+    padding: 0 1px;
+}
+
+.plot {
+    height: calc(100% - 25px);
+}
+
+.split-col {
+    overflow-x: hidden;
+    flex-grow: 1;
+}
+
+.split-col:not(:first-child) {
+  border-left: 1px solid #ccc;
+}
+
+.split-row {
+    overflow-y: hidden;
+    flex-grow: 1;
+}
+
+.split-row:not(:first-child) {
+  border-top: 1px solid #ccc;
+}
+
+.controls-parameters-container {
+  flex-shrink: 0;
+  height: 150px;
+}
+
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.message-box {
+  border: 1px solid #ccc;
+  background: white;
+  padding: 6px 12px;
+  overflow-y: scroll;
+  height: 2em;
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+.message-box .error {
     color: red;
 }
 
-#message_box :nth-last-child(n+2) {
+.message-box :nth-last-child(n+2) {
     opacity: 0.7;
 }
 
-.plot-list {
-    margin: 0 auto;
-    display: block;
+.parameters-container {
+  width: 200px;
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+.plotlyjsicon {
+    display: none;
 }

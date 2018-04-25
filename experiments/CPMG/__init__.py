@@ -15,7 +15,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None):
         await self.programs['CPMG'].run(progress_handler=progress_handler)
-    
+
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
@@ -30,14 +30,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         x = np.linspace(0, echo_count*echo_time, echo_count)
         y = np.zeros(echo_count, dtype=np.complex64)
         for i in range(echo_count):
-            y[i] = np.sum(data[i*samples:(i+1)*samples])
+            y[i] = np.mean(data[i*samples:(i+1)*samples])
         return {
             'x': x.tolist(),
             'y_real': y.real.tolist(),
             'y_imag': y.imag.tolist(),
             'y_mag': np.absolute(y).tolist(),
-            'x_unit': 's'}
-    
+            'x_unit': 's',
+            'y_unit': 'μV'}
+
     def export_echo_envelope(self):
         data = self.raw_data()
         samples = self.par['samples']
@@ -54,7 +55,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_imag': y.imag.tolist(),
             'x_unit': 's',
             'y_unit': 'μV'}
-    
+
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_real_imag(self):
@@ -81,19 +82,20 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_real']}, {
-                    'name': 'Imag',
+                    'name': 'Imaginary',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_imag']}, {
-                    'name': 'Mag',
+                    'name': 'Magnitude',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_mag']}],
                 'layout': {
                     'title': 'Echo Integrals',
-                    'xaxis': {'title': data['x_unit']}
+                    'xaxis': {'title': data['x_unit']},
+                    'yaxis': {'title': data['y_unit']}
                 }}
-    
+
     def plot_echo_envelope(self):
         data = self.export_echo_envelope()
         return {'data': [{

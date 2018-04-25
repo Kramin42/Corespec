@@ -9,7 +9,10 @@ import websockets
 import json
 import yaml
 import numpy as np
+import scipy.io as sio
+from base64 import b64encode, b64decode
 import time
+import tempfile
 
 from experiment import list_experiments, load_experiment
 from workspace import list_workspaces, Workspace
@@ -82,6 +85,19 @@ async def export_csv(experiment_name, export_name):
         rownum += 1
     return csv
 
+async def export_matlab(experiment_name, export_name):
+    data = experiments[experiment_name].exports[export_name]()
+    f = tempfile.NamedTemporaryFile(delete=False)
+    logger.debug('creating temp file %s' % f.name)
+    try:
+        sio.savemat(f.name, data, appendmat=False)
+        buf = f.read()
+        return b64encode(buf).decode('utf-8')
+    finally:
+        f.close()
+        os.remove(f.name)
+
+
 #
 # commands
 #
@@ -92,6 +108,7 @@ async def run(ws, experiment_name):
         # fire and forget
         asyncio.ensure_future(ws.send(json.dumps({
             'type': 'progress',
+            'experiment': experiment_name,
             'finished': False,
             'progress': int(progress),
             'max': int(limit)
@@ -101,6 +118,8 @@ async def run(ws, experiment_name):
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
     await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
+async def abort(ws, experiment_name):
+    experiments[experiment_name].abort()
 
 async def set_parameters(ws, experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
@@ -149,7 +168,7 @@ async def consumer(websocket, message):
 
 async def consumer_handler(websocket, path):
     async for message in websocket:
-        await consumer(websocket, message)
+        asyncio.ensure_future(consumer(websocket, message))
 
 # web server
 class Handler(web.StaticFileHandler):

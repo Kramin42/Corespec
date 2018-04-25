@@ -1,23 +1,22 @@
 import os 
 import logging
 import numpy as np
-from time import sleep
+from time import sleep, time
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 status = 0
+run_time = time()
 
 def stop() -> None:
-    pass
+    logger.debug('stopping')
 
 
 def run() -> None:
-    global status
-    status = 2
-    sleep(1)
-    status = 10
+    global run_time
+    run_time = time()
 
 
 def write_elf(path: str) -> None:
@@ -32,7 +31,10 @@ def write_par(
 
 def read_par(offset: int, dtype=np.dtype(np.int32)):
     if offset==4:
-        return status
+        if time()-run_time > 1:
+            return 10
+        else:
+            return 2
     return 0
 
 def read_dma(
@@ -47,5 +49,11 @@ def read_fifo(
         offset: int,
         length: int,
         dtype=np.dtype(np.int32)) -> np.ndarray:
-    data = np.random.randint(-1000000, 1000000, size=length, dtype=dtype)
-    return data
+    #data = np.random.randcompl(-1000000, 1000000, size=length, dtype=dtype)
+    data = np.zeros(int(length/2), dtype=np.complex64)
+    x = np.linspace(0,data.size,data.size,endpoint=False)
+    for i in range(10):
+        data += 10000*np.exp(1j*np.random.random_sample()*10*x)*np.exp(-np.random.random_sample()*0.05*x)
+    data += 100000 * np.exp(1j*0.0*x) * np.exp(-0.005 * x)
+    data += (1j*np.random.sample(data.size)+np.random.sample(data.size)-0.5j-0.5)*10000
+    return data.view(np.float32).astype(np.int32)
