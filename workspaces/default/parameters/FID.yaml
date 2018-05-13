@@ -1,5 +1,5 @@
-acq_delay: 50
-amp_90: 40
+acq_delay: 10
+amp_90: 25
 damp_time: 15
 dwell_time: 0.5
 freq: 2.047
@@ -7,4 +7,4 @@ phase: 0
 rep_time: 3
 samples: 4000
 scans: 4
-width_90: 25
+width_90: 20

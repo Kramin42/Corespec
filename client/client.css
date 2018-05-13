@@ -146,6 +146,7 @@ div.tab button.active {
 
 .plot {
     height: calc(100% - 25px);
+    width: 100%;
 }
 
 .split-col {

@@ -3,13 +3,13 @@
 
 function d3plot(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000
-  var width = 400
-  var height = 300
-  var margin = {left: 40, right: 40, top: 30, bottom: 30}
+  var width = 600
+  var height = 400
+  var margin = {left: 40, right: 40, top: 30, bottom: 40}
   var f_w = 40
-  var fontS = 8
-  var fontM = 12
-  var fontL = 14
+  var fontS = 12
+  var fontM = 14
+  var fontL = 16
   var w = width-margin.left-margin.right
   var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()
@@ -128,14 +128,15 @@ function d3plot(svg, plotDef) {
     .attr('width', w)
     .attr('height', h)
     .attr('fill', 'white')
-  g.append('line')
-    .attr('class', 'border')
-    .attr('x1', -1).attr('y1', 0.5)
-    .attr('x2', w+0.5).attr('y2', 0.5)
-  g.append('line')
-    .attr('class', 'border')
-    .attr('x1', w+0.5).attr('y1', 0.5)
-    .attr('x2', w+0.5).attr('y2', h+1)
+    .attr('stroke', 'black')
+//  g.append('line')
+//    .attr('class', 'border')
+//    .attr('x1', 0).attr('y1', 0)
+//    .attr('x2', w).attr('y2', 0)
+//  g.append('line')
+//    .attr('class', 'border')
+//    .attr('x1', w).attr('y1', 0)
+//    .attr('x2', w).attr('y2', h)
 
   // plot area clip
   var clipID = uuidv4()
@@ -148,24 +149,29 @@ function d3plot(svg, plotDef) {
   // axes
   var axis_x_g = g.append('g')
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + h + ")")
+    .attr("transform", "translate(-0.5," + (h-0.5) + ")")
     .call(axis_x)
   if (plotDef.layout.xaxis) {
     axis_x_g.append('text')
       .attr('font-size', fontM)
-      .attr('fill', '#333')
       .attr('dx', w/2)
-      .attr('dy', margin.bottom-fontM/2)
+      .attr('dy', margin.bottom-fontM/4)
       .style('text-anchor', 'middle')
       .text(plotDef.layout.xaxis.title)
   }
   var axis_y_g = g.append('g')
     .attr("class", "y axis")
+    .attr("transform", "translate(-0.5," + (-0.5) + ")")
     .call(axis_y)
+//    .selectAll("text")
+//        .style("text-anchor", "middle")
+//        .attr("x", "0")
+//        .attr("y", "-9")
+//        .attr('dy', '0')
+//        .attr("transform", "rotate(-90)");
   if (plotDef.layout.yaxis) {
   axis_y_g.append('text')
     .attr('font-size', fontM)
-    .attr('fill', '#333')
     .attr('transform', 'rotate(-90)')
     .attr('dx', -h/2)
     .attr('dy', -margin.left+fontM)
