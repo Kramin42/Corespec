@@ -27,6 +27,7 @@ parameters:
   freq:
     dtype: float64
     unit: MHz
+    shared: true
   phase:
     offset: 0x90
     dtype: float64
@@ -38,6 +39,7 @@ parameters:
     max: 100
     unit: '%'
     scaling: 0.01
+    shared: true
   amp_180:
     offset: 0xa0
     dtype: float32
@@ -45,6 +47,7 @@ parameters:
     max: 100
     unit: '%'
     scaling: 0.01
+    shared: true
   width_90:
     offset: 0xa8
     dtype: uint32
@@ -52,6 +55,7 @@ parameters:
     max: 500
     unit: us
     scaling: 1000
+    shared: true
   width_180:
     offset: 0xac
     dtype: uint32
@@ -59,12 +63,14 @@ parameters:
     max: 500
     unit: us
     scaling: 1000
+    shared: true
   damp_time:
     offset: 0xbc
     dtype: uint32
     min: 0.5
     unit: us
     scaling: 1000
+    shared: true
   echo_time:
     dtype: uint32
     min: 0.5

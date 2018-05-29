@@ -25,7 +25,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': x.tolist(),
             'y_real': y.real.tolist(),
             'y_imag': y.imag.tolist(),
-            'rms': np.sqrt(np.mean(np.abs(y)**2)).item(),
+            'rms': np.sqrt(np.mean(y.real**2)).item(),
             'y_unit': 'μV',
             'x_unit': 'μs'}
 

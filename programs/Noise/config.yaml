@@ -2,7 +2,7 @@
 ---
 description:
   A Noise experiment.
-executable: NOISE_SCAN.elf
+executable: NOISE_FIFO.elf
 action:
   offset: 0x0
   values:
