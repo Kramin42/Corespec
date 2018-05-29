@@ -1,0 +1,21 @@
+.run-controls {
+  display: flex;
+  flex-direction: row;
+}
+
+.run-controls>.button {
+  flex-grow: 1;
+  margin-right: 2px;
+}
+
+.run-controls>.button:last-child {
+  margin-right: 0;
+}
+
+.run-controls>.abort:hover {
+  border-color: #c97064;
+}
+
+.run-controls>.abort:active {
+  box-shadow: inset 0px 1px 5px #c97064;
+}

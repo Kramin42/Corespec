@@ -1,0 +1,17 @@
+.message-box {
+    background: white;
+    margin-top: 5px;
+    padding: 5px;
+    overflow-y: scroll;
+    height: 2em;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.message-box :nth-last-child(n+2) {
+    opacity: 0.7;
+}
+
+.message-box .error {
+    color: #c97064;
+}

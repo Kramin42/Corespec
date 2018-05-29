@@ -1,0 +1,50 @@
+.export-controls {
+  display: flex;
+  flex-direction: row;
+  margin-top: 5px;
+}
+
+.export-controls>.Select {
+  flex-grow: 1;
+  flex-basis: 0;
+  margin-right: 2px;
+}
+
+.export-controls>.button {
+  flex-grow: 1;
+  flex-basis: 0;
+}
+
+
+/* make select drop down instead of up */
+.export-controls>.Select .Select-menu-outer {
+  top: 100%;
+  bottom: auto;
+}
+
+.export-controls>.Select .Select-arrow {
+  top: 0;
+  border-color: #999 transparent transparent;
+  border-width: 5px 5px 2.5px;
+}
+
+.export-controls>.Select.is-open>.Select-control .Select-arrow {
+  top: -3px;
+  border-color: transparent transparent #999;
+  border-width: 0px 5px 5px;
+}
+
+.export-controls>.Select.is-open>.Select-control {
+  border-radius: 5px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.export-controls>.Select .Select-menu-outer {
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+  border-top-color: #e6e6e6;
+  border-bottom-color: #666;
+}

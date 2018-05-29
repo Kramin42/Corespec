@@ -1,0 +1,32 @@
+.button-group {
+  display: flex;
+  flex-direction: row;
+}
+
+.button-group>.button {
+  flex-grow: 1;
+  margin-right: 2px;
+}
+
+.button-group>.button:last-child {
+  margin-right: 0;
+}
+
+.button {
+  border:1px solid #666;
+  border-radius: 5px;
+  padding: 5px; /*inside border*/
+  text-align: center;
+  color: #000;
+  background-color: #fff;
+  cursor: default;
+}
+
+.button:hover {
+  border-color: #62ab37;
+  background-color: #f8f8f8;
+}
+
+.button:active {
+  box-shadow: inset 0px 1px 5px #62ab37;
+}

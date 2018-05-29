@@ -1,0 +1,31 @@
+.tab-bar {
+    display: inline-block;
+}
+
+.tab-link {
+    padding: 5px 10px;
+    margin: 2px 2px;
+    float: left;
+    border:1px solid white;
+    border-radius: 5px;
+    text-align: center;
+    min-width: 100px;
+
+    color: #fff;
+
+    font-family: Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: 80;
+
+    transition: 0.3s;
+}
+
+.tab-link:hover {
+     border-color: #62AB37;
+}
+
+.tab-link:active, .tab-link.active {
+    background-color: white;
+    border-color: #617463;
+    color: #426735;
+}

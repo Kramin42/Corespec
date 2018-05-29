@@ -1,0 +1,106 @@
+.tab-content {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 2fr 1fr;
+  grid-template-areas:
+    "plots plots"
+    "pars controls";
+}
+
+.plots-container {
+  grid-area: plots;
+  display: flex;
+  flex-direction: row;
+}
+
+.parameters-block {
+  grid-area: pars;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 3fr 2fr;
+  grid-template-areas:
+    "ownpars controls"
+    "sharedpars sharedpars";
+
+  background-color: white;
+  margin: 3px;
+  padding: 3px;
+  box-shadow: inset 0 0 3px #aaa;
+}
+
+.controls-block {
+  grid-area: controls;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  margin: 3px;
+  padding: 3px;
+  box-shadow: inset 0 0 3px #aaa;
+}
+
+.parameters-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  margin: 0px 3px 3px;
+  //box-shadow: 0.5px 0.5px 3px 0px #aaa;
+}
+
+.own-parameters {
+    grid-area: ownpars;
+    display: flex;
+    flex-direction: column;
+}
+
+.shared-parameters {
+    grid-area: sharedpars;
+    display: flex;
+    flex-direction: column;
+}
+
+.own-parameters .title-tab-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.par-box-title {
+  font-size: 16px;
+  padding: 2px;
+  margin-right: 3px;
+}
+
+.own-parameters .tab-bar {
+  background-color: white;
+}
+
+.own-parameters .tab-link {
+  border:1px solid #A8A8A8;
+  padding: 2px 5px;
+  margin: 2px 1px;
+  min-width: 60px;
+  color: #617463;
+}
+
+.own-parameters .tab-link:hover {
+  border-color: #62ab37;
+  background-color: #F8F8F8;
+}
+
+.own-parameters .tab-link:active, .own-parameters .tab-link.active {
+  background-color: #426735;
+  border-color: #426735;
+  color: #fff;
+}
+
+.own-parameters .parameters-container {
+  background-color: #eee;
+}
+
+.shared-parameters .parameters-container {
+  background-color: #eee;
+}

@@ -1,0 +1,52 @@
+.plot-container {
+  flex-grow: 1;
+  background-color: white;
+  margin: 3px;
+  padding: 3px;
+  box-shadow: inset 0 0 3px #aaa;
+}
+
+.plot-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.plot-export-controls {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.plot-controls .tab-link {
+  font-size: 15px;
+  padding: 1px 5px;
+  margin: 1px;
+  min-width: 60px;
+  border-color: #a8a8a8;
+  color: #617463;
+}
+
+.plot-export-controls .tab-link {
+  min-width: 40px;
+}
+
+.plot-export-controls .button {
+  font-size: 15px;
+  padding: 1px 5px;
+  margin: 1px;
+  min-width: 60px;
+}
+
+.plot-controls .tab-link:hover {
+  border-color: #62ab37;
+  background-color: #F8F8F8;
+}
+
+.plot-controls .tab-link:active, .plot-controls .tab-link.active {
+  background-color: #426735;
+  border-color: #426735;
+  color: #fff;
+}

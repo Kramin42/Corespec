@@ -1,0 +1,22 @@
+.parameter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  width: 200px;
+  margin-right: 20px;
+  margin-top: 5px;
+}
+
+.par-name {
+  margin-right: 5px;
+}
+
+.par-unit {
+  width: 40px;
+}
+
+.par-input {
+  width: 60px;
+  margin-right: 2px;
+}
