@@ -20,7 +20,7 @@ output:
   dtype: int32
   offset: 0x100
   length: ${2*{samples}}
-  scale_factor: 0.00000267
+  scale_factor: ${0.00000267*1.095}
 parameters:
   freq:
     dtype: float64
