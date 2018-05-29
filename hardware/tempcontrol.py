@@ -1,6 +1,7 @@
 import asyncio
 import serial_asyncio
 import logging
+from struct import pack, unpack
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -8,8 +9,22 @@ logger.setLevel(logging.DEBUG)
 DEFAULT_PORT = '/dev/ttyPS1'
 DEFAULT_BAUD = 115200
 
+CMD_SIZE = 4
+DATA_SIZE = 4
+
 handler = None
 write = None
+
+def handler_raw(cmd):
+    logger.debug(cmd)
+    if cmd[0:4]==b'$TMP':
+        temp = unpack('>f', cmd[4:8])[0]
+        logger.info('temperature: %.3f' % temp)
+    if cmd[0:4]==b'$AMP':
+        if cmd[4:8]==b'ON##':
+            logger.debug('amp power on')
+        if cmd[4:8]==b'OFF#':
+            logger.debug('amp power off')
 
 def amp_on():
     write(b'$AMPON##')
@@ -21,21 +36,25 @@ class TempControl(asyncio.Protocol):
     def connection_made(self, transport):
         self.transport = transport
         self.acc = b''
-        logger.debug('port opened', transport)
+        logger.debug('port opened')
         transport.serial.rts = False  # You can manipulate Serial object via transport
         global write
         write = transport.write
         #transport.write(b'Hello, World!\n')  # Write serial data via transport
 
     def data_received(self, data):
-        logger.debug('data received:', repr(data))
+        logger.debug('data received:'+repr(data))
         self.acc+=data
-        while b'$' in self.acc:
-            acc_split = self.acc.split(b'$')
-            cmd = b'$'+acc_split[1][:7]
-            logger.debug(cmd)
-            self.acc = acc_split[1][7:]+acc_split[2:].join(b'$')
-            pass
+        while True:
+            loc = self.acc.find(b'$')
+            if loc < 0:
+                break
+            self.acc = self.acc[loc:]
+            if len(self.acc) < 8:
+                break
+            cmd = self.acc[:8]
+            handler_raw(cmd)
+            self.acc = self.acc[8:]
 
     def connection_lost(self, exc):
         logger.debug('port closed')
