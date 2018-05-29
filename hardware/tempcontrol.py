@@ -15,9 +15,9 @@ PACKET_SIZE = CMD_SIZE + DATA_SIZE
 handler = None
 write = None
 
-temp_setpoint = 35.0
-temp_P = 0.5
-temp_I = 0.001
+setpoint = 35.0
+P = 0.5
+I = 0.001
 
 def handler_raw(cmd):
     logger.debug(cmd)
@@ -25,17 +25,17 @@ def handler_raw(cmd):
         temp = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
         logger.info('temperature: %.3f' % temp)
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
-        global temp_setpoint
-        temp_setpoint = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('new setpoint: %.3f' % temp_setpoint)
+        global setpoint
+        setpoint = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.info('new setpoint: %.3f' % setpoint)
     if cmd[0:CMD_SIZE]==b'$TCP': # setpoint
-        global temp_P
-        temp_P = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('new constant P: %.3f' % temp_P)
+        global P
+        P = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.info('new constant P: %.3f' % P)
     if cmd[0:CMD_SIZE]==b'$TCI': # setpoint
-        global temp_I
-        temp_I = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('new constant I: %.5f' % temp_I)
+        global I
+        I = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.info('new constant I: %.5f' % I)
     if cmd[0:CMD_SIZE]==b'$AMP':
         if cmd[CMD_SIZE:PACKET_SIZE]==b'ON##':
             logger.debug('amp power on')
@@ -50,13 +50,13 @@ def amp_off():
 
 def set_parameters(setpoint=None, P=None, I=None):
     if setpoint is not None:
-        cmd = b'$TSP' + pack('>f', [setpoint])
+        cmd = b'$TSP' + pack('>f', setpoint)
         write(cmd)
     if P is not None:
-        cmd = b'$TCP' + pack('>f', [P])
+        cmd = b'$TCP' + pack('>f', P)
         write(cmd)
     if I is not None:
-        cmd = b'$TCI' + pack('>f', [I])
+        cmd = b'$TCI' + pack('>f', I)
         write(cmd)
 
 class TempControl(asyncio.Protocol):
@@ -67,8 +67,8 @@ class TempControl(asyncio.Protocol):
         transport.serial.rts = False  # You can manipulate Serial object via transport
         global write
         write = transport.write
-        global temp_setpoint, temp_P, temp_I
-        set_parameters(setpoint=temp_setpoint, P=temp_P, I=temp_I) #set initial parameters
+        global setpoint, P, I
+        set_parameters(setpoint=setpoint, P=P, I=I) #set initial parameters
 
     def data_received(self, data):
         #logger.debug('data received:'+repr(data))
