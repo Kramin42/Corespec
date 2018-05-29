@@ -16,6 +16,7 @@ import tempfile
 
 from experiment import list_experiments, load_experiment
 from workspace import list_workspaces, Workspace
+from hardware import tempcontrol
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -196,4 +197,7 @@ if __name__=='__main__':
     logger.debug('launching webserver')
     AsyncIOMainLoop().install()
     app.listen(80)
-    asyncio.get_event_loop().run_forever()
+    loop = asyncio.get_event_loop()
+    tempcontrol.init(loop)
+    loop.run_forever()
+    loop.close()

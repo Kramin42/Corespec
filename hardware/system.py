@@ -8,7 +8,7 @@ import numpy as np
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 from pynq import Overlay
 from elftools.elf.elffile import ELFFile
