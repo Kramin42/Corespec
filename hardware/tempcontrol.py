@@ -4,7 +4,7 @@ import logging
 from struct import pack, unpack
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 DEFAULT_PORT = '/dev/ttyPS1'
 DEFAULT_BAUD = 115200
@@ -15,40 +15,68 @@ PACKET_SIZE = CMD_SIZE + DATA_SIZE
 handler = None
 write = None
 
-setpoint = 35.0
+mcs_ready = False
+
+amp_enabled = False
+
+setpoint = 30.0
 P = 0.5
 I = 0.001
 
 def handler_raw(cmd):
-    logger.debug(cmd)
+    global setpoint, P, I, amp_enabled, mcs_ready
+    #logger.debug(cmd)
+    data = {'name': None, 'value': None}
     if cmd[0:CMD_SIZE]==b'$TMP':
-        temp = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('temperature: %.3f' % temp)
+        if not mcs_ready:
+            mcs_ready = True
+            set_parameters(setpoint=setpoint, P=P, I=I)  # set initial parameters
+            amp_on()
+        data['name'] = 'temperature'
+        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.debug('temperature: %.3f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
-        global setpoint
-        setpoint = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('new setpoint: %.3f' % setpoint)
-    if cmd[0:CMD_SIZE]==b'$TCP': # setpoint
-        global P
-        P = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('new constant P: %.3f' % P)
-    if cmd[0:CMD_SIZE]==b'$TCI': # setpoint
-        global I
-        I = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.info('new constant I: %.5f' % I)
+        data['name'] = 'setpoint'
+        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.info('new setpoint: %.3f' % data['value'])
+    if cmd[0:CMD_SIZE]==b'$TCP': # P
+        data['name'] = 'P'
+        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.info('new constant P: %.3f' % data['value'])
+    if cmd[0:CMD_SIZE]==b'$TCI': # I
+        data['name'] = 'I'
+        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        logger.info('new constant I: %.5f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$AMP':
         if cmd[CMD_SIZE:PACKET_SIZE]==b'ON##':
-            logger.debug('amp power on')
+            amp_enabled = True
+            data['name'] = 'amp-power'
+            data['value'] = True
+            logger.info('amp power on')
         if cmd[CMD_SIZE:PACKET_SIZE]==b'OFF#':
-            logger.debug('amp power off')
+            amp_enabled = False
+            data['name'] = 'amp-power'
+            data['value'] = False
+            logger.info('amp power off')
+    if handler is not None and data['name'] is not None:
+        handler(data)
+
 
 def amp_on():
+    if not mcs_ready:
+        raise Exception('Temperature control not ready')
     write(b'$AMPON##')
 
 def amp_off():
+    print('bye')
+    if not mcs_ready:
+        raise Exception('Temperature control not ready')
     write(b'$AMPOFF#')
 
 def set_parameters(setpoint=None, P=None, I=None):
+    if not mcs_ready:
+        raise Exception('Temperature control not ready')
+    logger.debug('setting initial parameters %.2f %.3f %.5f' % (setpoint, P, I))
     if setpoint is not None:
         cmd = b'$TSP' + pack('>f', setpoint)
         write(cmd)
@@ -67,8 +95,6 @@ class TempControl(asyncio.Protocol):
         transport.serial.rts = False  # You can manipulate Serial object via transport
         global write
         write = transport.write
-        global setpoint, P, I
-        set_parameters(setpoint=setpoint, P=P, I=I) #set initial parameters
 
     def data_received(self, data):
         #logger.debug('data received:'+repr(data))
@@ -98,6 +124,7 @@ class TempControl(asyncio.Protocol):
 
 def init(event_loop, response_handler=None):
     global handler
+    logger.debug('starting temperature control')
     coro = serial_asyncio.create_serial_connection(event_loop, TempControl, DEFAULT_PORT, baudrate=DEFAULT_BAUD)
     asyncio.ensure_future(coro)
     handler = response_handler

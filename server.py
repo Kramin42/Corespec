@@ -135,6 +135,25 @@ async def set_workspace(ws, workspace_name):
     workspace = Workspace(workspace_name)
     await ws.send(json.dumps({'type': 'message', 'message': 'Switched to workspace %s.' % workspace.name}))
 
+async def set_amp(ws, on):
+    if on:
+        tempcontrol.amp_on()
+    else:
+        tempcontrol.amp_off()
+
+async def set_tempcontrol(ws, **parameters):
+    tempcontrol.set_parameters(**parameters)
+
+#
+# temperature control message handler
+#
+
+def tempcontrol_handler(data):
+    broadcast(json.dumps({
+        'type': 'tempcontrol',
+        'data': data
+    }))
+
 #
 # websocket server
 #
@@ -167,9 +186,18 @@ async def consumer(websocket, message):
             logger.exception(e)
     logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
+connected = set()
 async def consumer_handler(websocket, path):
-    async for message in websocket:
-        asyncio.ensure_future(consumer(websocket, message))
+    connected.add(websocket)
+    try:
+        async for message in websocket:
+            asyncio.ensure_future(consumer(websocket, message))
+    finally:
+        connected.remove(websocket)
+
+def broadcast(msg):
+    for ws in connected:
+        asyncio.ensure_future(ws.send(msg))
 
 # web server
 class Handler(web.StaticFileHandler):
@@ -198,6 +226,6 @@ if __name__=='__main__':
     AsyncIOMainLoop().install()
     app.listen(80)
     loop = asyncio.get_event_loop()
-    tempcontrol.init(loop)
+    tempcontrol.init(loop, tempcontrol_handler)
     loop.run_forever()
     loop.close()
