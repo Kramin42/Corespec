@@ -19,18 +19,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
-        data = self.raw_data()
+        data = self.autophase(self.raw_data())
         return {'real': data.real.tolist(), 'imag': data.imag.tolist(), 'unit': 'μV'}
     
     def export_echo_integrals(self):
-        data = self.raw_data()
-        samples = self.par['samples']
+        y = self.autophase(self.integrated_data())
         echo_count = self.par['echo_count']
         echo_time = self.par['echo_time']/1000000.0
         x = np.linspace(0, echo_count*echo_time, echo_count)
-        y = np.zeros(echo_count, dtype=np.complex64)
-        for i in range(echo_count):
-            y[i] = np.mean(data[i*samples:(i+1)*samples])
         return {
             'x': x.tolist(),
             'y_real': y.real.tolist(),
@@ -71,7 +67,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'x': list(range(len(data['imag']))),
                     'y': data['imag']}],
                 'layout': {
-                    'title': 'Real/Imaginary data',
+                    'title': 'Raw data',
                     'yaxis': {'title': data['unit']}
                 }}
     
@@ -117,8 +113,17 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.programs['CPMG'].data
         # deinterleave
         data = data.astype(np.float32).view(np.complex64)
-        # phase
-        if 'phaseRx' in self.par:
-            data = data*np.exp(1j*np.pi*self.par['phaseRx']/180)
         return data
 
+    def integrated_data(self):
+        data = self.raw_data()
+        samples = self.par['samples']
+        echo_count = self.par['echo_count']
+        y = np.zeros(echo_count, dtype=np.complex64)
+        for i in range(echo_count):
+            y[i] = np.mean(data[i * samples:(i + 1) * samples])
+        return y
+
+    def autophase(self, data):
+        phase = np.angle(np.sum(data)) # get average phase
+        return data * np.exp(1j * -phase) # rotate

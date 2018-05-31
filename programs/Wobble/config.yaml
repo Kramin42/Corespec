@@ -28,6 +28,8 @@ parameters:
   freq:
     dtype: float64
     unit: MHz
+    shared: true
+    group: pulse
   amp:
     offset: 0x98
     dtype: float32
@@ -35,24 +37,29 @@ parameters:
     max: 100
     unit: '%'
     scaling: 0.01
+    group: pulse
   steps:
     offset: 0xc0
     dtype: uint32
     min: 1
+    group: pulse
   samples:
     offset: 0xc4
     dtype: uint32
     min: 1
+    group: acquisition
   dwell_time:
     offset: 0xcc
     dtype: uint32
     min: 0.5
     unit: us
     scaling: 100
+    group: acquisition
   bandwidth:
     offset: 0xdc
     dtype: float64
     unit: MHz
+    group: pulse
 derived_parameters:
   ignore_samples:
     offset: 0xc8

@@ -19,10 +19,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
-        y = self.raw_data()
-        # phase
-        if 'phase' in self.par:
-            y = y*np.exp(1j*np.pi*self.par['phase']/180)
+        y = self.autophase(self.raw_data())
         x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
         return {
             'x': x.tolist(),
@@ -33,10 +30,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
 
     def export_FFT(self):
-        y = self.raw_data()
-        # phase
-        if 'phase' in self.par:
-            y = y * np.exp(1j * np.pi * self.par['phase'] / 180)
+        y = self.autophase(self.raw_data())
         fft = np.fft.fft(y)
         freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
         # sort the frequency axis
@@ -92,3 +86,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def raw_data(self):
         data = self.programs['FID'].data
         return data.astype(np.float32).view(np.complex64)
+
+    def autophase(self, data):
+        phase = np.angle(np.sum(data)) # get average phase
+        return data * np.exp(1j * -phase) # rotate

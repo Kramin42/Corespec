@@ -69,10 +69,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 }}
 
     def plot_FID(self):
-        y = self.raw_data()[-1,:]
-        # phase
-        if 'phase' in self.par:
-            y = y * np.exp(1j * np.pi * self.par['phase'] / 180)
+        y = self.autophase(self.raw_data()[-1,:])
         x = np.linspace(0, self.par['dwell_time'] * len(y), len(y), endpoint=False)
         return {'data': [{
             'name': 'Real',
@@ -91,3 +88,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def raw_data(self):
         return self.data
+
+    def autophase(self, data):
+        phase = np.angle(np.sum(data)) # get average phase
+        return data * np.exp(1j * -phase) # rotate

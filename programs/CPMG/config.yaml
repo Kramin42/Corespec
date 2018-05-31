@@ -28,10 +28,7 @@ parameters:
     dtype: float64
     unit: MHz
     shared: true
-  phase:
-    offset: 0x90
-    dtype: float64
-    unit: deg
+    group: pulse
   amp_90:
     offset: 0x98
     dtype: float32
@@ -40,6 +37,7 @@ parameters:
     unit: '%'
     scaling: 0.01
     shared: true
+    group: pulse
   amp_180:
     offset: 0xa0
     dtype: float32
@@ -48,6 +46,7 @@ parameters:
     unit: '%'
     scaling: 0.01
     shared: true
+    group: pulse
   width_90:
     offset: 0xa8
     dtype: uint32
@@ -56,6 +55,7 @@ parameters:
     unit: us
     scaling: 1000
     shared: true
+    group: pulse
   width_180:
     offset: 0xac
     dtype: uint32
@@ -64,6 +64,7 @@ parameters:
     unit: us
     scaling: 1000
     shared: true
+    group: pulse
   damp_time:
     offset: 0xbc
     dtype: uint32
@@ -71,39 +72,47 @@ parameters:
     unit: us
     scaling: 1000
     shared: true
+    group: pulse
   echo_time:
     dtype: uint32
     min: 0.5
     unit: us
     scaling: 1000
+    group: pulse
   echo_shift:
     dtype: int32
     unit: us
     scaling: 1000
+    group: acquisition
   rep_time:
     offset: 0xd4
     dtype: uint64
     min: 0
     unit: s
     scaling: 1000000000
+    group: pulse
   echo_count:
     offset: 0xc0
     dtype: uint32
     min: 1
+    group: pulse
   samples:
     offset: 0xc4
     dtype: uint32
     min: 1
+    group: acquisition
   dwell_time:
     offset: 0xcc
     dtype: uint32
     min: 0.5
     unit: us
     scaling: 100
+    group: acquisition
   scans:
     offset: 0xd0
     dtype: uint32
     min: 1
+    group: pulse
 derived_parameters:
   T1:
     offset: 0xb0
@@ -135,6 +144,10 @@ derived_parameters:
     offset: 0x88
     dtype: float64
     value: ${{freq}}
+  phase:
+    offset: 0x90
+    dtype: float64
+    value: 0
   P90:
     offset: 0x9c
     dtype: float32

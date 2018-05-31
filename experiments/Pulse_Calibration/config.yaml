@@ -6,13 +6,17 @@ programs:
 parameters:
   start_width:
     unit: us
+    group: calibration
   end_width:
     unit: us
+    group: calibration
   steps:
     dtype: int32
+    group: calibration
   int_width:
     min: 0
     unit: kHz
+    group: calibration
 defaults:
   plots:
     - FID
