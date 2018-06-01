@@ -42,7 +42,7 @@ parameters:
   width_90:
     offset: 0xa8
     dtype: uint32
-    min: 0
+    min: 1
     max: 500
     unit: us
     scaling: 1000
@@ -51,7 +51,7 @@ parameters:
   damp_time:
     offset: 0xbc
     dtype: uint32
-    min: 0.5
+    min: 1
     unit: us
     scaling: 1000
     shared: true
@@ -59,7 +59,7 @@ parameters:
   acq_delay:
     offset: 0xb0
     dtype: uint32
-    min: 0.5
+    min: 1
     unit: us
     scaling: 1000
     shared: true
@@ -80,6 +80,7 @@ parameters:
     offset: 0xcc
     dtype: uint32
     min: 0.5
+    max: 16
     unit: us
     scaling: 100
     group: acquisition

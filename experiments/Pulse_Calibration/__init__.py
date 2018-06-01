@@ -79,7 +79,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'name': 'Imag',
             'type': 'scatter',
             'x': x.tolist(),
-            'y': y.real.tolist()}],
+            'y': y.imag.tolist()}],
             'layout': {
                 'title': 'FID',
                 'xaxis': {'title': 'μs'},

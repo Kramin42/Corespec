@@ -81,11 +81,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Imaginary',
                     'type': 'scatter',
                     'x': data['x'],
-                    'y': data['y_imag']}, {
-                    'name': 'Magnitude',
-                    'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_mag']}],
+                    'y': data['y_imag']}],
                 'layout': {
                     'title': 'Echo Integrals',
                     'xaxis': {'title': data['x_unit']},

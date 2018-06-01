@@ -50,7 +50,7 @@ parameters:
   width_90:
     offset: 0xa8
     dtype: uint32
-    min: 0
+    min: 1
     max: 500
     unit: us
     scaling: 1000
@@ -59,7 +59,7 @@ parameters:
   width_180:
     offset: 0xac
     dtype: uint32
-    min: 0
+    min: 1
     max: 500
     unit: us
     scaling: 1000
@@ -68,14 +68,14 @@ parameters:
   damp_time:
     offset: 0xbc
     dtype: uint32
-    min: 0.5
+    min: 1
     unit: us
     scaling: 1000
     shared: true
     group: pulse
   echo_time:
     dtype: uint32
-    min: 0.5
+    min: 1
     unit: us
     scaling: 1000
     group: pulse
@@ -117,21 +117,21 @@ derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${({echo_time} - {width_90} - {damp_time} - 2000 - {width_180} - {damp_time} - 2000)/2}
-    min: 0
+    value: ${({echo_time} - {width_90} - {damp_time} - {width_180} - {damp_time})/2}
+    min: 1000
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({echo_time} - {width_180} - {damp_time} - 2000 - {samples}*{dwell_time}*10)/2 + {echo_shift}}
-    min: 0
+    value: ${({echo_time} - {width_180} - {damp_time} - {samples}*{dwell_time}*10)/2 + {echo_shift}}
+    min: 1000
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({echo_time} - {width_180} - {damp_time} - 2000 + {samples}*{dwell_time}*10)/2 - {echo_shift}}
-    min: 0
+    value: ${({echo_time} - {width_180} - {damp_time} + {samples}*{dwell_time}*10)/2 - {echo_shift}}
+    min: 1000
   duty_cycle:
-    value: ${{width_180}/{echo_time}}
-    max: 0.25
+    value: ${({width_180}*{echo_count})/{rep_time}}
+    max: 0.2
   ignore_samples:
     offset: 0xc8
     dtype: uint32
