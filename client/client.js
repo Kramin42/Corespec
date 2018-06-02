@@ -323,7 +323,7 @@ function createTempControlTab() {
     var par_values = response.result
     Object.keys(pars).forEach(pName => {
       document.getElementById('tempcontrol-'+pName).value = par_values[pName]
-    }
+    })
   }
 }
 
