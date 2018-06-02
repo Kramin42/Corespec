@@ -60,7 +60,7 @@ function connect() {
   	if (data.type=='tempcontrol') {
   	  if (data.data.name=='temperature') {
   	    temp_history.push(data.data.value)
-  	    if (temp_history_time==[]) {temp_history_time.push(0)}
+  	    if (temp_history_time.length==0) {temp_history_time.push(0)}
   	    else {temp_history_time.push(temp_history_time[temp_history_time.length-1]+10)}
   	    if (document.getElementById('tempcontrol_tablink').classList.contains('active')){
   	      d3plot(d3.select('#tempcontrol svg.plot'), {
