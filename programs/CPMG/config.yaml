@@ -131,7 +131,7 @@ derived_parameters:
     min: 1000
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
-    max: 0.2
+    max: 0.1
   ignore_samples:
     offset: 0xc8
     dtype: uint32

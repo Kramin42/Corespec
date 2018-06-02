@@ -8,6 +8,9 @@ var pending = {}
 var running_experiment = null
 var loaded_experiment_tabs = false
 
+var temp_history = []
+var temp_history_time = []
+
 function connect() {
   var serverUrl = `ws://${window.location.hostname}:8765`
 
@@ -15,6 +18,10 @@ function connect() {
 
   connection.onopen = function(evt) {
   	if (!loaded_experiment_tabs) {
+  	    // set up temperature control
+  	    createTempControlTab()
+  	    openExperimentTab('tempcontrol')
+
 	    // fetch experiment metadata
 	    var ref = generateUID()
 	    connection.send(JSON.stringify({
@@ -28,7 +35,6 @@ function connect() {
 	    	refreshParSetList()
 	    	loadLanguage('english')
 	    	loaded_experiment_tabs = true
-	    	openExperimentTab(data.result[0].name)
 	    }
 	}
   }
@@ -49,6 +55,31 @@ function connect() {
   			setProgress(data.progress, data.max)
   			replot(data.experiment)
   		}
+  	}
+
+  	if (data.type=='tempcontrol') {
+  	  if (data.data.name=='temperature') {
+  	    temp_history.push(data.data.value)
+  	    if (temp_history_time==[]) {temp_history_time.push(0)}
+  	    else {temp_history_time.push(temp_history_time[temp_history_time.length-1]+10)}
+  	    if (document.getElementById('tempcontrol_tablink').classList.contains('active')){
+  	      d3plot(d3.select('#tempcontrol svg.plot'), {
+  	          'data': [{
+                'name': '',
+                'type': 'scatter',
+                'x': temp_history_time,
+                'y': temp_history}],
+              'layout': {
+                'title': 'Temperature',
+                'xaxis': {'title': 'time (s)'},
+                'yaxis': {'title': 'Temperature (°C)'}
+              }
+  	      })
+  	    }
+  	  } else {
+  	    data.type='message'
+  	    data.message = 'temp control '+data.data.name+'='+data.data.value
+  	  }
   	}
 
   	var message_boxes = document.querySelectorAll('.message-box')
@@ -92,7 +123,6 @@ function setProgress(progress, max) {
 function abortExperiment(experiment) {
 	// clear any pending operations
 	pending = {}
-	// TODO send an abort signal to system
 	var ref = generateUID()
 	connection.send(JSON.stringify({
 		'type': 'command',
@@ -240,6 +270,61 @@ function refreshParSetList() {
 		    })
 		})
 	}
+}
+
+function createTempControlTab() {
+  var btn = document.getElementById('tempcontrol_tablink')
+  btn.addEventListener('click', e => {
+    openExperimentTab('tempcontrol')
+  }, false)
+
+  var pane = document.getElementById('tempcontrol')
+  var pars = {
+    setpoint: {
+      unit: '°C'
+    },
+    P: {},
+    I: {}
+  }
+  Object.keys(pars).forEach(pName => {
+    var par = document.importNode(document.querySelector('#parameter_template').content, true)
+    par.querySelector('label').for = 'tempcontrol-'+pName
+    par.querySelector('label .par-name').innerText = pName
+    if ('unit' in pars[pName]) {
+      par.querySelector('label .par-unit').innerText = '('+pars[pName]['unit']+')'
+    }
+    par.querySelector('input').id = 'tempcontrol-'+pName
+    par.querySelector('input').name = pName
+    pane.querySelector('.parameters').appendChild(par)
+  })
+
+  document.querySelector('#tempcontrol button.save').addEventListener('click', e=> {
+    var parameters = {}
+    document.getElementById('tempcontrol').querySelectorAll('.parameters input').forEach(input => {
+		parameters[input.name] = input.valueAsNumber
+	})
+	var ref = generateUID()
+	connection.send(JSON.stringify({
+		'type': 'command',
+		'command': 'set_tempcontrol',
+		'ref': ref,
+		'args': parameters
+	}))
+  })
+
+  var ref = generateUID()
+  connection.send(JSON.stringify({
+      'type': 'query',
+      'query': 'get_tempcontrol',
+      'ref': ref,
+      'args': {}
+  }))
+  pending[ref] = response => {
+    var par_values = response.result
+    Object.keys(pars).forEach(pName => {
+      document.getElementById('tempcontrol-'+pName).value = par_values[pName]
+    }
+  }
 }
 
 function createExperimentTab(exp) {

@@ -23,8 +23,13 @@ setpoint = 30.0
 P = 0.5
 I = 0.001
 
+# average temperature readings so we dont spam too much
+TEMP_AVERAGING = 10
+temp_sum = 0
+temp_count = 0
+
 def handler_raw(cmd):
-    global setpoint, P, I, amp_enabled, mcs_ready
+    global setpoint, P, I, amp_enabled, mcs_ready, temp_sum, temp_count
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
     if cmd[0:CMD_SIZE]==b'$TMP':
@@ -32,9 +37,14 @@ def handler_raw(cmd):
             mcs_ready = True
             set_parameters(setpoint=setpoint, P=P, I=I)  # set initial parameters
             amp_on()
-        data['name'] = 'temperature'
-        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        logger.debug('temperature: %.3f' % data['value'])
+        temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        temp_count += 1
+        if temp_count == TEMP_AVERAGING:
+            data['name'] = 'temperature'
+            data['value'] = temp_sum/TEMP_AVERAGING
+            temp_sum = 0
+            temp_count = 0
+            logger.debug('temperature: %.3f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
@@ -61,6 +71,13 @@ def handler_raw(cmd):
     if handler is not None and data['name'] is not None:
         handler(data)
 
+def get_parameters():
+    return {
+        'setpoint': setpoint,
+        'P': P,
+        'I': I,
+        'amp_on': amp_enabled,
+    }
 
 def amp_on():
     if not mcs_ready:

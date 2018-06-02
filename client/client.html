@@ -18,12 +18,30 @@
 </head>
 <body>
   <div id="experiment_tabs" class="tab">
+    <button id="tempcontrol_tablink" class="tablinks">Magnet Temp</button>
     <template id="experiment_tab_template">
       <button class="tablinks"></button>
     </template>
   </div>
 
   <div id="experiment_panes">
+    <div id="tempcontrol" class="tabcontent">
+      <!-- plot -->
+      <div class="pane plots-container split-row">
+        <svg class="plot" viewbox="0 0 600 400"></svg>
+      </div>
+      <div class="pane controls-parameters-container split-row">
+        <div class="controls-container split-col">
+          <div class="pane">
+            <button class="save">Save/Update Settings</button>
+          </div>
+          <div class="message-box"></div>
+        </div>
+        <div class="parameters-container split-col">
+          <ul class="parameters"></ul>
+        </div>
+      </div>
+    </div>
     <template id="experiment_pane_template">
       <div id="${exp.name}" class="tabcontent">
         <!-- plot -->

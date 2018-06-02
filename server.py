@@ -98,6 +98,8 @@ async def export_matlab(experiment_name, export_name):
         f.close()
         os.remove(f.name)
 
+async def get_tempcontrol():
+    return tempcontrol.get_parameters()
 
 #
 # commands
