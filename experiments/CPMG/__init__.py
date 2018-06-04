@@ -20,7 +20,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
         data = self.autophase(self.raw_data())
-        t = np.zeroes(data.size)
+        t = np.zeros(data.size)
         offset = 0
         sample_times = np.linspace(0, self.par['samples']*self.par['dwell_time'],
                                  num=self.par['samples'], endpoint=False)
