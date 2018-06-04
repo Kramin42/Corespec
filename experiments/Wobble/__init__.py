@@ -28,8 +28,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y = np.mean(y.reshape(-1, samples), axis=1)
         x = np.linspace(center-width/2, center+width/2, len(y))
         return {
-            'x': x.tolist(),
-            'y': y.tolist(),
+            'x': x,
+            'y': y,
             'x_unit': 'MHz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
