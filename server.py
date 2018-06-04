@@ -60,11 +60,10 @@ async def export(experiment_name, export_name):
     return encode_data(experiments[experiment_name].exports[export_name]())
 
 async def plot(experiment_name, plot_name):
-    data = encode_data(experiments[experiment_name].plots[plot_name]())
-    logger.debug(data)
-    return data
+    return encode_data(experiments[experiment_name].plots[plot_name]())
 
 async def export_csv(experiment_name, export_name):
+    # TODO: fix to convert nparray
     data = experiments[experiment_name].exports[export_name]()
     csv = ''
     row = data.keys()
@@ -90,6 +89,7 @@ async def export_csv(experiment_name, export_name):
     return csv
 
 async def export_matlab(experiment_name, export_name):
+    # TODO: fix to convert nparray
     data = experiments[experiment_name].exports[export_name]()
     f = tempfile.NamedTemporaryFile(delete=False)
     logger.debug('creating temp file %s' % f.name)
