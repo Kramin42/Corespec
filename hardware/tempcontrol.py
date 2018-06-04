@@ -38,7 +38,7 @@ def handler_raw(cmd):
         if not mcs_ready:
             mcs_ready = True
             set_parameters(setpoint=setpoint, P=P, I=I)  # set initial parameters
-            asyncio.ensure_future(amp_on_delayed)
+            asyncio.ensure_future(amp_on_delayed())
         temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
         temp_count += 1
         if temp_count == TEMP_AVERAGING:
@@ -82,7 +82,7 @@ def get_parameters():
     }
 
 async def amp_on_delayed():
-    await asyncio.sleep(60000*AMP_COOLDOWN_TIME)
+    await asyncio.sleep(60*AMP_COOLDOWN_TIME)
     amp_on()
 
 def amp_on():
