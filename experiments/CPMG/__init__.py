@@ -20,7 +20,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
         data = self.autophase(self.raw_data())
-        return {'real': data.real, 'imag': data.imag, 'unit': 'μV'}
+        t = np.zeroes(data.size)
+        offset = 0
+        sample_times = np.linspace(0, self.par['samples']*self.par['dwell_time'],
+                                 num=self.par['samples'], endpoint=False)
+        for i in range(self.par['echo_count']):
+            t[i*self.par['samples']:(i+1)*self.par['samples']] = sample_times + offset
+            offset+=self.par['echo_time']
+        return {'real': data.real, 'imag': data.imag, 'unit': 'μV', 'time': t, 'time_unit': 'μs'}
     
     def export_echo_integrals(self):
         y = self.autophase(self.integrated_data())
@@ -60,15 +67,16 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
-                    'x': list(range(len(data['real']))),
+                    'x': data['time'],
                     'y': data['real']}, {
                     'name': 'Imag',
                     'type': 'scatter',
-                    'x': list(range(len(data['imag']))),
+                    'x': data['time'],
                     'y': data['imag']}],
                 'layout': {
                     'title': 'Raw data',
-                    'yaxis': {'title': data['unit']}
+                    'yaxis': {'title': data['unit']},
+                    'xaxis': {'title': data['time_unit']}
                 }}
     
     def plot_echo_integrals(self):

@@ -5,5 +5,5 @@ programs:
   - CPMG
 defaults:
   plots:
-    - real_imag
     - echo_integrals
+    - real_imag

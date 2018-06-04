@@ -78,7 +78,11 @@ function connect() {
   	    }
   	  } else {
   	    data.type='message'
-  	    data.message = 'temp control '+data.data.name+'='+data.data.value
+  	    if (data.data.name === "amp-power") {
+  	      data.message = 'Amplifier powered'
+  	    } else {
+  	      data.message = 'temp control '+data.data.name+' set to '+data.data.value
+  	    }
   	  }
   	}
 
