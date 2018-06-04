@@ -23,6 +23,8 @@ output:
   offset: 0x100
   length: ${2*{echo_count}*{samples}}
   scale_factor: ${0.00000267*1.095/{scans}}
+adc_overflow_count:
+  offset: 0x20
 parameters:
   freq:
     dtype: float64
@@ -100,6 +102,7 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
+    max: 16000
     group: acquisition
   dwell_time:
     offset: 0xcc
@@ -128,7 +131,7 @@ derived_parameters:
     offset: 0xb8
     dtype: uint32
     value: ${({echo_time} - {width_180} - {damp_time} - 1000 + {samples}*{dwell_time}*10)/2 - {echo_shift}}
-    min: 1000
+    min: ${{samples}*{dwell_time}*10+2000}
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
     max: 0.1
@@ -136,6 +139,9 @@ derived_parameters:
     offset: 0xc8
     dtype: uint32
     value: 7
+  total_samples:
+    value: ${{echo_count}*{samples}}
+    max: 16000
   freqTx:
     offset: 0x80
     dtype: float64

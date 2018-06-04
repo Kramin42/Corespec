@@ -119,7 +119,9 @@ async def run(ws, experiment_name):
             'progress': int(progress),
             'max': int(limit)
         })))
-    await experiment.run(progress_handler=progress_handler)
+    def warning_handler(warning):
+        asyncio.ensure_future(ws.send(json.dumps({'type': 'warning', 'message': warning})))
+    await experiment.run(progress_handler=progress_handler, warning_handler=warning_handler)
     experiment.save(workspace.new_data_dir(experiment.name))
     await ws.send(json.dumps({'type': 'progress', 'finished': True}))
     await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))

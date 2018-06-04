@@ -24,6 +24,8 @@ output:
   offset: 0x100
   length: ${2*{samples}}
   scale_factor: ${0.00000267*1.095/{scans}}
+adc_overflow_count:
+  offset: 0x20
 parameters:
   freq:
     dtype: float64
@@ -75,6 +77,7 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
+    max: 16000
     group: acquisition
   dwell_time:
     offset: 0xcc

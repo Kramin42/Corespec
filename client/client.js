@@ -87,7 +87,7 @@ function connect() {
   	}
 
   	var message_boxes = document.querySelectorAll('.message-box')
-  	if (data.type=='message' || data.type=='error') {
+  	if (data.type=='message' || data.type=='error' || data.type=='warning') {
   	    message_boxes.forEach(message_box => {
             message_box.innerHTML+=
                 `<div class="${data.type}">${data.message}</div>`

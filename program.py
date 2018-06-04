@@ -120,7 +120,7 @@ class Program:
                     prev_progress = cur_progress
             await asyncio.sleep(0.1)
 
-    async def run(self, progress_handler=None):
+    async def run(self, progress_handler=None, warning_handler=None):
         system.stop()
         self._aborted = False
         self._data_ready = False
@@ -204,6 +204,13 @@ class Program:
                 self.config_get('output.dtype'))
         self._data = self._data*self.config_get('output.scale_factor')
         self._data_ready = True
+        if warning_handler:
+            try:
+                adc_overflow_count = system.read_par(self.config_get('adc_overflow_count.offset'))
+                if adc_overflow_count>0:
+                    warning_handler('ADC overflow detected! (count: %i)' % adc_overflow_count)
+            except Exception as e: # errors here are not important
+                logger.debug('Error during warning check: %s' % str(e))
         logger.debug('run: finished')
 
     def abort(self):
