@@ -22,9 +22,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y = self.autophase(self.raw_data())
         x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
         return {
-            'x': x.tolist(),
-            'y_real': y.real.tolist(),
-            'y_imag': y.imag.tolist(),
+            'x': x,
+            'y_real': y.real,
+            'y_imag': y.imag,
             'y_unit': 'μV',
             'x_unit': 'μs'}
 
@@ -38,9 +38,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         freq = freq[p]
         fft = fft[p]
         return {
-            'freq': freq.tolist(),
-            'fft_real': fft.real.tolist(),
-            'fft_imag': fft.imag.tolist(),
+            'freq': freq,
+            'fft_real': fft.real,
+            'fft_imag': fft.imag,
             'fft_unit': 'μV',
             'freq_unit': 'kHz'}
 

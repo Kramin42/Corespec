@@ -48,8 +48,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y /= (2*halfwidth+1)
         x = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         return {
-            'x': x.tolist(),
-            'y': y.tolist(),
+            'x': x,
+            'y': y,
             'x_unit': 'μs'}
     
     # start a function name with "plot_" for it to be listed as a plot type
@@ -74,12 +74,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
-            'x': x.tolist(),
-            'y': y.real.tolist()}, {
+            'x': x,
+            'y': y.real}, {
             'name': 'Imag',
             'type': 'scatter',
-            'x': x.tolist(),
-            'y': y.imag.tolist()}],
+            'x': x,
+            'y': y.imag}],
             'layout': {
                 'title': 'FID',
                 'xaxis': {'title': 'μs'},

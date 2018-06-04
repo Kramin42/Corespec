@@ -17,6 +17,7 @@ import tempfile
 from experiment import list_experiments, load_experiment
 from workspace import list_workspaces, Workspace
 from hardware import tempcontrol
+from util import *
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -56,10 +57,12 @@ async def list_parameter_sets():
     return workspace.list_par_sets()
 
 async def export(experiment_name, export_name):
-    return experiments[experiment_name].exports[export_name]()
+    return encode_data(experiments[experiment_name].exports[export_name]())
 
 async def plot(experiment_name, plot_name):
-    return experiments[experiment_name].plots[plot_name]()
+    data = encode_data(experiments[experiment_name].plots[plot_name]())
+    logger.debug(data)
+    return data
 
 async def export_csv(experiment_name, export_name):
     data = experiments[experiment_name].exports[export_name]()

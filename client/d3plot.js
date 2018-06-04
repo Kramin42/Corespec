@@ -476,9 +476,14 @@ function d3plot(svg, plotDef) {
   }
 
   function xyzip(xs, ys) {
-    return xs.map(function(_,i){
-      return {x: xs[i], y: ys[i]}
-    })
+//    return xs.map(function(_,i){
+//      return {x: xs[i], y: ys[i]}
+//    })
+    var zipped = []
+    for (var i=0; i<xs.length; i++) {
+      zipped[i] = {x: xs[i], y: ys[i]}
+    }
+    return zipped
   }
 
   function uuidv4() {

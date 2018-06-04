@@ -20,7 +20,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
         data = self.autophase(self.raw_data())
-        return {'real': data.real.tolist(), 'imag': data.imag.tolist(), 'unit': 'μV'}
+        return {'real': data.real, 'imag': data.imag, 'unit': 'μV'}
     
     def export_echo_integrals(self):
         y = self.autophase(self.integrated_data())
@@ -28,10 +28,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         echo_time = self.par['echo_time']/1000000.0
         x = np.linspace(0, echo_count*echo_time, echo_count)
         return {
-            'x': x.tolist(),
-            'y_real': y.real.tolist(),
-            'y_imag': y.imag.tolist(),
-            'y_mag': np.absolute(y).tolist(),
+            'x': x,
+            'y_real': y.real,
+            'y_imag': y.imag,
+            'y_mag': np.absolute(y),
             'x_unit': 's',
             'y_unit': 'μV'}
 
@@ -46,9 +46,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             y[i%samples] += data[i]
         y /= echo_count
         return {
-            'x': x.tolist(),
-            'y_real': y.real.tolist(),
-            'y_imag': y.imag.tolist(),
+            'x': x,
+            'y_real': y.real,
+            'y_imag': y.imag,
             'x_unit': 's',
             'y_unit': 'μV'}
 

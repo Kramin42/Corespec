@@ -41,7 +41,7 @@ function connect() {
 
   connection.onmessage = function(evt) {
   	var data = JSON.parse(evt.data)
-  	console.log(data)
+  	//console.log(data)
 
   	if (data.ref in pending) {
   		pending[data.ref](data)
@@ -176,6 +176,30 @@ function runExperimentContinuously(experiment) {
 	loop()
 }
 
+function decode_data(data) {
+  var blob = atob(data.base64)
+  var buffer = new ArrayBuffer(blob.length)
+  var dView = new DataView(buffer)
+  for (var i=0; i<blob.length; i++) {
+    dView.setUint8(i, blob.charCodeAt(i))
+  }
+  if (data.dtype === "float64") {
+    return new Float64Array(buffer)
+  } else if (data.dtype === "float32") {
+    return new Float32Array(buffer)
+  } else {
+    console.log('unknown base64 format '+data.dtype);
+  }
+}
+
+function decode_plot_data(data) {
+  for (let i=0; i<data.length; i++) {
+    data[i].x = decode_data(data[i].x)
+    data[i].y = decode_data(data[i].y)
+  }
+  return data
+}
+
 function plot(experiment, plotNum, plotName, callback) {
 	var ref1 = generateUID()
 	console.log('getting plot data')
@@ -191,6 +215,8 @@ function plot(experiment, plotNum, plotName, callback) {
 	pending[ref1] = response => {
 		console.log(`plotting ${experiment} ${plotName}`)
 		//Plotly.newPlot(experiment+'_plot_0', response.result.data, response.result.layout)
+		response.result.data = decode_plot_data(response.result.data)
+		//console.log(response.result.data)
 		d3plot(d3.select('#'+experiment+'_plot_'+plotNum+' svg'), response.result)
 		if (callback) {
 			callback()

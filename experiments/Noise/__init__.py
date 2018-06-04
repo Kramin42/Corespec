@@ -22,9 +22,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y = self.raw_data()
         x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
         return {
-            'x': x.tolist(),
-            'y_real': y.real.tolist(),
-            'y_imag': y.imag.tolist(),
+            'x': x,
+            'y_real': y.real,
+            'y_imag': y.imag,
             'rms': np.sqrt(np.mean(y.real**2)).item(),
             'y_unit': 'μV',
             'x_unit': 'μs'}
@@ -38,9 +38,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         freq = freq[p]
         fft = fft[p]
         return {
-            'freq': freq.tolist(),
-            'fft_real': fft.real.tolist(),
-            'fft_imag': fft.imag.tolist(),
+            'freq': freq,
+            'fft_real': fft.real,
+            'fft_imag': fft.imag,
             'fft_unit': 'μV',
             'freq_unit': 'kHz'}
     
