@@ -1,5 +1,6 @@
 
 
+import os
 import subprocess
 import logging
 import tornado.web as web
@@ -7,6 +8,8 @@ import tornado.web as web
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 VERSION = '1.0'
 
@@ -30,6 +33,6 @@ class AdminHandler(web.RequestHandler):
     def post(self):
         logger.debug(self.request.body)
         if self.get_body_argument("action")=="update":
-            subprocess.call(['./update.sh'])
+            subprocess.call(['sh', os.path.join(dir_path, 'update.sh')])
         else:
             self.get()
