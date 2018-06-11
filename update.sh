@@ -1,3 +1,3 @@
-git stash
+git checkout -- .
 git pull
 reboot

@@ -2,13 +2,28 @@
 # Author: Cameron Dykstra
 # Email: dykstra.cameron@gmail.com
 
-import os 
+import os
+import shutil
 import logging
 import numpy as np
+import yaml
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+CONFIG = {}
+def load_config():
+    with open(os.path.join(dir_path, 'config.yaml'), 'r') as f:
+        return yaml.load(f.read())
+
+try:
+    CONFIG = load_config()
+except IOError:
+    shutil.copyfile(os.path.join(dir_path, 'default_config.yaml'), os.path.join(dir_path, 'config.yaml'))
+    CONFIG = load_config()
 
 from pynq import Overlay
 from elftools.elf.elffile import ELFFile
@@ -83,7 +98,7 @@ def read_dma(
     with open('/dev/mem', 'r+b') as f:
         mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
         data = np.frombuffer(mem[offset:offset+length], dtype=dtype)
-    return data
+    return data*CONFIG['input_calibration']
 
 
 def read_fifo(
@@ -95,4 +110,4 @@ def read_fifo(
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
     data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)
-    return data
+    return data*CONFIG['input_calibration']

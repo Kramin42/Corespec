@@ -202,7 +202,10 @@ class Program:
                 self.config_get('output.offset'),
                 self.config_get('output.length'),
                 self.config_get('output.dtype'))
-        self._data = self._data*self.config_get('output.scale_factor')
+        try:
+            self._data = self._data*self.config_get('output.scale_factor')
+        except KeyError as e: # no scale factor set in config
+            logger.warning(e)
         self._data_ready = True
         if warning_handler:
             try:
@@ -213,6 +216,7 @@ class Program:
             except Exception as e: # errors here are not important
                 logger.debug('Error during warning check: %s' % str(e))
         logger.debug('run: finished')
+        system.stop()
 
     def abort(self):
         logger.debug('aborting run...')
