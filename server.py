@@ -213,7 +213,10 @@ class Handler(web.StaticFileHandler):
             url_path = 'client.html'
         return url_path
 
+from admin import AdminHandler
+
 app = web.Application([
+    ('/admin', AdminHandler),
     ('/(.*)', Handler, {'path': os.path.join(dir_path, 'client')})
 ])
 
