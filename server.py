@@ -18,6 +18,7 @@ from experiment import list_experiments, load_experiment
 from workspace import list_workspaces, Workspace
 from hardware import tempcontrol
 from util import *
+from config import CONFIG
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -234,7 +235,7 @@ if __name__=='__main__':
         websockets.serve(consumer_handler, '0.0.0.0', 8765))
     logger.debug('launching webserver')
     AsyncIOMainLoop().install()
-    app.listen(80)
+    app.listen(CONFIG['port'])
     loop = asyncio.get_event_loop()
     tempcontrol.init(loop, tempcontrol_handler)
     loop.run_forever()

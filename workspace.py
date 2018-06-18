@@ -12,6 +12,11 @@ logger.setLevel(logging.WARNING)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 workspaces_dir = os.path.join(dir_path, 'workspaces')
 
+try:
+    os.listdir(workspaces_dir)
+except:
+    os.makedirs(workspaces_dir)
+
 
 def list_workspaces():
     workspaces = os.listdir(workspaces_dir)
