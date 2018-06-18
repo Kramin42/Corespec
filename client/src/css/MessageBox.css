@@ -13,5 +13,9 @@
 }
 
 .message-box .error {
-    color: #c97064;
+    color: #ff0000;
+}
+
+.message-box .warning {
+    color: #dd6c00;
 }

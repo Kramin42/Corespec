@@ -53,8 +53,8 @@ async def default_parameters():
 async def load_parameter_set(par_set_name):
     return workspace.load_par_set(par_set_name)
 
-async def list_parameter_sets():
-    return workspace.list_par_sets()
+async def list_parameter_sets(experiment_name):
+    return workspace.list_par_sets(experiment_name)
 
 async def export(experiment_name, export_name):
     return encode_data(experiments[experiment_name].exports[export_name]())
@@ -210,7 +210,7 @@ def broadcast(msg):
 class Handler(web.StaticFileHandler):
     def parse_url_path(self, url_path):
         if not url_path:
-            url_path = 'client.html'
+            url_path = 'app.html'
         return url_path
 
 from admin import AdminHandler

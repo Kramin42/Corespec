@@ -12,11 +12,12 @@ export default class Parameter extends React.Component {
 
   render() {
     const name = this.props.name;
+    const label = this.props.label || name;
     const unit = this.props.def.unit || '';
     return (
       <div className="parameter">
         <label htmlFor={this.id}>
-          <span className="par-name">{name}</span>
+          <span className="par-name">{label}</span>
         </label>
         <input id={this.id} className="par-input" name={name} />
         <span className="par-unit">{unit}</span>

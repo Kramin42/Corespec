@@ -29,7 +29,7 @@ class Workspace:
         self._par_dir = os.path.join(self._dir, 'parameters')
         self._data_dir = os.path.join(self._dir, 'data')
 
-    def list_par_sets(self):
+    def list_par_sets(self, experiment_name): # TODO: each experiment needs its own par sets
         return [s[:-5] for s in os.listdir(self._par_dir) if s.endswith('.yaml')] # [:-5] removes the '.yaml' part
 
     def load_par_set(self, name):

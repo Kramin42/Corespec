@@ -340,6 +340,6 @@ const EXPERIMENTS = [{
 }];
 
 ReactDOM.render(
-  <App experiments={EXPERIMENTS} />,
+  <App server={`ws://${window.location.hostname}:8765`} />,
   document.getElementById('app')
 );

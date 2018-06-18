@@ -7,13 +7,9 @@ import Plot from './Plot';
 import Tabs from './Tabs';
 import ParameterPanes from './ParameterPanes';
 import ParameterBox from './ParameterBox';
-import RunControls from './RunControls';
-import ExportControls from './ExportControls';
-import Progress from './Progress';
-import ParameterControls from './ParameterControls';
 import MessageBox from './MessageBox';
 
-export default class Experiment extends React.Component {
+export default class Temperature extends React.Component {
   constructor(props) {
     super(props);
 
@@ -31,24 +27,15 @@ export default class Experiment extends React.Component {
   }
 
   render() {
-    const experiment = this.props.experiment;
+    const data = this.props.data;
     const active = this.props.active;
 
-    const plots = [];
-    let defaultPlotNames = [experiment.plots[0]];
-    if (experiment.defaults && experiment.defaults.plots) {
-      defaultPlotNames = experiment.defaults.plots;
-    }
-    defaultPlotNames.forEach(plotName => {
-      plots.push(
-        <Plot />
-      );
-    });
+    const plots = [(<Plot />)];
 
     const parGroupsObj = {};
     const sharedParameters = {};
-    Object.keys(experiment.parameters).forEach(parName => {
-      let parDef = experiment.parameters[parName];
+    Object.keys(data.parameters).forEach(parName => {
+      let parDef = data.parameters[parName];
       if (parDef.shared) {
         sharedParameters[parName] = parDef;
       } else if (parDef.group) {
@@ -84,21 +71,12 @@ export default class Experiment extends React.Component {
               language={this.props.language}
             />
           </div>
-          <ParameterControls parSetNames={experiment.parSetNames} />
-          <div className={classNames('shared-parameters')}>
-            <div className="par-box-title">Shared</div>
-            <ParameterBox
-              parameters={sharedParameters}
-              active={true}
-              language={this.props.language}
-            />
-          </div>
         </div>
         <div className={classNames('controls-block')}>
-          <RunControls />
-          <Progress />
-          <ExportControls />
-          <MessageBox messages={this.props.messages} />
+          <div className="run-controls">
+            <div className="button set">Set Parameters</div>
+          </div>
+          <MessageBox messages={this.props.messages}/>
         </div>
       </div>
     );

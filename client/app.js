@@ -1935,6 +1935,328 @@ if ("production" !== 'production') {
 
 module.exports = warning;
 },{"./emptyFunction":90}],100:[function(require,module,exports){
+var invariant = require('invariant');
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var splice = Array.prototype.splice;
+
+var toString = Object.prototype.toString
+var type = function(obj) {
+  return toString.call(obj).slice(8, -1);
+}
+
+var assign = Object.assign || /* istanbul ignore next */ function assign(target, source) {
+  getAllKeys(source).forEach(function(key) {
+    if (hasOwnProperty.call(source, key)) {
+      target[key] = source[key];
+    }
+  });
+  return target;
+};
+
+var getAllKeys = typeof Object.getOwnPropertySymbols === 'function' ?
+  function(obj) { return Object.keys(obj).concat(Object.getOwnPropertySymbols(obj)) } :
+  /* istanbul ignore next */ function(obj) { return Object.keys(obj) };
+
+/* istanbul ignore next */
+function copy(object) {
+  if (Array.isArray(object)) {
+    return assign(object.constructor(object.length), object)
+  } else if (type(object) === 'Map') {
+    return new Map(object)
+  } else if (type(object) === 'Set') {
+    return new Set(object)
+  } else if (object && typeof object === 'object') {
+    var prototype = object.constructor && object.constructor.prototype
+    return assign(Object.create(prototype || null), object);
+  } else {
+    return object;
+  }
+}
+
+function newContext() {
+  var commands = assign({}, defaultCommands);
+  update.extend = function(directive, fn) {
+    commands[directive] = fn;
+  };
+  update.isEquals = function(a, b) { return a === b; };
+
+  return update;
+
+  function update(object, spec) {
+    if (typeof spec === 'function') {
+      return spec(object);
+    }
+
+    if (!(Array.isArray(object) && Array.isArray(spec))) {
+      invariant(
+        !Array.isArray(spec),
+        'update(): You provided an invalid spec to update(). The spec may ' +
+        'not contain an array except as the value of $set, $push, $unshift, ' +
+        '$splice or any custom command allowing an array value.'
+      );
+    }
+
+    invariant(
+      typeof spec === 'object' && spec !== null,
+      'update(): You provided an invalid spec to update(). The spec and ' +
+      'every included key path must be plain objects containing one of the ' +
+      'following commands: %s.',
+      Object.keys(commands).join(', ')
+    );
+
+    var nextObject = object;
+    var index, key;
+    getAllKeys(spec).forEach(function(key) {
+      if (hasOwnProperty.call(commands, key)) {
+        var objectWasNextObject = object === nextObject;
+        nextObject = commands[key](spec[key], nextObject, spec, object);
+        if (objectWasNextObject && update.isEquals(nextObject, object)) {
+          nextObject = object;
+        }
+      } else {
+        var nextValueForKey =
+          type(object) === 'Map'
+            ? update(object.get(key), spec[key])
+            : update(object[key], spec[key]);
+        if (!update.isEquals(nextValueForKey, nextObject[key]) || typeof nextValueForKey === 'undefined' && !hasOwnProperty.call(object, key)) {
+          if (nextObject === object) {
+            nextObject = copy(object);
+          }
+          if (type(nextObject) === 'Map') {
+            nextObject.set(key, nextValueForKey);
+          } else {
+            nextObject[key] = nextValueForKey;
+          }
+        }
+      }
+    })
+    return nextObject;
+  }
+
+}
+
+var defaultCommands = {
+  $push: function(value, nextObject, spec) {
+    invariantPushAndUnshift(nextObject, spec, '$push');
+    return value.length ? nextObject.concat(value) : nextObject;
+  },
+  $unshift: function(value, nextObject, spec) {
+    invariantPushAndUnshift(nextObject, spec, '$unshift');
+    return value.length ? value.concat(nextObject) : nextObject;
+  },
+  $splice: function(value, nextObject, spec, originalObject) {
+    invariantSplices(nextObject, spec);
+    value.forEach(function(args) {
+      invariantSplice(args);
+      if (nextObject === originalObject && args.length) nextObject = copy(originalObject);
+      splice.apply(nextObject, args);
+    });
+    return nextObject;
+  },
+  $set: function(value, nextObject, spec) {
+    invariantSet(spec);
+    return value;
+  },
+  $toggle: function(targets, nextObject) {
+    invariantSpecArray(targets, '$toggle');
+    var nextObjectCopy = targets.length ? copy(nextObject) : nextObject;
+
+    targets.forEach(function(target) {
+      nextObjectCopy[target] = !nextObject[target];
+    });
+
+    return nextObjectCopy;
+  },
+  $unset: function(value, nextObject, spec, originalObject) {
+    invariantSpecArray(value, '$unset');
+    value.forEach(function(key) {
+      if (Object.hasOwnProperty.call(nextObject, key)) {
+        if (nextObject === originalObject) nextObject = copy(originalObject);
+        delete nextObject[key];
+      }
+    });
+    return nextObject;
+  },
+  $add: function(value, nextObject, spec, originalObject) {
+    invariantMapOrSet(nextObject, '$add');
+    invariantSpecArray(value, '$add');
+    if (type(nextObject) === 'Map') {
+      value.forEach(function(pair) {
+        var key = pair[0];
+        var value = pair[1];
+        if (nextObject === originalObject && nextObject.get(key) !== value) nextObject = copy(originalObject);
+        nextObject.set(key, value);
+      });
+    } else {
+      value.forEach(function(value) {
+        if (nextObject === originalObject && !nextObject.has(value)) nextObject = copy(originalObject);
+        nextObject.add(value);
+      });
+    }
+    return nextObject;
+  },
+  $remove: function(value, nextObject, spec, originalObject) {
+    invariantMapOrSet(nextObject, '$remove');
+    invariantSpecArray(value, '$remove');
+    value.forEach(function(key) {
+      if (nextObject === originalObject && nextObject.has(key)) nextObject = copy(originalObject);
+      nextObject.delete(key);
+    });
+    return nextObject;
+  },
+  $merge: function(value, nextObject, spec, originalObject) {
+    invariantMerge(nextObject, value);
+    getAllKeys(value).forEach(function(key) {
+      if (value[key] !== nextObject[key]) {
+        if (nextObject === originalObject) nextObject = copy(originalObject);
+        nextObject[key] = value[key];
+      }
+    });
+    return nextObject;
+  },
+  $apply: function(value, original) {
+    invariantApply(value);
+    return value(original);
+  }
+};
+
+var contextForExport = newContext();
+
+module.exports = contextForExport;
+module.exports.default = contextForExport;
+module.exports.newContext = newContext;
+
+// invariants
+
+function invariantPushAndUnshift(value, spec, command) {
+  invariant(
+    Array.isArray(value),
+    'update(): expected target of %s to be an array; got %s.',
+    command,
+    value
+  );
+  invariantSpecArray(spec[command], command)
+}
+
+function invariantSpecArray(spec, command) {
+  invariant(
+    Array.isArray(spec),
+    'update(): expected spec of %s to be an array; got %s. ' +
+    'Did you forget to wrap your parameter in an array?',
+    command,
+    spec
+  );
+}
+
+function invariantSplices(value, spec) {
+  invariant(
+    Array.isArray(value),
+    'Expected $splice target to be an array; got %s',
+    value
+  );
+  invariantSplice(spec['$splice']);
+}
+
+function invariantSplice(value) {
+  invariant(
+    Array.isArray(value),
+    'update(): expected spec of $splice to be an array of arrays; got %s. ' +
+    'Did you forget to wrap your parameters in an array?',
+    value
+  );
+}
+
+function invariantApply(fn) {
+  invariant(
+    typeof fn === 'function',
+    'update(): expected spec of $apply to be a function; got %s.',
+    fn
+  );
+}
+
+function invariantSet(spec) {
+  invariant(
+    Object.keys(spec).length === 1,
+    'Cannot have more than one key in an object with $set'
+  );
+}
+
+function invariantMerge(target, specValue) {
+  invariant(
+    specValue && typeof specValue === 'object',
+    'update(): $merge expects a spec of type \'object\'; got %s',
+    specValue
+  );
+  invariant(
+    target && typeof target === 'object',
+    'update(): $merge expects a target of type \'object\'; got %s',
+    target
+  );
+}
+
+function invariantMapOrSet(target, command) {
+  var typeOfTarget = type(target);
+  invariant(
+    typeOfTarget === 'Map' || typeOfTarget === 'Set',
+    'update(): %s expects a target of type Set or Map; got %s',
+    command,
+    typeOfTarget
+  );
+}
+
+},{"invariant":101}],101:[function(require,module,exports){
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+'use strict';
+
+/**
+ * Use invariant() to assert state which your program assumes to be true.
+ *
+ * Provide sprintf-style format (only %s is supported) and arguments
+ * to provide information about what broke and what you were
+ * expecting.
+ *
+ * The invariant message will be stripped in production, but the invariant
+ * will remain to ensure logic does not differ in production.
+ */
+
+var invariant = function(condition, format, a, b, c, d, e, f) {
+  if ("production" !== 'production') {
+    if (format === undefined) {
+      throw new Error('invariant requires an error message argument');
+    }
+  }
+
+  if (!condition) {
+    var error;
+    if (format === undefined) {
+      error = new Error(
+        'Minified exception occurred; use the non-minified dev environment ' +
+        'for the full error message and additional helpful warnings.'
+      );
+    } else {
+      var args = [a, b, c, d, e, f];
+      var argIndex = 0;
+      error = new Error(
+        format.replace(/%s/g, function() { return args[argIndex++]; })
+      );
+      error.name = 'Invariant Violation';
+    }
+
+    error.framesToPop = 1; // we don't care about invariant's own frame
+    throw error;
+  }
+};
+
+module.exports = invariant;
+
+},{}],102:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -2026,7 +2348,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],101:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2087,7 +2409,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 
 module.exports = checkPropTypes;
 
-},{"./lib/ReactPropTypesSecret":105,"fbjs/lib/invariant":95,"fbjs/lib/warning":99}],102:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":107,"fbjs/lib/invariant":95,"fbjs/lib/warning":99}],104:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2147,7 +2469,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":105,"fbjs/lib/emptyFunction":90,"fbjs/lib/invariant":95}],103:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":107,"fbjs/lib/emptyFunction":90,"fbjs/lib/invariant":95}],105:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2691,7 +3013,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
   return ReactPropTypes;
 };
 
-},{"./checkPropTypes":101,"./lib/ReactPropTypesSecret":105,"fbjs/lib/emptyFunction":90,"fbjs/lib/invariant":95,"fbjs/lib/warning":99,"object-assign":100}],104:[function(require,module,exports){
+},{"./checkPropTypes":103,"./lib/ReactPropTypesSecret":107,"fbjs/lib/emptyFunction":90,"fbjs/lib/invariant":95,"fbjs/lib/warning":99,"object-assign":102}],106:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2721,7 +3043,7 @@ if ("production" !== 'production') {
   module.exports = require('./factoryWithThrowingShims')();
 }
 
-},{"./factoryWithThrowingShims":102,"./factoryWithTypeCheckers":103}],105:[function(require,module,exports){
+},{"./factoryWithThrowingShims":104,"./factoryWithTypeCheckers":105}],107:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2735,7 +3057,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],106:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2898,7 +3220,7 @@ Circle.defaultProps = (0, _extends3['default'])({}, _types.defaultProps, {
 
 exports['default'] = (0, _enhancer2['default'])(Circle);
 module.exports = exports['default'];
-},{"./enhancer":108,"./types":110,"babel-runtime/helpers/classCallCheck":6,"babel-runtime/helpers/extends":7,"babel-runtime/helpers/inherits":8,"babel-runtime/helpers/objectWithoutProperties":9,"babel-runtime/helpers/possibleConstructorReturn":10,"prop-types":104,"react":131}],107:[function(require,module,exports){
+},{"./enhancer":110,"./types":112,"babel-runtime/helpers/classCallCheck":6,"babel-runtime/helpers/extends":7,"babel-runtime/helpers/inherits":8,"babel-runtime/helpers/objectWithoutProperties":9,"babel-runtime/helpers/possibleConstructorReturn":10,"prop-types":106,"react":133}],109:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -3012,7 +3334,7 @@ Line.defaultProps = _types.defaultProps;
 
 exports['default'] = (0, _enhancer2['default'])(Line);
 module.exports = exports['default'];
-},{"./enhancer":108,"./types":110,"babel-runtime/helpers/classCallCheck":6,"babel-runtime/helpers/extends":7,"babel-runtime/helpers/inherits":8,"babel-runtime/helpers/objectWithoutProperties":9,"babel-runtime/helpers/possibleConstructorReturn":10,"react":131}],108:[function(require,module,exports){
+},{"./enhancer":110,"./types":112,"babel-runtime/helpers/classCallCheck":6,"babel-runtime/helpers/extends":7,"babel-runtime/helpers/inherits":8,"babel-runtime/helpers/objectWithoutProperties":9,"babel-runtime/helpers/possibleConstructorReturn":10,"react":133}],110:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -3063,7 +3385,7 @@ var enhancer = function enhancer(WrappedComponent) {
 
 exports['default'] = enhancer;
 module.exports = exports['default'];
-},{"babel-runtime/helpers/classCallCheck":6,"babel-runtime/helpers/inherits":8,"babel-runtime/helpers/possibleConstructorReturn":10}],109:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":6,"babel-runtime/helpers/inherits":8,"babel-runtime/helpers/possibleConstructorReturn":10}],111:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -3085,7 +3407,7 @@ exports['default'] = {
   Line: _Line2['default'],
   Circle: _Circle2['default']
 };
-},{"./Circle":106,"./Line":107}],110:[function(require,module,exports){
+},{"./Circle":108,"./Line":109}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -3120,7 +3442,7 @@ var propTypes = exports.propTypes = {
   trailColor: _propTypes2['default'].string,
   trailWidth: _propTypes2['default'].oneOfType([_propTypes2['default'].number, _propTypes2['default'].string])
 };
-},{"prop-types":104}],111:[function(require,module,exports){
+},{"prop-types":106}],113:[function(require,module,exports){
 /** @license React v16.3.2
  * react-dom.development.js
  *
@@ -19776,7 +20098,7 @@ module.exports = reactDom;
   })();
 }
 
-},{"fbjs/lib/ExecutionEnvironment":86,"fbjs/lib/camelizeStyleName":88,"fbjs/lib/containsNode":89,"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/getActiveElement":92,"fbjs/lib/hyphenateStyleName":94,"fbjs/lib/invariant":95,"fbjs/lib/shallowEqual":98,"fbjs/lib/warning":99,"object-assign":100,"prop-types/checkPropTypes":101,"react":131}],112:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":86,"fbjs/lib/camelizeStyleName":88,"fbjs/lib/containsNode":89,"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/getActiveElement":92,"fbjs/lib/hyphenateStyleName":94,"fbjs/lib/invariant":95,"fbjs/lib/shallowEqual":98,"fbjs/lib/warning":99,"object-assign":102,"prop-types/checkPropTypes":103,"react":133}],114:[function(require,module,exports){
 /** @license React v16.3.2
  * react-dom.production.min.js
  *
@@ -20024,7 +20346,7 @@ var Gg={createPortal:Fg,findDOMNode:function(a){return null==a?null:1===a.nodeTy
 null})}),!0):!1},unstable_createPortal:function(){return Fg.apply(void 0,arguments)},unstable_batchedUpdates:X.batchedUpdates,unstable_deferredUpdates:X.deferredUpdates,flushSync:X.flushSync,unstable_flushControlled:X.flushControlled,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{EventPluginHub:Ra,EventPluginRegistry:Ca,EventPropagators:kb,ReactControlledComponent:$b,ReactDOMComponentTree:bb,ReactDOMEventListener:$d},unstable_createRoot:function(a,b){return new tg(a,!0,null!=b&&!0===b.hydrate)}};
 X.injectIntoDevTools({findFiberByHostInstance:Ua,bundleType:0,version:"16.3.2",rendererPackageName:"react-dom"});var Hg=Object.freeze({default:Gg}),Ig=Hg&&Gg||Hg;module.exports=Ig["default"]?Ig["default"]:Ig;
 
-},{"fbjs/lib/ExecutionEnvironment":86,"fbjs/lib/containsNode":89,"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/getActiveElement":92,"fbjs/lib/invariant":95,"fbjs/lib/shallowEqual":98,"object-assign":100,"react":131}],113:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":86,"fbjs/lib/containsNode":89,"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/getActiveElement":92,"fbjs/lib/invariant":95,"fbjs/lib/shallowEqual":98,"object-assign":102,"react":133}],115:[function(require,module,exports){
 'use strict';
 
 function checkDCE() {
@@ -20064,7 +20386,7 @@ if ("production" === 'production') {
   module.exports = require('./cjs/react-dom.development.js');
 }
 
-},{"./cjs/react-dom.development.js":111,"./cjs/react-dom.production.min.js":112}],114:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":113,"./cjs/react-dom.production.min.js":114}],116:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -20333,7 +20655,7 @@ AutosizeInput.defaultProps = {
 };
 
 exports.default = AutosizeInput;
-},{"prop-types":104,"react":131}],115:[function(require,module,exports){
+},{"prop-types":106,"react":133}],117:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -20605,7 +20927,7 @@ exports.default = Async;
 
 Async.propTypes = propTypes;
 Async.defaultProps = defaultProps;
-},{"./Select":119,"./utils/stripDiacritics":127,"prop-types":104,"react":131}],116:[function(require,module,exports){
+},{"./Select":121,"./utils/stripDiacritics":129,"prop-types":106,"react":133}],118:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -20711,7 +21033,7 @@ AsyncCreatableSelect.defaultProps = {
 };
 
 exports.default = AsyncCreatableSelect;
-},{"./Async":115,"./Creatable":117,"./Select":119,"prop-types":104,"react":131}],117:[function(require,module,exports){
+},{"./Async":117,"./Creatable":119,"./Select":121,"prop-types":106,"react":133}],119:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -21084,7 +21406,7 @@ CreatableSelect.propTypes = {
 };
 
 exports.default = CreatableSelect;
-},{"./Select":119,"./utils/defaultFilterOptions":125,"./utils/defaultMenuRenderer":126,"prop-types":104,"react":131}],118:[function(require,module,exports){
+},{"./Select":121,"./utils/defaultFilterOptions":127,"./utils/defaultMenuRenderer":128,"prop-types":106,"react":133}],120:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -21233,7 +21555,7 @@ Option.propTypes = {
 };
 
 exports.default = Option;
-},{"./utils/blockEvent":122,"classnames":85,"prop-types":104,"react":131}],119:[function(require,module,exports){
+},{"./utils/blockEvent":124,"classnames":85,"prop-types":106,"react":133}],121:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22695,7 +23017,7 @@ Select.defaultProps = {
 };
 
 exports.default = Select;
-},{"./Option":118,"./Value":120,"./utils/defaultArrowRenderer":123,"./utils/defaultClearRenderer":124,"./utils/defaultFilterOptions":125,"./utils/defaultMenuRenderer":126,"classnames":85,"prop-types":104,"react":131,"react-dom":113,"react-input-autosize":114}],120:[function(require,module,exports){
+},{"./Option":120,"./Value":122,"./utils/defaultArrowRenderer":125,"./utils/defaultClearRenderer":126,"./utils/defaultFilterOptions":127,"./utils/defaultMenuRenderer":128,"classnames":85,"prop-types":106,"react":133,"react-dom":115,"react-input-autosize":116}],122:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22841,7 +23163,7 @@ Value.propTypes = {
 };
 
 exports.default = Value;
-},{"classnames":85,"prop-types":104,"react":131}],121:[function(require,module,exports){
+},{"classnames":85,"prop-types":106,"react":133}],123:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22907,7 +23229,7 @@ exports.defaultMenuRenderer = _defaultMenuRenderer2.default;
 exports.defaultArrowRenderer = _defaultArrowRenderer2.default;
 exports.defaultClearRenderer = _defaultClearRenderer2.default;
 exports.defaultFilterOptions = _defaultFilterOptions2.default;
-},{"./Async":115,"./AsyncCreatable":116,"./Creatable":117,"./Option":118,"./Select":119,"./Value":120,"./utils/defaultArrowRenderer":123,"./utils/defaultClearRenderer":124,"./utils/defaultFilterOptions":125,"./utils/defaultMenuRenderer":126}],122:[function(require,module,exports){
+},{"./Async":117,"./AsyncCreatable":118,"./Creatable":119,"./Option":120,"./Select":121,"./Value":122,"./utils/defaultArrowRenderer":125,"./utils/defaultClearRenderer":126,"./utils/defaultFilterOptions":127,"./utils/defaultMenuRenderer":128}],124:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22926,7 +23248,7 @@ exports.default = function (event) {
 		window.location.href = event.target.href;
 	}
 };
-},{}],123:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22957,7 +23279,7 @@ arrowRenderer.propTypes = {
 };
 
 exports.default = arrowRenderer;
-},{"prop-types":104,"react":131}],124:[function(require,module,exports){
+},{"prop-types":106,"react":133}],126:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -22978,7 +23300,7 @@ var clearRenderer = function clearRenderer() {
 };
 
 exports.default = clearRenderer;
-},{"react":131}],125:[function(require,module,exports){
+},{"react":133}],127:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23048,7 +23370,7 @@ var filterOptions = function filterOptions(options, filterValue, excludeOptions,
 };
 
 exports.default = filterOptions;
-},{"./stripDiacritics":127,"./trim":128}],126:[function(require,module,exports){
+},{"./stripDiacritics":129,"./trim":130}],128:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23145,7 +23467,7 @@ menuRenderer.propTypes = {
 };
 
 exports.default = menuRenderer;
-},{"classnames":85,"prop-types":104,"react":131}],127:[function(require,module,exports){
+},{"classnames":85,"prop-types":106,"react":133}],129:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23161,7 +23483,7 @@ var stripDiacritics = function stripDiacritics(str) {
 };
 
 exports.default = stripDiacritics;
-},{}],128:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -23172,7 +23494,7 @@ var trim = function trim(str) {
 };
 
 exports.default = trim;
-},{}],129:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 /** @license React v16.3.2
  * react.development.js
  *
@@ -24588,7 +24910,7 @@ module.exports = react;
   })();
 }
 
-},{"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/invariant":95,"fbjs/lib/warning":99,"object-assign":100,"prop-types/checkPropTypes":101}],130:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/invariant":95,"fbjs/lib/warning":99,"object-assign":102,"prop-types/checkPropTypes":103}],132:[function(require,module,exports){
 /** @license React v16.3.2
  * react.production.min.js
  *
@@ -24612,7 +24934,7 @@ _calculateChangedBits:b,_defaultValue:a,_currentValue:a,_changedBits:0,Provider:
 (k=a.type.defaultProps);for(c in b)J.call(b,c)&&!K.hasOwnProperty(c)&&(d[c]=void 0===b[c]&&void 0!==k?k[c]:b[c])}c=arguments.length-2;if(1===c)d.children=e;else if(1<c){k=Array(c);for(var l=0;l<c;l++)k[l]=arguments[l+2];d.children=k}return{$$typeof:t,type:a.type,key:g,ref:h,props:d,_owner:f}},createFactory:function(a){var b=L.bind(null,a);b.type=a;return b},isValidElement:M,version:"16.3.2",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentOwner:I,assign:m}},X=Object.freeze({default:W}),
 Y=X&&W||X;module.exports=Y["default"]?Y["default"]:Y;
 
-},{"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/invariant":95,"object-assign":100}],131:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":90,"fbjs/lib/emptyObject":91,"fbjs/lib/invariant":95,"object-assign":102}],133:[function(require,module,exports){
 'use strict';
 
 if ("production" === 'production') {
@@ -24621,7 +24943,376 @@ if ("production" === 'production') {
   module.exports = require('./cjs/react.development.js');
 }
 
-},{"./cjs/react.development.js":129,"./cjs/react.production.min.js":130}],132:[function(require,module,exports){
+},{"./cjs/react.development.js":131,"./cjs/react.production.min.js":132}],134:[function(require,module,exports){
+'use strict';
+
+class Event {
+    constructor(type, target) {
+        this.target = target;
+        this.type = type;
+    }
+}
+class ErrorEvent extends Event {
+    constructor(error, target) {
+        super('error', target);
+        this.message = error.message;
+        this.error = error;
+    }
+}
+class CloseEvent extends Event {
+    constructor(code = 1000, reason = '', target) {
+        super('close', target);
+        this.wasClean = true;
+        this.code = code;
+        this.reason = reason;
+    }
+}
+
+/*!
+ * Reconnecting WebSocket
+ * by Pedro Ladaria <pedro.ladaria@gmail.com>
+ * https://github.com/pladaria/reconnecting-websocket
+ * License MIT
+ */
+const getGlobalWebSocket = () => {
+    if (typeof WebSocket !== 'undefined') {
+        // @ts-ignore
+        return WebSocket;
+    }
+};
+/**
+ * Returns true if given argument looks like a WebSocket class
+ */
+const isWebSocket = (w) => typeof w === 'function' && w.CLOSING === 2;
+const DEFAULT = {
+    maxReconnectionDelay: 10000,
+    minReconnectionDelay: 1000 + Math.random() * 4000,
+    minUptime: 5000,
+    reconnectionDelayGrowFactor: 1.3,
+    connectionTimeout: 4000,
+    maxRetries: Infinity,
+    debug: false,
+};
+class ReconnectingWebSocket {
+    constructor(url, protocols, options = {}) {
+        this._listeners = {
+            error: [],
+            message: [],
+            open: [],
+            close: [],
+        };
+        this._retryCount = -1;
+        this._shouldReconnect = true;
+        this._connectLock = false;
+        this._binaryType = 'blob';
+        this.eventToHandler = new Map([
+            ['open', this._handleOpen.bind(this)],
+            ['close', this._handleClose.bind(this)],
+            ['error', this._handleError.bind(this)],
+            ['message', this._handleMessage.bind(this)],
+        ]);
+        /**
+         * An event listener to be called when the WebSocket connection's readyState changes to CLOSED
+         */
+        this.onclose = undefined;
+        /**
+         * An event listener to be called when an error occurs
+         */
+        this.onerror = undefined;
+        /**
+         * An event listener to be called when a message is received from the server
+         */
+        this.onmessage = undefined;
+        /**
+         * An event listener to be called when the WebSocket connection's readyState changes to OPEN;
+         * this indicates that the connection is ready to send and receive data
+         */
+        this.onopen = undefined;
+        this._url = url;
+        this._protocols = protocols;
+        this._options = options;
+        this._connect();
+    }
+    static get CONNECTING() {
+        return 0;
+    }
+    static get OPEN() {
+        return 1;
+    }
+    static get CLOSING() {
+        return 2;
+    }
+    static get CLOSED() {
+        return 3;
+    }
+    get CONNECTING() {
+        return ReconnectingWebSocket.CONNECTING;
+    }
+    get OPEN() {
+        return ReconnectingWebSocket.OPEN;
+    }
+    get CLOSING() {
+        return ReconnectingWebSocket.CLOSING;
+    }
+    get CLOSED() {
+        return ReconnectingWebSocket.CLOSED;
+    }
+    get binaryType() {
+        return this._ws ? this._ws.binaryType : this._binaryType;
+    }
+    set binaryType(value) {
+        this._binaryType = value;
+        if (this._ws) {
+            // @ts-ignore
+            this._ws.binaryType = value;
+        }
+    }
+    /**
+     * Returns the number or connection retries
+     */
+    get retryCount() {
+        return Math.max(this._retryCount, 0);
+    }
+    /**
+     * The number of bytes of data that have been queued using calls to send() but not yet
+     * transmitted to the network. This value resets to zero once all queued data has been sent.
+     * This value does not reset to zero when the connection is closed; if you keep calling send(),
+     * this will continue to climb. Read only
+     */
+    get bufferedAmount() {
+        return this._ws ? this._ws.bufferedAmount : 0;
+    }
+    /**
+     * The extensions selected by the server. This is currently only the empty string or a list of
+     * extensions as negotiated by the connection
+     */
+    get extensions() {
+        return this._ws ? this._ws.extensions : '';
+    }
+    /**
+     * A string indicating the name of the sub-protocol the server selected;
+     * this will be one of the strings specified in the protocols parameter when creating the
+     * WebSocket object
+     */
+    get protocol() {
+        return this._ws ? this._ws.protocol : '';
+    }
+    /**
+     * The current state of the connection; this is one of the Ready state constants
+     */
+    get readyState() {
+        return this._ws ? this._ws.readyState : ReconnectingWebSocket.CONNECTING;
+    }
+    /**
+     * The URL as resolved by the constructor
+     */
+    get url() {
+        return this._ws ? this._ws.url : '';
+    }
+    /**
+     * Closes the WebSocket connection or connection attempt, if any. If the connection is already
+     * CLOSED, this method does nothing
+     */
+    close(code, reason) {
+        this._shouldReconnect = false;
+        if (!this._ws || this._ws.readyState === this.CLOSED) {
+            return;
+        }
+        this._ws.close(code, reason);
+    }
+    /**
+     * Closes the WebSocket connection or connection attempt and connects again.
+     * Resets retry counter;
+     */
+    reconnect(code, reason) {
+        this._shouldReconnect = true;
+        this._retryCount = -1;
+        if (!this._ws || this._ws.readyState === this.CLOSED) {
+            this._connect();
+        }
+        this._disconnect(code, reason);
+        this._connect();
+    }
+    /**
+     * Enqueues the specified data to be transmitted to the server over the WebSocket connection
+     */
+    send(data) {
+        if (this._ws) {
+            this._ws.send(data);
+        }
+    }
+    /**
+     * Register an event handler of a specific event type
+     */
+    addEventListener(type, listener) {
+        if (this._listeners[type]) {
+            // @ts-ignore
+            this._listeners[type].push(listener);
+        }
+    }
+    /**
+     * Removes an event listener
+     */
+    removeEventListener(type, listener) {
+        if (this._listeners[type]) {
+            // @ts-ignore
+            this._listeners[type] = this._listeners[type].filter(l => l !== listener);
+        }
+    }
+    _debug(...params) {
+        if (this._options.debug) {
+            // tslint:disable-next-line
+            console.log('RWS>', ...params);
+        }
+    }
+    _getNextDelay() {
+        let delay = 0;
+        if (this._retryCount > 0) {
+            const { reconnectionDelayGrowFactor = DEFAULT.reconnectionDelayGrowFactor, minReconnectionDelay = DEFAULT.minReconnectionDelay, maxReconnectionDelay = DEFAULT.maxReconnectionDelay, } = this._options;
+            delay =
+                minReconnectionDelay + Math.pow(this._retryCount - 1, reconnectionDelayGrowFactor);
+            if (delay > maxReconnectionDelay) {
+                delay = maxReconnectionDelay;
+            }
+        }
+        this._debug('next delay', delay);
+        return delay;
+    }
+    _wait() {
+        return new Promise(resolve => {
+            setTimeout(resolve, this._getNextDelay());
+        });
+    }
+    /**
+     * @return Promise<string>
+     */
+    _getNextUrl(urlProvider) {
+        if (typeof urlProvider === 'string') {
+            return Promise.resolve(urlProvider);
+        }
+        if (typeof urlProvider === 'function') {
+            const url = urlProvider();
+            if (typeof url === 'string') {
+                return Promise.resolve(url);
+            }
+            if (url.then) {
+                return url;
+            }
+        }
+        throw Error('Invalid URL');
+    }
+    _connect() {
+        if (this._connectLock) {
+            return;
+        }
+        this._connectLock = true;
+        const { maxRetries = DEFAULT.maxRetries, connectionTimeout = DEFAULT.connectionTimeout, WebSocket = getGlobalWebSocket(), } = this._options;
+        if (this._retryCount >= maxRetries) {
+            this._debug('max retries reached', this._retryCount, '>=', maxRetries);
+            return;
+        }
+        this._retryCount++;
+        this._debug('connect', this._retryCount);
+        this._removeListeners();
+        if (!isWebSocket(WebSocket)) {
+            throw Error('No valid WebSocket class provided');
+        }
+        this._wait()
+            .then(() => this._getNextUrl(this._url))
+            .then(url => {
+            this._debug('connect', { url, protocols: this._protocols });
+            this._ws = new WebSocket(url, this._protocols);
+            // @ts-ignore
+            this._ws.binaryType = this._binaryType;
+            this._connectLock = false;
+            this._addListeners();
+            this._connectTimeout = setTimeout(() => this._handleTimeout(), connectionTimeout);
+        });
+    }
+    _handleTimeout() {
+        this._debug('timeout event');
+        this._handleError(new ErrorEvent(Error('TIMEOUT'), this));
+    }
+    _disconnect(code, reason) {
+        clearTimeout(this._connectTimeout);
+        if (!this._ws) {
+            return;
+        }
+        this._removeListeners();
+        try {
+            this._ws.close(code, reason);
+            this._handleClose(new CloseEvent(code, reason, this));
+        }
+        catch (error) {
+            // ignore
+        }
+    }
+    _acceptOpen() {
+        this._retryCount = 0;
+    }
+    _handleOpen(event) {
+        this._debug('open event');
+        const { minUptime = DEFAULT.minUptime } = this._options;
+        clearTimeout(this._connectTimeout);
+        this._uptimeTimeout = setTimeout(() => this._acceptOpen(), minUptime);
+        this._debug('assign binary type');
+        // @ts-ignore
+        this._ws.binaryType = this._binaryType;
+        if (this.onopen) {
+            this.onopen(event);
+        }
+        this._listeners.open.forEach(listener => listener(event));
+    }
+    _handleMessage(event) {
+        this._debug('message event');
+        if (this.onmessage) {
+            this.onmessage(event);
+        }
+        this._listeners.message.forEach(listener => listener(event));
+    }
+    _handleError(event) {
+        this._debug('error event', event.message);
+        this._disconnect(undefined, event.message === 'TIMEOUT' ? 'timeout' : undefined);
+        if (this.onerror) {
+            this.onerror(event);
+        }
+        this._debug('exec error listeners');
+        this._listeners.error.forEach(listener => listener(event));
+        this._connect();
+    }
+    _handleClose(event) {
+        this._debug('close event');
+        if (this.onclose) {
+            this.onclose(event);
+        }
+        this._listeners.close.forEach(listener => listener(event));
+    }
+    /**
+     * Remove event listeners to WebSocket instance
+     */
+    _removeListeners() {
+        if (!this._ws) {
+            return;
+        }
+        this._debug('removeListeners');
+        for (const [type, handler] of this.eventToHandler) {
+            this._ws.removeEventListener(type, handler);
+        }
+    }
+    /**
+     * Assign event listeners to WebSocket instance
+     */
+    _addListeners() {
+        this._debug('addListeners');
+        for (const [type, handler] of this.eventToHandler) {
+            this._ws.addEventListener(type, handler);
+        }
+    }
+}
+
+module.exports = ReconnectingWebSocket;
+
+},{}],135:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24634,6 +25325,18 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _reconnectingWebsocket = require('reconnecting-websocket');
+
+var _reconnectingWebsocket2 = _interopRequireDefault(_reconnectingWebsocket);
+
+var _immutabilityHelper = require('immutability-helper');
+
+var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
+
+var _shortUID = require('./util/shortUID');
+
+var _shortUID2 = _interopRequireDefault(_shortUID);
+
 require('./css/App.css');
 
 require('./css/Buttons.css');
@@ -24642,11 +25345,13 @@ var _Tabs = require('./Tabs');
 
 var _Tabs2 = _interopRequireDefault(_Tabs);
 
-var _ExperimentPanes = require('./ExperimentPanes');
+var _TabPanes = require('./TabPanes');
 
-var _ExperimentPanes2 = _interopRequireDefault(_ExperimentPanes);
+var _TabPanes2 = _interopRequireDefault(_TabPanes);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -24663,38 +25368,134 @@ var App = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
     _this.state = {
-      experiments: props.experiments,
-      activeExperimentIndex: 0
+      language: {},
+      experiments: [],
+      activeTabIndex: 0,
+      messages: [{ text: 'test', type: 'default' }, { text: 'test2', type: 'warning' }, { text: 'test3', type: 'error' }]
     };
 
-    // bind 'this' as context to handlers
+    // bind 'this' as context
     _this.handleTabChange = _this.handleTabChange.bind(_this);
+    _this.handleConnOpen = _this.handleConnOpen.bind(_this);
+    _this.handleConnMessage = _this.handleConnMessage.bind(_this);
+    _this.refreshParSetList = _this.refreshParSetList.bind(_this);
+
+    _this.connPending = {}; // for storing promises to be resolved later
+    _this.conn = new _reconnectingWebsocket2.default(props.server);
+
+    _this.conn.onopen = _this.handleConnOpen;
+    _this.conn.onmessage = _this.handleConnMessage;
     return _this;
   }
 
   _createClass(App, [{
+    key: 'query',
+    value: function query(name, args) {
+      var _this2 = this;
+
+      var ref = (0, _shortUID2.default)();
+      this.conn.send(JSON.stringify({
+        type: 'query',
+        query: name,
+        ref: ref,
+        args: args || {}
+      }));
+      return new Promise(function (resolve, reject) {
+        _this2.connPending[ref] = resolve;
+      });
+    }
+  }, {
+    key: 'handleConnOpen',
+    value: function handleConnOpen(evt) {
+      var _this3 = this;
+
+      this.message('Connected');
+      if (this.state.experiments.length == 0) {
+        // fetch experiment metadata
+        this.query('experiment_metadata').then(function (data) {
+          _this3.setState({ experiments: data });
+          data.forEach(function (exp) {
+            return _this3.refreshParSetList(exp.name);
+          });
+        });
+
+        this.query('load_language', { lang_name: 'english' }).then(function (data) {
+          console.log(data);
+          _this3.setState({ language: data });
+        });
+      }
+    }
+  }, {
+    key: 'handleConnMessage',
+    value: function handleConnMessage(evt) {
+      var data = JSON.parse(evt.data);
+      if (data.ref in this.connPending) {
+        this.connPending[data.ref](data.result);
+        delete this.connPending[data.ref];
+      }
+
+      if (['message', 'warning', 'error'].includes(data.type)) {
+        message(data.message, data.type);
+      }
+    }
+  }, {
     key: 'handleTabChange',
     value: function handleTabChange(tabIndex) {
-      this.setState({
-        activeExperimentIndex: tabIndex
+      this.setState({ activeTabIndex: tabIndex });
+    }
+  }, {
+    key: 'message',
+    value: function message(text, type) {
+      this.setState((0, _immutabilityHelper2.default)(this.state, {
+        messages: { $push: [{ text: text, type: type }] }
+      }));
+    }
+  }, {
+    key: 'refreshParSetList',
+    value: function refreshParSetList(expName) {
+      var _this4 = this;
+
+      this.query('list_parameter_sets', { experiment_name: expName }).then(function (data) {
+        var expIndex = _this4.state.experiments.findIndex(function (exp) {
+          return exp.name == expName;
+        });
+        _this4.setState((0, _immutabilityHelper2.default)(_this4.state, {
+          experiments: _defineProperty({}, expIndex, { $merge: { parSetNames: data } })
+        }));
       });
     }
   }, {
     key: 'render',
     value: function render() {
+      var fixedTabs = [{
+        'name': 'Temperature',
+        'parameters': {
+          setpoint: {
+            unit: '\xB0C',
+            group: 'basic'
+          },
+          P: { group: 'advanced' },
+          I: { group: 'advanced' }
+        }
+      }];
+
+      var allTabs = fixedTabs.concat(this.state.experiments);
+
       return _react2.default.createElement(
         'div',
         { className: 'app-container' },
         _react2.default.createElement(_Tabs2.default, {
-          tabNames: this.state.experiments.map(function (e) {
+          tabNames: allTabs.map(function (e) {
             return e.name;
           }),
-          activeIndex: this.state.activeExperimentIndex,
+          activeIndex: this.state.activeTabIndex,
           onTabChange: this.handleTabChange
         }),
-        _react2.default.createElement(_ExperimentPanes2.default, {
-          experiments: this.state.experiments,
-          activeExperimentIndex: this.state.activeExperimentIndex
+        _react2.default.createElement(_TabPanes2.default, {
+          data: allTabs,
+          activeIndex: this.state.activeTabIndex,
+          messages: this.state.messages,
+          language: this.state.language
         })
       );
     }
@@ -24705,7 +25506,7 @@ var App = function (_React$Component) {
 
 exports.default = App;
 
-},{"./ExperimentPanes":134,"./Tabs":144,"./css/App.css":145,"./css/Buttons.css":146,"react":131}],133:[function(require,module,exports){
+},{"./TabPanes":146,"./Tabs":147,"./css/App.css":149,"./css/Buttons.css":150,"./util/shortUID":164,"immutability-helper":100,"react":133,"reconnecting-websocket":134}],136:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -24856,10 +25657,11 @@ var Experiment = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterPanes2.default, {
               parameterGroups: parameterGroups,
-              activeParameterGroupIndex: this.state.activeParameterGroupIndex
+              activeParameterGroupIndex: this.state.activeParameterGroupIndex,
+              language: this.props.language
             })
           ),
-          _react2.default.createElement(_ParameterControls2.default, null),
+          _react2.default.createElement(_ParameterControls2.default, { parSetNames: experiment.parSetNames }),
           _react2.default.createElement(
             'div',
             { className: (0, _classnames2.default)('shared-parameters') },
@@ -24868,7 +25670,11 @@ var Experiment = function (_React$Component) {
               { className: 'par-box-title' },
               'Shared'
             ),
-            _react2.default.createElement(_ParameterBox2.default, { parameters: sharedParameters, active: true })
+            _react2.default.createElement(_ParameterBox2.default, {
+              parameters: sharedParameters,
+              active: true,
+              language: this.props.language
+            })
           )
         ),
         _react2.default.createElement(
@@ -24877,7 +25683,7 @@ var Experiment = function (_React$Component) {
           _react2.default.createElement(_RunControls2.default, null),
           _react2.default.createElement(_Progress2.default, null),
           _react2.default.createElement(_ExportControls2.default, null),
-          _react2.default.createElement(_MessageBox2.default, null)
+          _react2.default.createElement(_MessageBox2.default, { messages: this.props.messages })
         )
       );
     }
@@ -24888,65 +25694,7 @@ var Experiment = function (_React$Component) {
 
 exports.default = Experiment;
 
-},{"./ExportControls":135,"./MessageBox":136,"./ParameterBox":138,"./ParameterControls":139,"./ParameterPanes":140,"./Plot":141,"./Progress":142,"./RunControls":143,"./Tabs":144,"./css/Experiment.css":147,"classnames":85,"react":131}],134:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
-require('./css/ExperimentPanes.css');
-
-var _Experiment = require('./Experiment');
-
-var _Experiment2 = _interopRequireDefault(_Experiment);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ExperimentPanes = function (_React$Component) {
-  _inherits(ExperimentPanes, _React$Component);
-
-  function ExperimentPanes() {
-    _classCallCheck(this, ExperimentPanes);
-
-    return _possibleConstructorReturn(this, (ExperimentPanes.__proto__ || Object.getPrototypeOf(ExperimentPanes)).apply(this, arguments));
-  }
-
-  _createClass(ExperimentPanes, [{
-    key: 'render',
-    value: function render() {
-      var experiments = this.props.experiments;
-      var experimentIndex = this.props.activeExperimentIndex;
-      var expPanes = [];
-      experiments.forEach(function (experiment, i) {
-        expPanes.push(_react2.default.createElement(_Experiment2.default, { experiment: experiment, active: experimentIndex === i }));
-      });
-      return _react2.default.createElement(
-        'div',
-        { className: 'tab-panes' },
-        expPanes
-      );
-    }
-  }]);
-
-  return ExperimentPanes;
-}(_react2.default.Component);
-
-exports.default = ExperimentPanes;
-
-},{"./Experiment":133,"./css/ExperimentPanes.css":148,"react":131}],135:[function(require,module,exports){
+},{"./ExportControls":137,"./MessageBox":138,"./ParameterBox":140,"./ParameterControls":141,"./ParameterPanes":142,"./Plot":143,"./Progress":144,"./RunControls":145,"./Tabs":147,"./css/Experiment.css":151,"classnames":85,"react":133}],137:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25024,7 +25772,7 @@ var ExportControls = function (_React$Component) {
 
 exports.default = ExportControls;
 
-},{"./css/ExportControls.css":149,"react":131,"react-select":121}],136:[function(require,module,exports){
+},{"./css/ExportControls.css":152,"react":133,"react-select":123}],138:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25036,6 +25784,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
+
+var _classnames = require('classnames');
+
+var _classnames2 = _interopRequireDefault(_classnames);
 
 require('./css/MessageBox.css');
 
@@ -25060,11 +25812,11 @@ var MessageBox = function (_React$Component) {
     key: 'render',
     value: function render() {
       var messages = [];
-      ['test', 'test2', 'test3', 'test', 'test2', 'test3', 'test', 'test2', 'test3'].forEach(function (m) {
+      this.props.messages.forEach(function (m) {
         messages.push(_react2.default.createElement(
           'div',
-          { className: 'message' },
-          m
+          { className: (0, _classnames2.default)('message', m.type) },
+          m.text
         ));
       });
       return _react2.default.createElement(
@@ -25080,7 +25832,7 @@ var MessageBox = function (_React$Component) {
 
 exports.default = MessageBox;
 
-},{"./css/MessageBox.css":150,"react":131}],137:[function(require,module,exports){
+},{"./css/MessageBox.css":153,"classnames":85,"react":133}],139:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25123,6 +25875,7 @@ var Parameter = function (_React$Component) {
     key: 'render',
     value: function render() {
       var name = this.props.name;
+      var label = this.props.label || name;
       var unit = this.props.def.unit || '';
       return _react2.default.createElement(
         'div',
@@ -25133,7 +25886,7 @@ var Parameter = function (_React$Component) {
           _react2.default.createElement(
             'span',
             { className: 'par-name' },
-            name
+            label
           )
         ),
         _react2.default.createElement('input', { id: this.id, className: 'par-input', name: name }),
@@ -25151,7 +25904,7 @@ var Parameter = function (_React$Component) {
 
 exports.default = Parameter;
 
-},{"./css/Parameter.css":151,"./util/generateId":159,"react":131}],138:[function(require,module,exports){
+},{"./css/Parameter.css":154,"./util/generateId":163,"react":133}],140:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25194,10 +25947,16 @@ var ParameterBox = function (_React$Component) {
     value: function render() {
       var parDefs = this.props.parameters;
       var active = this.props.active;
+      var parlang = this.props.language['parameters'] || {};
       var parameters = [];
       Object.keys(parDefs).forEach(function (parName) {
         var parDef = parDefs[parName];
-        parameters.push(_react2.default.createElement(_Parameter2.default, { name: parName, def: parDef }));
+        var lang = parlang[parName] || { 'label': parName };
+        parameters.push(_react2.default.createElement(_Parameter2.default, {
+          label: lang['label'],
+          name: parName,
+          def: parDef
+        }));
       });
       return _react2.default.createElement(
         'div',
@@ -25215,7 +25974,7 @@ var ParameterBox = function (_React$Component) {
 
 exports.default = ParameterBox;
 
-},{"./Parameter":137,"classnames":85,"react":131}],139:[function(require,module,exports){
+},{"./Parameter":139,"classnames":85,"react":133}],141:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25265,8 +26024,8 @@ var ParameterControls = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
-      var parSetList = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-      var parSetOptions = parSetList.map(function (name) {
+      var parSetNames = this.props.parSetNames || [];
+      var parSetOptions = parSetNames.map(function (name) {
         return { value: name, label: name };
       });
       return _react2.default.createElement(
@@ -25310,7 +26069,7 @@ var ParameterControls = function (_React$Component) {
 
 exports.default = ParameterControls;
 
-},{"./css/ParameterControls.css":152,"./css/Select.css":156,"react":131,"react-select":121}],140:[function(require,module,exports){
+},{"./css/ParameterControls.css":155,"./css/Select.css":159,"react":133,"react-select":123}],142:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25347,11 +26106,17 @@ var ParameterPanes = function (_React$Component) {
   _createClass(ParameterPanes, [{
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       var groups = this.props.parameterGroups;
       var activeIndex = this.props.activeParameterGroupIndex;
       var parPanes = [];
       groups.forEach(function (group, i) {
-        parPanes.push(_react2.default.createElement(_ParameterBox2.default, { parameters: group.parameters, active: activeIndex === i }));
+        parPanes.push(_react2.default.createElement(_ParameterBox2.default, {
+          parameters: group.parameters,
+          active: activeIndex === i,
+          language: _this2.props.language
+        }));
       });
       return _react2.default.createElement(
         'div',
@@ -25366,7 +26131,7 @@ var ParameterPanes = function (_React$Component) {
 
 exports.default = ParameterPanes;
 
-},{"./ParameterBox":138,"react":131}],141:[function(require,module,exports){
+},{"./ParameterBox":140,"react":133}],143:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25466,7 +26231,7 @@ var Plot = function (_React$Component) {
 
 exports.default = Plot;
 
-},{"./Tabs":144,"./css/Plot.css":153,"react":131}],142:[function(require,module,exports){
+},{"./Tabs":147,"./css/Plot.css":156,"react":133}],144:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25516,7 +26281,7 @@ var ProgressBar = function (_React$Component) {
 
 exports.default = ProgressBar;
 
-},{"./css/Progress.css":154,"rc-progress":109,"react":131}],143:[function(require,module,exports){
+},{"./css/Progress.css":157,"rc-progress":111,"react":133}],145:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25578,7 +26343,85 @@ var RunControls = function (_React$Component) {
 
 exports.default = RunControls;
 
-},{"./css/RunControls.css":155,"react":131}],144:[function(require,module,exports){
+},{"./css/RunControls.css":158,"react":133}],146:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+require('./css/TabPanes.css');
+
+var _Experiment = require('./Experiment');
+
+var _Experiment2 = _interopRequireDefault(_Experiment);
+
+var _Temperature = require('./Temperature');
+
+var _Temperature2 = _interopRequireDefault(_Temperature);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var TabPanes = function (_React$Component) {
+  _inherits(TabPanes, _React$Component);
+
+  function TabPanes() {
+    _classCallCheck(this, TabPanes);
+
+    return _possibleConstructorReturn(this, (TabPanes.__proto__ || Object.getPrototypeOf(TabPanes)).apply(this, arguments));
+  }
+
+  _createClass(TabPanes, [{
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      var data = this.props.data;
+      var activeIndex = this.props.activeIndex;
+      var panes = [];
+      data.forEach(function (d, i) {
+        if (d.name === 'Temperature') {
+          panes.push(_react2.default.createElement(_Temperature2.default, {
+            data: d,
+            active: activeIndex === i,
+            messages: _this2.props.messages,
+            language: _this2.props.language
+          }));
+        } else {
+          panes.push(_react2.default.createElement(_Experiment2.default, {
+            experiment: d,
+            active: activeIndex === i,
+            messages: _this2.props.messages,
+            language: _this2.props.language
+          }));
+        }
+      });
+      return _react2.default.createElement(
+        'div',
+        { className: 'tab-panes' },
+        panes
+      );
+    }
+  }]);
+
+  return TabPanes;
+}(_react2.default.Component);
+
+exports.default = TabPanes;
+
+},{"./Experiment":136,"./Temperature":148,"./css/TabPanes.css":160,"react":133}],147:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -25657,33 +26500,189 @@ var Tabs = function (_React$Component) {
 
 exports.default = Tabs;
 
-},{"./css/Tabs.css":157,"classnames":85,"react":131}],145:[function(require,module,exports){
+},{"./css/Tabs.css":161,"classnames":85,"react":133}],148:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _classnames = require('classnames');
+
+var _classnames2 = _interopRequireDefault(_classnames);
+
+require('./css/Experiment.css');
+
+var _Plot = require('./Plot');
+
+var _Plot2 = _interopRequireDefault(_Plot);
+
+var _Tabs = require('./Tabs');
+
+var _Tabs2 = _interopRequireDefault(_Tabs);
+
+var _ParameterPanes = require('./ParameterPanes');
+
+var _ParameterPanes2 = _interopRequireDefault(_ParameterPanes);
+
+var _ParameterBox = require('./ParameterBox');
+
+var _ParameterBox2 = _interopRequireDefault(_ParameterBox);
+
+var _MessageBox = require('./MessageBox');
+
+var _MessageBox2 = _interopRequireDefault(_MessageBox);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Temperature = function (_React$Component) {
+  _inherits(Temperature, _React$Component);
+
+  function Temperature(props) {
+    _classCallCheck(this, Temperature);
+
+    var _this = _possibleConstructorReturn(this, (Temperature.__proto__ || Object.getPrototypeOf(Temperature)).call(this, props));
+
+    _this.state = {
+      activeParameterGroupIndex: 0
+    };
+
+    _this.handleTabChange = _this.handleTabChange.bind(_this);
+    return _this;
+  }
+
+  _createClass(Temperature, [{
+    key: 'handleTabChange',
+    value: function handleTabChange(tabIndex) {
+      this.setState({
+        activeParameterGroupIndex: tabIndex
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var data = this.props.data;
+      var active = this.props.active;
+
+      var plots = [_react2.default.createElement(_Plot2.default, null)];
+
+      var parGroupsObj = {};
+      var sharedParameters = {};
+      Object.keys(data.parameters).forEach(function (parName) {
+        var parDef = data.parameters[parName];
+        if (parDef.shared) {
+          sharedParameters[parName] = parDef;
+        } else if (parDef.group) {
+          if (!parGroupsObj[parDef.group]) parGroupsObj[parDef.group] = {};
+          parGroupsObj[parDef.group][parName] = parDef;
+        } else {
+          if (!parGroupsObj.other) parGroupsObj.other = {};
+          parGroupsObj.other[parName] = parDef;
+        }
+      });
+      var parameterGroups = Object.keys(parGroupsObj).map(function (k) {
+        return { name: k, parameters: parGroupsObj[k] };
+      });
+
+      return _react2.default.createElement(
+        'div',
+        { className: (0, _classnames2.default)('tab-content'), style: active ? {} : { display: 'none' } },
+        _react2.default.createElement(
+          'div',
+          { className: (0, _classnames2.default)('plots-container') },
+          plots
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: (0, _classnames2.default)('parameters-block') },
+          _react2.default.createElement(
+            'div',
+            { className: (0, _classnames2.default)('own-parameters') },
+            _react2.default.createElement(
+              'div',
+              { className: 'title-tab-bar' },
+              _react2.default.createElement(
+                'div',
+                { className: 'par-box-title' },
+                'Parameters'
+              ),
+              _react2.default.createElement(_Tabs2.default, {
+                tabNames: parameterGroups.map(function (g) {
+                  return g.name;
+                }),
+                activeIndex: this.state.activeParameterGroupIndex,
+                onTabChange: this.handleTabChange
+              })
+            ),
+            _react2.default.createElement(_ParameterPanes2.default, {
+              parameterGroups: parameterGroups,
+              activeParameterGroupIndex: this.state.activeParameterGroupIndex,
+              language: this.props.language
+            })
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: (0, _classnames2.default)('controls-block') },
+          _react2.default.createElement(
+            'div',
+            { className: 'run-controls' },
+            _react2.default.createElement(
+              'div',
+              { className: 'button set' },
+              'Set Parameters'
+            )
+          ),
+          _react2.default.createElement(_MessageBox2.default, { messages: this.props.messages })
+        )
+      );
+    }
+  }]);
+
+  return Temperature;
+}(_react2.default.Component);
+
+exports.default = Temperature;
+
+},{"./MessageBox":138,"./ParameterBox":140,"./ParameterPanes":142,"./Plot":143,"./Tabs":147,"./css/Experiment.css":151,"classnames":85,"react":133}],149:[function(require,module,exports){
 var css = "html,\nbody {\n  padding: 0px;\n  margin: 0px;\n  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\n  font-size: 15px;\n  cursor: default;\n  user-select: none;\n}\n.app-container {\n  height: 100vh;\n  width: 100vw;\n  background-color: #ededed;\n  display: flex;\n  flex-direction: column;\n}\n.app-container>.tab-bar {\n  background-color: #617463;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\App.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":84}],146:[function(require,module,exports){
-var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":84}],147:[function(require,module,exports){
-var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\r\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\r\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":84}],148:[function(require,module,exports){
-var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExperimentPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":84}],149:[function(require,module,exports){
-var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],150:[function(require,module,exports){
-var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box :nth-last-child(n+2) {\n  opacity: 0.7;\n}\n.message-box .error {\n  color: #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],151:[function(require,module,exports){
-var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\r\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\r\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],152:[function(require,module,exports){
-var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],153:[function(require,module,exports){
-var css = ".plot-container {\n  flex-grow: 1;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box :nth-last-child(n+2) {\n  opacity: 0.7;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],154:[function(require,module,exports){
-var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],155:[function(require,module,exports){
-var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],156:[function(require,module,exports){
-var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".plot-container {\n  flex-grow: 1;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],157:[function(require,module,exports){
-var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 5px 10px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":84}],158:[function(require,module,exports){
+var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":84}],159:[function(require,module,exports){
+var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":84}],160:[function(require,module,exports){
+var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":84}],161:[function(require,module,exports){
+var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 5px 10px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":84}],162:[function(require,module,exports){
 'use strict';
 
 var _reactDom = require('react-dom');
@@ -26036,9 +27035,9 @@ var EXPERIMENTS = [{
   "defaults": {}
 }];
 
-_reactDom2.default.render(_react2.default.createElement(_App2.default, { experiments: EXPERIMENTS }), document.getElementById('app'));
+_reactDom2.default.render(_react2.default.createElement(_App2.default, { server: 'ws://' + window.location.hostname + ':8765' }), document.getElementById('app'));
 
-},{"./App":132,"react":131,"react-dom":113}],159:[function(require,module,exports){
+},{"./App":135,"react":133,"react-dom":115}],163:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -26057,4 +27056,21 @@ function resetIdCounter() {
   current = 0;
 }
 
-},{}]},{},[158]);
+},{}],164:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = shortUID;
+function shortUID() {
+    // I generate the UID from two parts here
+    // to ensure the random number provide enough bits.
+    var firstPart = Math.random() * 46656 | 0;
+    var secondPart = Math.random() * 46656 | 0;
+    firstPart = ("000" + firstPart.toString(36)).slice(-3);
+    secondPart = ("000" + secondPart.toString(36)).slice(-3);
+    return firstPart + secondPart;
+}
+
+},{}]},{},[162]);

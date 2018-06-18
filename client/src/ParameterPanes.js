@@ -9,7 +9,11 @@ export default class ParameterPanes extends React.Component {
     let parPanes = [];
     groups.forEach((group, i) => {
       parPanes.push(
-        <ParameterBox parameters={group.parameters} active={activeIndex===i} />
+        <ParameterBox
+          parameters={group.parameters}
+          active={activeIndex===i}
+          language={this.props.language}
+        />
       );
     });
     return (

@@ -17,8 +17,8 @@ export default class ParameterControls extends React.Component {
   }
 
   render() {
-    const parSetList = ['1','2','3','4','5','6','7','8','9','10'];
-    const parSetOptions = parSetList.map(name => {
+    const parSetNames = this.props.parSetNames || [];
+    const parSetOptions = parSetNames.map(name => {
       return {value: name, label: name};
     });
     return (
