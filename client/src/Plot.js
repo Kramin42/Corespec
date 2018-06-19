@@ -49,7 +49,7 @@ export default class Plot extends React.Component {
             <div className="button">Save</div>
           </div>
         </div>
-        <svg className="plot" viewbox="0 0 600 400"></svg>
+        <svg className="plot"></svg>
       </div>
     );
   };

@@ -6,9 +6,9 @@ import './css/MessageBox.css';
 export default class MessageBox extends React.Component {
   render() {
     const messages = [];
-    this.props.messages.forEach(m => {
+    this.props.messages.forEach((m, i) => {
       messages.push(
-        <div className={classNames('message', m.type)}>{m.text}</div>
+        <div key={i} className={classNames('message', m.type)}>{m.text}</div>
       );
     });
     return (

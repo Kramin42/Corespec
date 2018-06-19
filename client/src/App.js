@@ -16,12 +16,11 @@ export default class App extends React.Component {
     this.state = {
       language: {},
       experiments: [],
+      sharedParValues: {},
+      runningExperiment: false,
+      runningExperimentIndex: 0,
       activeTabIndex: 0,
-      messages: [
-        {text: 'test', type: 'default'},
-        {text: 'test2', type: 'warning'},
-        {text: 'test3', type: 'error'}
-      ]
+      messages: []
     };
 
     // bind 'this' as context
@@ -29,6 +28,10 @@ export default class App extends React.Component {
     this.handleConnOpen = this.handleConnOpen.bind(this);
     this.handleConnMessage = this.handleConnMessage.bind(this);
     this.refreshParSetList = this.refreshParSetList.bind(this);
+    this.command = this.command.bind(this);
+    this.query = this.query.bind(this);
+    this.setSharedPar = this.setSharedPar.bind(this);
+    this.setRunning = this.setRunning.bind(this);
 
     this.connPending = {}; // for storing promises to be resolved later
     this.conn = new ReconnectingWebSocket(props.server);
@@ -50,13 +53,45 @@ export default class App extends React.Component {
     });
   }
 
+  command(name, args) {
+    var ref = shortUID();
+    this.conn.send(JSON.stringify({
+      type: 'command',
+      command: name,
+      ref: ref,
+      args: args || {}
+    }));
+    return new Promise((resolve, reject) => {
+      this.connPending[ref] = resolve;
+    });
+  }
+
+  setSharedPar(name, value) {
+    this.setState(update(this.state, {
+      sharedParValues: {[name]: {$set: value}}
+    }));
+  }
+
+  setRunning(index, value) {
+    this.setState(update(this.state, {
+      runningExperiment: {$set: value},
+      runningExperimentIndex: {$set: index}
+    }));
+  }
+
   handleConnOpen(evt) {
     this.message('Connected');
     if (this.state.experiments.length==0) {
       // fetch experiment metadata
       this.query('experiment_metadata')
       .then((data) => {
-        this.setState({experiments: data});
+        this.setState({
+          experiments: data.map(d => {
+            d.progress = 0;
+            d.progressMax = 1;
+            return d;
+          })
+        });
         data.forEach(exp => this.refreshParSetList(exp.name))
       });
 
@@ -70,13 +105,13 @@ export default class App extends React.Component {
 
   handleConnMessage(evt) {
     var data = JSON.parse(evt.data);
-    if (data.ref in this.connPending) {
+    if (data.ref && data.ref in this.connPending) {
       this.connPending[data.ref](data.result);
       delete this.connPending[data.ref];
     }
 
     if (['message', 'warning', 'error'].includes(data.type)) {
-      message(data.message, data.type);
+      this.message(data.message, data.type);
     }
   }
 
@@ -115,7 +150,11 @@ export default class App extends React.Component {
       }
     ];
 
-    const allTabs = fixedTabs.concat(this.state.experiments);
+    const allTabs = fixedTabs.concat(this.state.experiments).map((exp, i) => {
+      exp.canrun = !this.state.runningExperiment;
+      exp.running = this.state.runningExperimentIndex == i;
+      return exp;
+    });
 
     return (
       <div className="app-container">
@@ -126,6 +165,11 @@ export default class App extends React.Component {
         />
         <TabPanes
           data={allTabs}
+          sharedParValues={this.state.sharedParValues}
+          setSharedPar={this.setSharedPar}
+          setRunning={this.setRunning}
+          deviceCommand={this.command}
+          deviceQuery={this.query}
           activeIndex={this.state.activeTabIndex}
           messages={this.state.messages}
           language={this.state.language}

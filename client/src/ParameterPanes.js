@@ -10,9 +10,12 @@ export default class ParameterPanes extends React.Component {
     groups.forEach((group, i) => {
       parPanes.push(
         <ParameterBox
+          key={i}
           parameters={group.parameters}
+          parameterValues={this.props.parameterValues}
           active={activeIndex===i}
           language={this.props.language}
+          onValueChange={this.props.onValueChange}
         />
       );
     });

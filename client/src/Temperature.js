@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import update from 'immutability-helper';
 
 import './css/Experiment.css';
 
@@ -14,10 +15,12 @@ export default class Temperature extends React.Component {
     super(props);
 
     this.state = {
+      parameters: {},
       activeParameterGroupIndex: 0
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
+    this.setParameter = this.setParameter.bind(this);
   }
 
   handleTabChange(tabIndex) {
@@ -26,11 +29,17 @@ export default class Temperature extends React.Component {
     });
   }
 
+  setParameter(name, value) {
+    this.setState(update(this.state, {
+      parameters: {[name]: {$set: value}}
+    }));
+  }
+
   render() {
     const data = this.props.data;
     const active = this.props.active;
 
-    const plots = [(<Plot />)];
+    const plots = [(<Plot key={0} />)];
 
     const parGroupsObj = {};
     const sharedParameters = {};
@@ -67,8 +76,10 @@ export default class Temperature extends React.Component {
             </div>
             <ParameterPanes
               parameterGroups={parameterGroups}
+              parameterValues={this.state.parameters}
               activeParameterGroupIndex={this.state.activeParameterGroupIndex}
               language={this.props.language}
+              onValueChange={this.setParameter}
             />
           </div>
         </div>

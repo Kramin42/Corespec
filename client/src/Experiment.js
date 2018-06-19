@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import update from 'immutability-helper';
 
 import './css/Experiment.css';
 
@@ -18,16 +19,67 @@ export default class Experiment extends React.Component {
     super(props);
 
     this.state = {
-      activeParameterGroupIndex: 0
+      parameters: {},
+      activeParameterGroupIndex: 0,
+      progress: 0,
+      progressMax: 1
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
+    this.setParameter = this.setParameter.bind(this);
+    this.handleCommand = this.handleCommand.bind(this);
   }
 
   handleTabChange(tabIndex) {
     this.setState({
       activeParameterGroupIndex: tabIndex
     });
+  }
+
+  setParameter(name, value) {
+    this.setState(update(this.state, {
+      parameters: {[name]: {$set: value}}
+    }));
+  }
+
+  run() {
+    return this.props.deviceCommand('set_parameters', {
+      experiment_name: this.props.experiment.name,
+      parameters: this.state.parameters
+    })
+    .then(data => {
+      console.log('running '+this.props.experiment.name);
+      return this.props.deviceCommand('run', {
+        experiment_name: this.props.experiment.name
+      });
+    })
+    .then(data => {
+      console.log('done '+this.props.experiment.name);
+      //TODO: plot data
+    });
+  }
+
+  abort() {
+    return this.props.deviceCommand('abort', {
+      experiment_name: this.props.experiment.name
+    });
+  }
+
+  handleCommand(command) {
+    if (command==='run') {
+      this.props.setRunning(true);
+      this.run()
+      .then(data => {
+        this.props.setRunning(false);
+      });
+    } else if (command==='runinf') {
+
+    } else if (command==='abort') {
+      this.abort()
+      .then(data => {
+        this.props.setRunning(false);
+      });
+    }
   }
 
   render() {
@@ -39,9 +91,9 @@ export default class Experiment extends React.Component {
     if (experiment.defaults && experiment.defaults.plots) {
       defaultPlotNames = experiment.defaults.plots;
     }
-    defaultPlotNames.forEach(plotName => {
+    defaultPlotNames.forEach((plotName, i) => {
       plots.push(
-        <Plot />
+        <Plot key={i} />
       );
     });
 
@@ -80,8 +132,10 @@ export default class Experiment extends React.Component {
             </div>
             <ParameterPanes
               parameterGroups={parameterGroups}
+              parameterValues={this.state.parameters}
               activeParameterGroupIndex={this.state.activeParameterGroupIndex}
               language={this.props.language}
+              onValueChange={this.setParameter}
             />
           </div>
           <ParameterControls parSetNames={experiment.parSetNames} />
@@ -89,14 +143,23 @@ export default class Experiment extends React.Component {
             <div className="par-box-title">Shared</div>
             <ParameterBox
               parameters={sharedParameters}
+              parameterValues={this.props.sharedParValues}
               active={true}
               language={this.props.language}
+              onValueChange={this.props.setSharedPar}
             />
           </div>
         </div>
         <div className={classNames('controls-block')}>
-          <RunControls />
-          <Progress />
+          <RunControls
+            running={experiment.running}
+            canrun={experiment.canrun}
+            commandHandler={this.handleCommand}
+          />
+          <Progress
+            progress={experiment.progress}
+            progressMax={experiment.progressMax}
+          />
           <ExportControls />
           <MessageBox messages={this.props.messages} />
         </div>

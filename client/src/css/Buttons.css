@@ -30,3 +30,14 @@
 .button:active {
   box-shadow: inset 0px 1px 5px #62ab37;
 }
+
+.button.disabled {
+  color: #666;
+}
+.button.disabled:hover {
+  border-color: #666;
+  background-color: #fff;
+}
+.button.disabled:active {
+  box-shadow: none;
+}

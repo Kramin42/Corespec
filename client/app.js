@@ -26238,8 +26238,11 @@ var App = function (_React$Component) {
     _this.state = {
       language: {},
       experiments: [],
+      sharedParValues: {},
+      runningExperiment: false,
+      runningExperimentIndex: 0,
       activeTabIndex: 0,
-      messages: [{ text: 'test', type: 'default' }, { text: 'test2', type: 'warning' }, { text: 'test3', type: 'error' }]
+      messages: []
     };
 
     // bind 'this' as context
@@ -26247,6 +26250,10 @@ var App = function (_React$Component) {
     _this.handleConnOpen = _this.handleConnOpen.bind(_this);
     _this.handleConnMessage = _this.handleConnMessage.bind(_this);
     _this.refreshParSetList = _this.refreshParSetList.bind(_this);
+    _this.command = _this.command.bind(_this);
+    _this.query = _this.query.bind(_this);
+    _this.setSharedPar = _this.setSharedPar.bind(_this);
+    _this.setRunning = _this.setRunning.bind(_this);
 
     _this.connPending = {}; // for storing promises to be resolved later
     _this.conn = new _reconnectingWebsocket2.default(props.server);
@@ -26273,23 +26280,60 @@ var App = function (_React$Component) {
       });
     }
   }, {
+    key: 'command',
+    value: function command(name, args) {
+      var _this3 = this;
+
+      var ref = (0, _shortUID2.default)();
+      this.conn.send(JSON.stringify({
+        type: 'command',
+        command: name,
+        ref: ref,
+        args: args || {}
+      }));
+      return new Promise(function (resolve, reject) {
+        _this3.connPending[ref] = resolve;
+      });
+    }
+  }, {
+    key: 'setSharedPar',
+    value: function setSharedPar(name, value) {
+      this.setState((0, _immutabilityHelper2.default)(this.state, {
+        sharedParValues: _defineProperty({}, name, { $set: value })
+      }));
+    }
+  }, {
+    key: 'setRunning',
+    value: function setRunning(index, value) {
+      this.setState((0, _immutabilityHelper2.default)(this.state, {
+        runningExperiment: { $set: value },
+        runningExperimentIndex: { $set: index }
+      }));
+    }
+  }, {
     key: 'handleConnOpen',
     value: function handleConnOpen(evt) {
-      var _this3 = this;
+      var _this4 = this;
 
       this.message('Connected');
       if (this.state.experiments.length == 0) {
         // fetch experiment metadata
         this.query('experiment_metadata').then(function (data) {
-          _this3.setState({ experiments: data });
+          _this4.setState({
+            experiments: data.map(function (d) {
+              d.progress = 0;
+              d.progressMax = 1;
+              return d;
+            })
+          });
           data.forEach(function (exp) {
-            return _this3.refreshParSetList(exp.name);
+            return _this4.refreshParSetList(exp.name);
           });
         });
 
         this.query('load_language', { lang_name: 'english' }).then(function (data) {
           console.log(data);
-          _this3.setState({ language: data });
+          _this4.setState({ language: data });
         });
       }
     }
@@ -26297,13 +26341,13 @@ var App = function (_React$Component) {
     key: 'handleConnMessage',
     value: function handleConnMessage(evt) {
       var data = JSON.parse(evt.data);
-      if (data.ref in this.connPending) {
+      if (data.ref && data.ref in this.connPending) {
         this.connPending[data.ref](data.result);
         delete this.connPending[data.ref];
       }
 
       if (['message', 'warning', 'error'].includes(data.type)) {
-        message(data.message, data.type);
+        this.message(data.message, data.type);
       }
     }
   }, {
@@ -26321,13 +26365,13 @@ var App = function (_React$Component) {
   }, {
     key: 'refreshParSetList',
     value: function refreshParSetList(expName) {
-      var _this4 = this;
+      var _this5 = this;
 
       this.query('list_parameter_sets', { experiment_name: expName }).then(function (data) {
-        var expIndex = _this4.state.experiments.findIndex(function (exp) {
+        var expIndex = _this5.state.experiments.findIndex(function (exp) {
           return exp.name == expName;
         });
-        _this4.setState((0, _immutabilityHelper2.default)(_this4.state, {
+        _this5.setState((0, _immutabilityHelper2.default)(_this5.state, {
           experiments: _defineProperty({}, expIndex, { $merge: { parSetNames: data } })
         }));
       });
@@ -26335,6 +26379,8 @@ var App = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
+      var _this6 = this;
+
       var fixedTabs = [{
         'name': 'Temperature',
         'parameters': {
@@ -26347,7 +26393,11 @@ var App = function (_React$Component) {
         }
       }];
 
-      var allTabs = fixedTabs.concat(this.state.experiments);
+      var allTabs = fixedTabs.concat(this.state.experiments).map(function (exp, i) {
+        exp.canrun = !_this6.state.runningExperiment;
+        exp.running = _this6.state.runningExperimentIndex == i;
+        return exp;
+      });
 
       return _react2.default.createElement(
         'div',
@@ -26361,6 +26411,11 @@ var App = function (_React$Component) {
         }),
         _react2.default.createElement(_TabPanes2.default, {
           data: allTabs,
+          sharedParValues: this.state.sharedParValues,
+          setSharedPar: this.setSharedPar,
+          setRunning: this.setRunning,
+          deviceCommand: this.command,
+          deviceQuery: this.query,
           activeIndex: this.state.activeTabIndex,
           messages: this.state.messages,
           language: this.state.language
@@ -26390,6 +26445,10 @@ var _react2 = _interopRequireDefault(_react);
 var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
+
+var _immutabilityHelper = require('immutability-helper');
+
+var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
 
 require('./css/Experiment.css');
 
@@ -26431,6 +26490,8 @@ var _MessageBox2 = _interopRequireDefault(_MessageBox);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -26446,10 +26507,15 @@ var Experiment = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Experiment.__proto__ || Object.getPrototypeOf(Experiment)).call(this, props));
 
     _this.state = {
-      activeParameterGroupIndex: 0
+      parameters: {},
+      activeParameterGroupIndex: 0,
+      progress: 0,
+      progressMax: 1
     };
 
     _this.handleTabChange = _this.handleTabChange.bind(_this);
+    _this.setParameter = _this.setParameter.bind(_this);
+    _this.handleCommand = _this.handleCommand.bind(_this);
     return _this;
   }
 
@@ -26459,6 +26525,54 @@ var Experiment = function (_React$Component) {
       this.setState({
         activeParameterGroupIndex: tabIndex
       });
+    }
+  }, {
+    key: 'setParameter',
+    value: function setParameter(name, value) {
+      this.setState((0, _immutabilityHelper2.default)(this.state, {
+        parameters: _defineProperty({}, name, { $set: value })
+      }));
+    }
+  }, {
+    key: 'run',
+    value: function run() {
+      var _this2 = this;
+
+      return this.props.deviceCommand('set_parameters', {
+        experiment_name: this.props.experiment.name,
+        parameters: this.state.parameters
+      }).then(function (data) {
+        console.log('running ' + _this2.props.experiment.name);
+        return _this2.props.deviceCommand('run', {
+          experiment_name: _this2.props.experiment.name
+        });
+      }).then(function (data) {
+        console.log('done ' + _this2.props.experiment.name);
+        //TODO: plot data
+      });
+    }
+  }, {
+    key: 'abort',
+    value: function abort() {
+      return this.props.deviceCommand('abort', {
+        experiment_name: this.props.experiment.name
+      });
+    }
+  }, {
+    key: 'handleCommand',
+    value: function handleCommand(command) {
+      var _this3 = this;
+
+      if (command === 'run') {
+        this.props.setRunning(true);
+        this.run().then(function (data) {
+          _this3.props.setRunning(false);
+        });
+      } else if (command === 'runinf') {} else if (command === 'abort') {
+        this.abort().then(function (data) {
+          _this3.props.setRunning(false);
+        });
+      }
     }
   }, {
     key: 'render',
@@ -26471,8 +26585,8 @@ var Experiment = function (_React$Component) {
       if (experiment.defaults && experiment.defaults.plots) {
         defaultPlotNames = experiment.defaults.plots;
       }
-      defaultPlotNames.forEach(function (plotName) {
-        plots.push(_react2.default.createElement(_Plot2.default, null));
+      defaultPlotNames.forEach(function (plotName, i) {
+        plots.push(_react2.default.createElement(_Plot2.default, { key: i }));
       });
 
       var parGroupsObj = {};
@@ -26525,8 +26639,10 @@ var Experiment = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterPanes2.default, {
               parameterGroups: parameterGroups,
+              parameterValues: this.state.parameters,
               activeParameterGroupIndex: this.state.activeParameterGroupIndex,
-              language: this.props.language
+              language: this.props.language,
+              onValueChange: this.setParameter
             })
           ),
           _react2.default.createElement(_ParameterControls2.default, { parSetNames: experiment.parSetNames }),
@@ -26540,16 +26656,25 @@ var Experiment = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterBox2.default, {
               parameters: sharedParameters,
+              parameterValues: this.props.sharedParValues,
               active: true,
-              language: this.props.language
+              language: this.props.language,
+              onValueChange: this.props.setSharedPar
             })
           )
         ),
         _react2.default.createElement(
           'div',
           { className: (0, _classnames2.default)('controls-block') },
-          _react2.default.createElement(_RunControls2.default, null),
-          _react2.default.createElement(_Progress2.default, null),
+          _react2.default.createElement(_RunControls2.default, {
+            running: experiment.running,
+            canrun: experiment.canrun,
+            commandHandler: this.handleCommand
+          }),
+          _react2.default.createElement(_Progress2.default, {
+            progress: experiment.progress,
+            progressMax: experiment.progressMax
+          }),
           _react2.default.createElement(_ExportControls2.default, null),
           _react2.default.createElement(_MessageBox2.default, { messages: this.props.messages })
         )
@@ -26562,7 +26687,7 @@ var Experiment = function (_React$Component) {
 
 exports.default = Experiment;
 
-},{"./ExportControls":137,"./MessageBox":138,"./ParameterBox":140,"./ParameterControls":141,"./ParameterPanes":142,"./Plot":143,"./Progress":144,"./RunControls":145,"./Tabs":147,"./css/Experiment.css":151,"classnames":13,"react":133}],137:[function(require,module,exports){
+},{"./ExportControls":137,"./MessageBox":138,"./ParameterBox":140,"./ParameterControls":141,"./ParameterPanes":142,"./Plot":143,"./Progress":144,"./RunControls":145,"./Tabs":147,"./css/Experiment.css":151,"classnames":13,"immutability-helper":100,"react":133}],137:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -26680,10 +26805,10 @@ var MessageBox = function (_React$Component) {
     key: 'render',
     value: function render() {
       var messages = [];
-      this.props.messages.forEach(function (m) {
+      this.props.messages.forEach(function (m, i) {
         messages.push(_react2.default.createElement(
           'div',
-          { className: (0, _classnames2.default)('message', m.type) },
+          { key: i, className: (0, _classnames2.default)('message', m.type) },
           m.text
         ));
       });
@@ -26736,13 +26861,21 @@ var Parameter = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Parameter.__proto__ || Object.getPrototypeOf(Parameter)).call(this, props));
 
     _this.id = (0, _generateId2.default)();
+
+    _this.handeValueChange = _this.handeValueChange.bind(_this);
     return _this;
   }
 
   _createClass(Parameter, [{
+    key: 'handeValueChange',
+    value: function handeValueChange(e) {
+      this.props.onValueChange(e.target.value);
+    }
+  }, {
     key: 'render',
     value: function render() {
       var name = this.props.name;
+      var value = this.props.value;
       var label = this.props.label || name;
       var unit = this.props.def.unit || '';
       return _react2.default.createElement(
@@ -26757,7 +26890,12 @@ var Parameter = function (_React$Component) {
             label
           )
         ),
-        _react2.default.createElement('input', { id: this.id, className: 'par-input', name: name }),
+        _react2.default.createElement('input', {
+          id: this.id,
+          className: 'par-input',
+          name: name,
+          value: value,
+          onChange: this.handeValueChange }),
         _react2.default.createElement(
           'span',
           { className: 'par-unit' },
@@ -26813,17 +26951,26 @@ var ParameterBox = function (_React$Component) {
   _createClass(ParameterBox, [{
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       var parDefs = this.props.parameters;
       var active = this.props.active;
       var parlang = this.props.language['parameters'] || {};
+      var parValues = this.props.parameterValues;
       var parameters = [];
-      Object.keys(parDefs).forEach(function (parName) {
+      Object.keys(parDefs).forEach(function (parName, i) {
         var parDef = parDefs[parName];
         var lang = parlang[parName] || { 'label': parName };
+        var value = parValues[parName] || '';
         parameters.push(_react2.default.createElement(_Parameter2.default, {
+          key: i,
           label: lang['label'],
           name: parName,
-          def: parDef
+          value: value,
+          def: parDef,
+          onValueChange: function onValueChange(newValue) {
+            return _this2.props.onValueChange(parName, newValue);
+          }
         }));
       });
       return _react2.default.createElement(
@@ -26981,9 +27128,12 @@ var ParameterPanes = function (_React$Component) {
       var parPanes = [];
       groups.forEach(function (group, i) {
         parPanes.push(_react2.default.createElement(_ParameterBox2.default, {
+          key: i,
           parameters: group.parameters,
+          parameterValues: _this2.props.parameterValues,
           active: activeIndex === i,
-          language: _this2.props.language
+          language: _this2.props.language,
+          onValueChange: _this2.props.onValueChange
         }));
       });
       return _react2.default.createElement(
@@ -27089,7 +27239,7 @@ var Plot = function (_React$Component) {
             )
           )
         ),
-        _react2.default.createElement('svg', { className: 'plot', viewbox: '0 0 600 400' })
+        _react2.default.createElement('svg', { className: 'plot' })
       );
     }
   }]);
@@ -27136,10 +27286,11 @@ var ProgressBar = function (_React$Component) {
   _createClass(ProgressBar, [{
     key: 'render',
     value: function render() {
+      var progressPercent = 100 * this.props.progress / this.props.progressMax;
       return _react2.default.createElement(
         'div',
         { className: 'progress-container' },
-        _react2.default.createElement(_rcProgress.Line, { percent: '50', trailWidth: '3', strokeWidth: '3', strokeColor: '#62ab37' })
+        _react2.default.createElement(_rcProgress.Line, { percent: progressPercent, trailWidth: '3', strokeWidth: '3', strokeColor: '#62ab37' })
       );
     }
   }]);
@@ -27161,6 +27312,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
+
+var _classnames = require('classnames');
+
+var _classnames2 = _interopRequireDefault(_classnames);
 
 require('./css/RunControls.css');
 
@@ -27184,22 +27339,40 @@ var RunControls = function (_React$Component) {
   _createClass(RunControls, [{
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
+      var commandHandler = this.props.commandHandler;
       return _react2.default.createElement(
         'div',
         { className: 'run-controls' },
         _react2.default.createElement(
           'div',
-          { className: 'button run' },
+          {
+            className: (0, _classnames2.default)('button', 'run', { 'disabled': !this.props.canrun }),
+            onClick: function onClick() {
+              if (_this2.props.canrun) commandHandler('run');
+            }
+          },
           'Run'
         ),
         _react2.default.createElement(
           'div',
-          { className: 'button run-loop' },
-          'Run Loop'
+          {
+            className: (0, _classnames2.default)('button', 'runinf', { 'disabled': !this.props.canrun }),
+            onClick: function onClick() {
+              if (_this2.props.canrun) commandHandler('runinf');
+            }
+          },
+          'Run \u221E'
         ),
         _react2.default.createElement(
           'div',
-          { className: 'button abort' },
+          {
+            className: 'button abort',
+            onClick: function onClick() {
+              return commandHandler('abort');
+            }
+          },
           'Abort'
         )
       );
@@ -27211,7 +27384,7 @@ var RunControls = function (_React$Component) {
 
 exports.default = RunControls;
 
-},{"./css/RunControls.css":158,"react":133}],146:[function(require,module,exports){
+},{"./css/RunControls.css":158,"classnames":13,"react":133}],146:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -27262,15 +27435,26 @@ var TabPanes = function (_React$Component) {
       data.forEach(function (d, i) {
         if (d.name === 'Temperature') {
           panes.push(_react2.default.createElement(_Temperature2.default, {
+            key: i,
             data: d,
             active: activeIndex === i,
+            deviceCommand: _this2.props.deviceCommand,
+            deviceQuery: _this2.props.deviceQuery,
             messages: _this2.props.messages,
             language: _this2.props.language
           }));
         } else {
           panes.push(_react2.default.createElement(_Experiment2.default, {
+            key: i,
             experiment: d,
             active: activeIndex === i,
+            sharedParValues: _this2.props.sharedParValues,
+            setSharedPar: _this2.props.setSharedPar,
+            deviceCommand: _this2.props.deviceCommand,
+            deviceQuery: _this2.props.deviceQuery,
+            setRunning: function setRunning(value) {
+              return _this2.props.setRunning(i, value);
+            },
             messages: _this2.props.messages,
             language: _this2.props.language
           }));
@@ -27347,6 +27531,7 @@ var Tabs = function (_React$Component) {
         buttons.push(_react2.default.createElement(
           'div',
           {
+            key: i,
             className: (0, _classnames2.default)('tab-link', { 'active': activeIndex === i }),
             onClick: function onClick() {
               return _this2.handleTabChange(i);
@@ -27385,6 +27570,10 @@ var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
+var _immutabilityHelper = require('immutability-helper');
+
+var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
+
 require('./css/Experiment.css');
 
 var _Plot = require('./Plot');
@@ -27409,6 +27598,8 @@ var _MessageBox2 = _interopRequireDefault(_MessageBox);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -27424,10 +27615,12 @@ var Temperature = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Temperature.__proto__ || Object.getPrototypeOf(Temperature)).call(this, props));
 
     _this.state = {
+      parameters: {},
       activeParameterGroupIndex: 0
     };
 
     _this.handleTabChange = _this.handleTabChange.bind(_this);
+    _this.setParameter = _this.setParameter.bind(_this);
     return _this;
   }
 
@@ -27439,12 +27632,19 @@ var Temperature = function (_React$Component) {
       });
     }
   }, {
+    key: 'setParameter',
+    value: function setParameter(name, value) {
+      this.setState((0, _immutabilityHelper2.default)(this.state, {
+        parameters: _defineProperty({}, name, { $set: value })
+      }));
+    }
+  }, {
     key: 'render',
     value: function render() {
       var data = this.props.data;
       var active = this.props.active;
 
-      var plots = [_react2.default.createElement(_Plot2.default, null)];
+      var plots = [_react2.default.createElement(_Plot2.default, { key: 0 })];
 
       var parGroupsObj = {};
       var sharedParameters = {};
@@ -27496,8 +27696,10 @@ var Temperature = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterPanes2.default, {
               parameterGroups: parameterGroups,
+              parameterValues: this.state.parameters,
               activeParameterGroupIndex: this.state.activeParameterGroupIndex,
-              language: this.props.language
+              language: this.props.language,
+              onValueChange: this.setParameter
             })
           )
         ),
@@ -27524,12 +27726,12 @@ var Temperature = function (_React$Component) {
 
 exports.default = Temperature;
 
-},{"./MessageBox":138,"./ParameterBox":140,"./ParameterPanes":142,"./Plot":143,"./Tabs":147,"./css/Experiment.css":151,"classnames":13,"react":133}],149:[function(require,module,exports){
+},{"./MessageBox":138,"./ParameterBox":140,"./ParameterPanes":142,"./Plot":143,"./Tabs":147,"./css/Experiment.css":151,"classnames":13,"immutability-helper":100,"react":133}],149:[function(require,module,exports){
 var css = "html,\nbody {\n  padding: 0px;\n  margin: 0px;\n  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\n  font-size: 15px;\n  cursor: default;\n  user-select: none;\n}\n.app-container {\n  height: 100vh;\n  width: 100vw;\n  background-color: #ededed;\n  display: flex;\n  flex-direction: column;\n}\n.app-container>.tab-bar {\n  background-color: #617463;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/App.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],150:[function(require,module,exports){
-var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],151:[function(require,module,exports){
-var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],152:[function(require,module,exports){
 var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],153:[function(require,module,exports){
@@ -27539,7 +27741,7 @@ var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-con
 },{"browserify-css":12}],155:[function(require,module,exports){
 var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],156:[function(require,module,exports){
-var css = ".plot-container {\n  flex-grow: 1;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".plot-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],157:[function(require,module,exports){
 var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src/css/Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":12}],158:[function(require,module,exports){

@@ -21,6 +21,7 @@ export default class Tabs extends React.Component {
     tabNames.forEach((name, i) => {
       buttons.push(
         <div
+          key={i}
           className={classNames('tab-link', {'active': activeIndex===i})}
           onClick={() => this.handleTabChange(i)}
         >

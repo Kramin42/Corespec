@@ -12,6 +12,7 @@
   grid-area: plots;
   display: flex;
   flex-direction: row;
+  justify-content: center;
 }
 
 .parameters-block {

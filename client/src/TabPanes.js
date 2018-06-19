@@ -14,8 +14,11 @@ export default class TabPanes extends React.Component {
       if (d.name==='Temperature') {
         panes.push(
           <Temperature
+            key={i}
             data={d}
             active={activeIndex===i}
+            deviceCommand={this.props.deviceCommand}
+            deviceQuery={this.props.deviceQuery}
             messages={this.props.messages}
             language={this.props.language}
           />
@@ -23,8 +26,14 @@ export default class TabPanes extends React.Component {
       } else {
         panes.push(
           <Experiment
+            key={i}
             experiment={d}
             active={activeIndex===i}
+            sharedParValues={this.props.sharedParValues}
+            setSharedPar={this.props.setSharedPar}
+            deviceCommand={this.props.deviceCommand}
+            deviceQuery={this.props.deviceQuery}
+            setRunning={value => this.props.setRunning(i, value)}
             messages={this.props.messages}
             language={this.props.language}
           />
