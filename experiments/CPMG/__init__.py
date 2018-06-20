@@ -47,8 +47,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.raw_data()
         samples = self.par['samples']
         echo_count = self.par['echo_count']
-        echo_time = self.par['echo_time']/1000000.0
-        x = np.linspace(0, echo_time, samples)
+        dwell_time = self.par['dwell_time']
+        x = np.linspace(0, dwell_time*samples, samples, endpoint=False)
         y = np.zeros(samples, dtype=np.complex64)
         for i in range(len(data)):
             y[i%samples] += data[i]
@@ -57,7 +57,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': x,
             'y_real': y.real,
             'y_imag': y.imag,
-            'x_unit': 's',
+            'x_unit': 'μs',
             'y_unit': 'μV'}
 
     # start a function name with "plot_" for it to be listed as a plot type
@@ -91,6 +91,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_imag']}],
+                #    'name': 'Mag',
+                #    'type': 'scatter',
+                #    'x': data['x'],
+                #    'y': data['y_mag']}],
                 'layout': {
                     'title': 'Echo Integrals',
                     'xaxis': {'title': data['x_unit']},
