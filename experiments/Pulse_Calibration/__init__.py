@@ -27,6 +27,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         #    progress_handler(progress+index*count, limit*count)
 
         for width in widths:
+            progress_handler(index, count)
             logger.debug('running width %s' % width)
             self.programs['FID'].set_par('width_90', width)
             await self.programs['FID'].run(warning_handler=warning_handler)
@@ -36,8 +37,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.data = np.array([run_data])
             else:
                 self.data = np.append(self.data, [run_data], axis=0)
-            progress_handler(index+1, count)
             index+=1
+        progress_handler(index, count)
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict

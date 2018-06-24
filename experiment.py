@@ -88,8 +88,14 @@ class BaseExperiment:
                 'defaults': self._config['defaults'] if 'defaults' in self._config else {}}
 
     def set_parameters(self, parameters):
+        for name in parameters:
+            if name in self.par_def:
+                if 'dtype' in self.par_def[name]:
+                    if self.par_def[name]['dtype'].find('int') > -1 or self.par_def[name]['dtype'].find('float') > -1:
+                        parameters[name] = float(parameters[name])
         self.par.update(parameters)
         for prog_name, prog in self.programs.items():
             for name, value in self.par.items():
-                if name in prog.config_get('parameters'):
+                par_def = prog.config_get('parameters')
+                if name in par_def:
                     prog.set_par(name, value)

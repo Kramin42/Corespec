@@ -28,6 +28,8 @@ export default class Experiment extends React.Component {
     this.handleTabChange = this.handleTabChange.bind(this);
     this.setParameter = this.setParameter.bind(this);
     this.handleCommand = this.handleCommand.bind(this);
+    this.run = this.run.bind(this);
+    this.abort = this.abort.bind(this);
   }
 
   handleTabChange(tabIndex) {
@@ -45,7 +47,7 @@ export default class Experiment extends React.Component {
   run() {
     return this.props.deviceCommand('set_parameters', {
       experiment_name: this.props.experiment.name,
-      parameters: this.state.parameters
+      parameters: Object.assign({}, this.state.parameters, this.props.sharedParValues)
     })
     .then(data => {
       console.log('running '+this.props.experiment.name);
@@ -56,12 +58,18 @@ export default class Experiment extends React.Component {
     .then(data => {
       console.log('done '+this.props.experiment.name);
       //TODO: plot data
+    })
+    .catch(err => {
+      console.log(err);
     });
   }
 
   abort() {
     return this.props.deviceCommand('abort', {
       experiment_name: this.props.experiment.name
+    })
+    .catch(err => {
+      console.log(err);
     });
   }
 
@@ -157,8 +165,8 @@ export default class Experiment extends React.Component {
             commandHandler={this.handleCommand}
           />
           <Progress
-            progress={experiment.progress}
-            progressMax={experiment.progressMax}
+            progress={experiment.progress.value}
+            progressMax={experiment.progress.max}
           />
           <ExportControls />
           <MessageBox messages={this.props.messages} />

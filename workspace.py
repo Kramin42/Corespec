@@ -17,6 +17,9 @@ try:
 except:
     os.makedirs(workspaces_dir)
 
+if not os.listdir(workspaces_dir):
+    os.makedirs(os.path.join(workspaces_dir, 'default'))
+
 
 def list_workspaces():
     workspaces = os.listdir(workspaces_dir)

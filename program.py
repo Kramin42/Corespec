@@ -99,7 +99,7 @@ class Program:
     async def ensure_finished(self, progress_handler=None):
         # progress_handler should return quickly:
         # no heavy processing or blocking IO
-        prev_progress = 0
+        prev_progress = -1
         while self.status!=self.config_get('status.values.finished'):
             if self._aborted:
                 raise Exception('Aborted')

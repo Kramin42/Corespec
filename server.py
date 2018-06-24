@@ -132,6 +132,7 @@ async def abort(ws, experiment_name):
 
 async def set_parameters(ws, experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
+    # save parameters to workspace default par file
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
 async def save_parameter_set(ws, par_set_name, parameters):
@@ -190,7 +191,7 @@ async def consumer(websocket, message):
                 'ref': data['ref'],
             }))
         except Exception as e:
-            await websocket.send(json.dumps({'type': 'error', 'message': str(e)}))
+            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e)}))
             logger.exception(e)
     logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
@@ -228,7 +229,7 @@ if __name__=='__main__':
         except Exception as e:
             logger.exception(e)
     for name in list_workspaces():
-        if name=='default':
+        if name == 'default':
             workspace = Workspace(name)
     logger.debug('launching websocket server')
     asyncio.get_event_loop().run_until_complete(

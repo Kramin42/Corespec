@@ -5,15 +5,18 @@ programs:
   - FID
 parameters:
   start_width:
+    dtype: float
     unit: us
     group: calibration
   end_width:
+    dtype: float
     unit: us
     group: calibration
   steps:
-    dtype: int32
+    dtype: int
     group: calibration
   int_width:
+    dtype: float
     min: 0
     unit: kHz
     group: calibration

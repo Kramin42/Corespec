@@ -1,4 +1,5 @@
 import React from 'react';
+import classNames from 'classnames';
 
 import './css/Parameter.css';
 
@@ -13,6 +14,14 @@ export default class Parameter extends React.Component {
   }
 
   handeValueChange(e) {
+    // let value = e.target.value
+    // if (this.props.def.dtype) {
+    //   if (this.props.def.dtype.search('int')>-1) {
+    //     value = parseInt(value);
+    //   } else if (this.props.def.dtype.search('float')>-1) {
+    //     value = parseFloat(value);
+    //   }
+    // }
     this.props.onValueChange(e.target.value);
   }
 
@@ -28,7 +37,7 @@ export default class Parameter extends React.Component {
         </label>
         <input
           id={this.id}
-          className="par-input"
+          className={classNames('par-input', this.props.def.dtype)}
           name={name}
           value={value}
           onChange={this.handeValueChange}/>

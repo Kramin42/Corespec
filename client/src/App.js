@@ -49,7 +49,7 @@ export default class App extends React.Component {
       args: args || {}
     }));
     return new Promise((resolve, reject) => {
-      this.connPending[ref] = resolve;
+      this.connPending[ref] = {resolve, reject};
     });
   }
 
@@ -62,7 +62,7 @@ export default class App extends React.Component {
       args: args || {}
     }));
     return new Promise((resolve, reject) => {
-      this.connPending[ref] = resolve;
+      this.connPending[ref] = {resolve, reject};
     });
   }
 
@@ -87,8 +87,7 @@ export default class App extends React.Component {
       .then((data) => {
         this.setState({
           experiments: data.map(d => {
-            d.progress = 0;
-            d.progressMax = 1;
+            d.progress = {value: 0, max: 1, finished: false};
             return d;
           })
         });
@@ -105,13 +104,42 @@ export default class App extends React.Component {
 
   handleConnMessage(evt) {
     var data = JSON.parse(evt.data);
+    console.log(data);
     if (data.ref && data.ref in this.connPending) {
-      this.connPending[data.ref](data.result);
+      if (data.type === 'error') {
+        this.connPending[data.ref].reject(data.message);
+      } else {
+        this.connPending[data.ref].resolve(data.result);
+      }
       delete this.connPending[data.ref];
     }
 
     if (['message', 'warning', 'error'].includes(data.type)) {
       this.message(data.message, data.type);
+    }
+
+    if (data.type === 'progress') {
+      let index = this.state.experiments.length-1;
+      for (;index>=0; index--) {
+        if (this.state.experiments[index].name === data.experiment) break;
+      }
+      console.log(index);
+      if (index>=0) {
+        let new_progress = {
+          value: data.progress,
+          max: data.max,
+          finished: data.finished
+        }
+        if (data.finished) {
+          new_progress.value = 100;
+          new_progress.max = 100;
+        }
+        this.setState(update(this.state, {
+          experiments: {[index]: {
+            progress: {$set: new_progress}
+          }}
+        }));
+      }
     }
   }
 

@@ -26276,7 +26276,7 @@ var App = function (_React$Component) {
         args: args || {}
       }));
       return new Promise(function (resolve, reject) {
-        _this2.connPending[ref] = resolve;
+        _this2.connPending[ref] = { resolve: resolve, reject: reject };
       });
     }
   }, {
@@ -26292,7 +26292,7 @@ var App = function (_React$Component) {
         args: args || {}
       }));
       return new Promise(function (resolve, reject) {
-        _this3.connPending[ref] = resolve;
+        _this3.connPending[ref] = { resolve: resolve, reject: reject };
       });
     }
   }, {
@@ -26321,8 +26321,7 @@ var App = function (_React$Component) {
         this.query('experiment_metadata').then(function (data) {
           _this4.setState({
             experiments: data.map(function (d) {
-              d.progress = 0;
-              d.progressMax = 1;
+              d.progress = { value: 0, max: 1, finished: false };
               return d;
             })
           });
@@ -26341,13 +26340,42 @@ var App = function (_React$Component) {
     key: 'handleConnMessage',
     value: function handleConnMessage(evt) {
       var data = JSON.parse(evt.data);
+      console.log(data);
       if (data.ref && data.ref in this.connPending) {
-        this.connPending[data.ref](data.result);
+        if (data.type === 'error') {
+          this.connPending[data.ref].reject(data.message);
+        } else {
+          this.connPending[data.ref].resolve(data.result);
+        }
         delete this.connPending[data.ref];
       }
 
       if (['message', 'warning', 'error'].includes(data.type)) {
         this.message(data.message, data.type);
+      }
+
+      if (data.type === 'progress') {
+        var index = this.state.experiments.length - 1;
+        for (; index >= 0; index--) {
+          if (this.state.experiments[index].name === data.experiment) break;
+        }
+        console.log(index);
+        if (index >= 0) {
+          var new_progress = {
+            value: data.progress,
+            max: data.max,
+            finished: data.finished
+          };
+          if (data.finished) {
+            new_progress.value = 100;
+            new_progress.max = 100;
+          }
+          this.setState((0, _immutabilityHelper2.default)(this.state, {
+            experiments: _defineProperty({}, index, {
+              progress: { $set: new_progress }
+            })
+          }));
+        }
       }
     }
   }, {
@@ -26516,6 +26544,8 @@ var Experiment = function (_React$Component) {
     _this.handleTabChange = _this.handleTabChange.bind(_this);
     _this.setParameter = _this.setParameter.bind(_this);
     _this.handleCommand = _this.handleCommand.bind(_this);
+    _this.run = _this.run.bind(_this);
+    _this.abort = _this.abort.bind(_this);
     return _this;
   }
 
@@ -26540,7 +26570,7 @@ var Experiment = function (_React$Component) {
 
       return this.props.deviceCommand('set_parameters', {
         experiment_name: this.props.experiment.name,
-        parameters: this.state.parameters
+        parameters: Object.assign({}, this.state.parameters, this.props.sharedParValues)
       }).then(function (data) {
         console.log('running ' + _this2.props.experiment.name);
         return _this2.props.deviceCommand('run', {
@@ -26549,6 +26579,8 @@ var Experiment = function (_React$Component) {
       }).then(function (data) {
         console.log('done ' + _this2.props.experiment.name);
         //TODO: plot data
+      }).catch(function (err) {
+        console.log(err);
       });
     }
   }, {
@@ -26556,6 +26588,8 @@ var Experiment = function (_React$Component) {
     value: function abort() {
       return this.props.deviceCommand('abort', {
         experiment_name: this.props.experiment.name
+      }).catch(function (err) {
+        console.log(err);
       });
     }
   }, {
@@ -26672,8 +26706,8 @@ var Experiment = function (_React$Component) {
             commandHandler: this.handleCommand
           }),
           _react2.default.createElement(_Progress2.default, {
-            progress: experiment.progress,
-            progressMax: experiment.progressMax
+            progress: experiment.progress.value,
+            progressMax: experiment.progress.max
           }),
           _react2.default.createElement(_ExportControls2.default, null),
           _react2.default.createElement(_MessageBox2.default, { messages: this.props.messages })
@@ -26838,6 +26872,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _classnames = require('classnames');
+
+var _classnames2 = _interopRequireDefault(_classnames);
+
 require('./css/Parameter.css');
 
 var _generateId = require('./util/generateId');
@@ -26869,6 +26907,14 @@ var Parameter = function (_React$Component) {
   _createClass(Parameter, [{
     key: 'handeValueChange',
     value: function handeValueChange(e) {
+      // let value = e.target.value
+      // if (this.props.def.dtype) {
+      //   if (this.props.def.dtype.search('int')>-1) {
+      //     value = parseInt(value);
+      //   } else if (this.props.def.dtype.search('float')>-1) {
+      //     value = parseFloat(value);
+      //   }
+      // }
       this.props.onValueChange(e.target.value);
     }
   }, {
@@ -26892,7 +26938,7 @@ var Parameter = function (_React$Component) {
         ),
         _react2.default.createElement('input', {
           id: this.id,
-          className: 'par-input',
+          className: (0, _classnames2.default)('par-input', this.props.def.dtype),
           name: name,
           value: value,
           onChange: this.handeValueChange }),
@@ -26910,7 +26956,7 @@ var Parameter = function (_React$Component) {
 
 exports.default = Parameter;
 
-},{"./css/Parameter.css":154,"./util/generateId":163,"react":133}],140:[function(require,module,exports){
+},{"./css/Parameter.css":154,"./util/generateId":163,"classnames":13,"react":133}],140:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
