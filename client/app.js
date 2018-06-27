@@ -43989,7 +43989,7 @@ var App = function (_React$Component) {
     _this.state = {
       language: {},
       experiments: [],
-      sharedParValues: {},
+      parValues: {},
       runningExperiment: false,
       runningExperimentIndex: 0,
       activeTabIndex: 0,
@@ -44003,7 +44003,7 @@ var App = function (_React$Component) {
     _this.refreshParSetList = _this.refreshParSetList.bind(_this);
     _this.command = _this.command.bind(_this);
     _this.query = _this.query.bind(_this);
-    _this.setSharedPar = _this.setSharedPar.bind(_this);
+    _this.setPar = _this.setPar.bind(_this);
     _this.setRunning = _this.setRunning.bind(_this);
 
     _this.connPending = {}; // for storing promises to be resolved later
@@ -44047,11 +44047,13 @@ var App = function (_React$Component) {
       });
     }
   }, {
-    key: 'setSharedPar',
-    value: function setSharedPar(name, value) {
-      this.setState((0, _immutabilityHelper2.default)(this.state, {
-        sharedParValues: _defineProperty({}, name, { $set: value })
-      }));
+    key: 'setPar',
+    value: function setPar(expName, parName, value) {
+      var mut = { parValues: _defineProperty({}, expName, _defineProperty({}, parName, { $set: value })) };
+      if (!this.state.parValues[expName]) {
+        mut = { parValues: _defineProperty({}, expName, { $set: _defineProperty({}, parName, value) }) };
+      }
+      this.setState((0, _immutabilityHelper2.default)(this.state, mut));
     }
   }, {
     key: 'setRunning',
@@ -44084,6 +44086,10 @@ var App = function (_React$Component) {
         this.query('load_language', { lang_name: 'english' }).then(function (data) {
           console.log(data);
           _this4.setState({ language: data });
+        });
+
+        this.query('default_parameters').then(function (data) {
+          _this4.setState({ parValues: data });
         });
       }
     }
@@ -44190,8 +44196,8 @@ var App = function (_React$Component) {
         }),
         _react2.default.createElement(_TabPanes2.default, {
           data: allTabs,
-          sharedParValues: this.state.sharedParValues,
-          setSharedPar: this.setSharedPar,
+          parValues: this.state.parValues,
+          setPar: this.setPar,
           setRunning: this.setRunning,
           deviceCommand: this.command,
           deviceQuery: this.query,
@@ -44269,8 +44275,6 @@ var _MessageBox2 = _interopRequireDefault(_MessageBox);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -44288,12 +44292,12 @@ var Experiment = function (_React$Component) {
     _this.plotrefs = [];
 
     _this.state = {
-      parameters: {},
       activeParameterGroupIndex: 0
     };
 
     _this.handleTabChange = _this.handleTabChange.bind(_this);
-    _this.setParameter = _this.setParameter.bind(_this);
+    _this.setOwnPar = _this.setOwnPar.bind(_this);
+    _this.setSharedPar = _this.setSharedPar.bind(_this);
     _this.handleCommand = _this.handleCommand.bind(_this);
     _this.run = _this.run.bind(_this);
     _this.abort = _this.abort.bind(_this);
@@ -44308,11 +44312,14 @@ var Experiment = function (_React$Component) {
       });
     }
   }, {
-    key: 'setParameter',
-    value: function setParameter(name, value) {
-      this.setState((0, _immutabilityHelper2.default)(this.state, {
-        parameters: _defineProperty({}, name, { $set: value })
-      }));
+    key: 'setOwnPar',
+    value: function setOwnPar(name, value) {
+      this.props.setPar(this.props.experiment.name, name, value);
+    }
+  }, {
+    key: 'setSharedPar',
+    value: function setSharedPar(name, value) {
+      this.props.setPar('shared', name, value);
     }
   }, {
     key: 'run',
@@ -44321,7 +44328,7 @@ var Experiment = function (_React$Component) {
 
       return this.props.deviceCommand('set_parameters', {
         experiment_name: this.props.experiment.name,
-        parameters: Object.assign({}, this.state.parameters, this.props.sharedParValues)
+        parameters: Object.assign({}, this.props.parValues[this.props.experiment.name], this.props.parValues['shared'])
       }).then(function (data) {
         console.log('running ' + _this2.props.experiment.name);
         return _this2.props.deviceCommand('run', {
@@ -44437,10 +44444,10 @@ var Experiment = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterPanes2.default, {
               parameterGroups: parameterGroups,
-              parameterValues: this.state.parameters,
+              parameterValues: this.props.parValues[experiment.name] || {},
               activeParameterGroupIndex: this.state.activeParameterGroupIndex,
               language: this.props.language,
-              onValueChange: this.setParameter
+              onValueChange: this.setOwnPar
             })
           ),
           _react2.default.createElement(_ParameterControls2.default, { parSetNames: experiment.parSetNames }),
@@ -44454,10 +44461,10 @@ var Experiment = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterBox2.default, {
               parameters: sharedParameters,
-              parameterValues: this.props.sharedParValues,
+              parameterValues: this.props.parValues['shared'] || {},
               active: true,
               language: this.props.language,
-              onValueChange: this.props.setSharedPar
+              onValueChange: this.setSharedPar
             })
           )
         ),
@@ -45307,8 +45314,8 @@ var TabPanes = function (_React$Component) {
             key: i,
             experiment: d,
             active: activeIndex === i,
-            sharedParValues: _this2.props.sharedParValues,
-            setSharedPar: _this2.props.setSharedPar,
+            parValues: _this2.props.parValues,
+            setPar: _this2.props.setPar,
             deviceCommand: _this2.props.deviceCommand,
             deviceQuery: _this2.props.deviceQuery,
             setRunning: function setRunning(value) {
@@ -45600,7 +45607,7 @@ var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-con
 },{"browserify-css":86}],189:[function(require,module,exports){
 var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],190:[function(require,module,exports){
-var css = ".plot-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".plot-container {\n  max-width: 50%;\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],191:[function(require,module,exports){
 var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],192:[function(require,module,exports){

@@ -29,8 +29,8 @@ export default class TabPanes extends React.Component {
             key={i}
             experiment={d}
             active={activeIndex===i}
-            sharedParValues={this.props.sharedParValues}
-            setSharedPar={this.props.setSharedPar}
+            parValues={this.props.parValues}
+            setPar={this.props.setPar}
             deviceCommand={this.props.deviceCommand}
             deviceQuery={this.props.deviceQuery}
             setRunning={value => this.props.setRunning(i, value)}

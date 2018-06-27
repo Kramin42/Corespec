@@ -21,12 +21,12 @@ export default class Experiment extends React.Component {
     this.plotrefs = [];
 
     this.state = {
-      parameters: {},
-      activeParameterGroupIndex: 0,
+      activeParameterGroupIndex: 0
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
-    this.setParameter = this.setParameter.bind(this);
+    this.setOwnPar = this.setOwnPar.bind(this);
+    this.setSharedPar = this.setSharedPar.bind(this);
     this.handleCommand = this.handleCommand.bind(this);
     this.run = this.run.bind(this);
     this.abort = this.abort.bind(this);
@@ -38,16 +38,20 @@ export default class Experiment extends React.Component {
     });
   }
 
-  setParameter(name, value) {
-    this.setState(update(this.state, {
-      parameters: {[name]: {$set: value}}
-    }));
+  setOwnPar(name, value) {
+    this.props.setPar(this.props.experiment.name, name, value);
+  }
+
+  setSharedPar(name, value) {
+    this.props.setPar('shared', name, value);
   }
 
   run() {
     return this.props.deviceCommand('set_parameters', {
       experiment_name: this.props.experiment.name,
-      parameters: Object.assign({}, this.state.parameters, this.props.sharedParValues)
+      parameters: Object.assign({},
+        this.props.parValues[this.props.experiment.name],
+        this.props.parValues['shared'])
     })
     .then(data => {
       console.log('running '+this.props.experiment.name);
@@ -149,10 +153,10 @@ export default class Experiment extends React.Component {
             </div>
             <ParameterPanes
               parameterGroups={parameterGroups}
-              parameterValues={this.state.parameters}
+              parameterValues={this.props.parValues[experiment.name] || {}}
               activeParameterGroupIndex={this.state.activeParameterGroupIndex}
               language={this.props.language}
-              onValueChange={this.setParameter}
+              onValueChange={this.setOwnPar}
             />
           </div>
           <ParameterControls parSetNames={experiment.parSetNames} />
@@ -160,10 +164,10 @@ export default class Experiment extends React.Component {
             <div className="par-box-title">Shared</div>
             <ParameterBox
               parameters={sharedParameters}
-              parameterValues={this.props.sharedParValues}
+              parameterValues={this.props.parValues['shared'] || {}}
               active={true}
               language={this.props.language}
-              onValueChange={this.props.setSharedPar}
+              onValueChange={this.setSharedPar}
             />
           </div>
         </div>

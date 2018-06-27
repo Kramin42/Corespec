@@ -9,6 +9,8 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
+DEFAULT_PAR_FILE = 'default_par.yaml'
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 workspaces_dir = os.path.join(dir_path, 'workspaces')
 
@@ -47,6 +49,29 @@ class Workspace:
     def save_par_set(self, name, parameters):
         with open(os.path.join(self._par_dir, name+'.yaml'), 'w') as f:
             yaml.dump(parameters, f, default_flow_style=False)
+
+    def save_default_pars(self, experiment_name, parameters, par_def):
+        default_pars = self.load_default_pars()
+        if experiment_name not in default_pars:
+            default_pars[experiment_name] = {}
+        if 'shared' not in default_pars:
+            default_pars['shared'] = {}
+        for name, value in parameters.items():
+            if name in par_def:
+                if 'shared' in par_def[name] and par_def[name]['shared']:
+                    default_pars['shared'][name] = value
+                else:
+                    default_pars[experiment_name][name] = value
+        with open(os.path.join(self._par_dir, DEFAULT_PAR_FILE), 'w') as f:
+            yaml.dump(default_pars, f, default_flow_style=False)
+
+    def load_default_pars(self):
+        try:
+            with open(os.path.join(self._par_dir, DEFAULT_PAR_FILE), 'r') as f:
+                return yaml.load(f.read())
+        except Exception as e:
+            logger.exception(e)
+            return {}
 
     def new_data_dir(self, prefix):
         basedirname = prefix + '_' + datetime.now().strftime('%Y-%m-%d@%H-%M-%S')

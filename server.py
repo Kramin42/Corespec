@@ -48,8 +48,7 @@ async def workspace_metadata():
     return list_workspaces()
 
 async def default_parameters():
-    with open(os.path.join(dir_path, DEFAULT_PARAMETER_FILE), 'r') as f:
-        return yaml.load(f.read())
+    return workspace.load_default_pars()
 
 async def load_parameter_set(par_set_name):
     return workspace.load_par_set(par_set_name)
@@ -134,6 +133,7 @@ async def abort(ws, experiment_name):
 async def set_parameters(ws, experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
     # save parameters to workspace default par file
+    workspace.save_default_pars(experiment_name, parameters, experiments[experiment_name].par_def)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
 async def save_parameter_set(ws, par_set_name, parameters):

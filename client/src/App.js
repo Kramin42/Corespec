@@ -16,7 +16,7 @@ export default class App extends React.Component {
     this.state = {
       language: {},
       experiments: [],
-      sharedParValues: {},
+      parValues: {},
       runningExperiment: false,
       runningExperimentIndex: 0,
       activeTabIndex: 0,
@@ -30,7 +30,7 @@ export default class App extends React.Component {
     this.refreshParSetList = this.refreshParSetList.bind(this);
     this.command = this.command.bind(this);
     this.query = this.query.bind(this);
-    this.setSharedPar = this.setSharedPar.bind(this);
+    this.setPar = this.setPar.bind(this);
     this.setRunning = this.setRunning.bind(this);
 
     this.connPending = {}; // for storing promises to be resolved later
@@ -66,10 +66,12 @@ export default class App extends React.Component {
     });
   }
 
-  setSharedPar(name, value) {
-    this.setState(update(this.state, {
-      sharedParValues: {[name]: {$set: value}}
-    }));
+  setPar(expName, parName, value) {
+    let mut = {parValues: {[expName]: {[parName]: {$set: value}}}}
+    if (!this.state.parValues[expName]) {
+      mut = {parValues: {[expName]: {$set: {[parName]: value}}}}
+    }
+    this.setState(update(this.state, mut));
   }
 
   setRunning(index, value) {
@@ -98,6 +100,11 @@ export default class App extends React.Component {
       .then((data) => {
         console.log(data);
         this.setState({language: data});
+      });
+
+      this.query('default_parameters')
+      .then(data => {
+        this.setState({parValues: data});
       });
     }
   }
@@ -193,8 +200,8 @@ export default class App extends React.Component {
         />
         <TabPanes
           data={allTabs}
-          sharedParValues={this.state.sharedParValues}
-          setSharedPar={this.setSharedPar}
+          parValues={this.state.parValues}
+          setPar={this.setPar}
           setRunning={this.setRunning}
           deviceCommand={this.command}
           deviceQuery={this.query}
