@@ -184,8 +184,8 @@ class Program:
         logger.debug('run: reading data')
         if self.config_get('output.type') == 'FIFO':
             self._data = system.read_fifo(
-                self.config_get('output.offset'),
-                self.config_get('output.length'),
+                int(self.config_get('output.offset')),
+                int(self.config_get('output.length')),
                 self.config_get('output.dtype'))
         elif self.config_get('output.type') == 'DMA':
             self._data = system.read_dma(

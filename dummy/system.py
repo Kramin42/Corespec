@@ -50,6 +50,7 @@ def read_fifo(
         length: int,
         dtype=np.dtype(np.int32)) -> np.ndarray:
     #data = np.random.randcompl(-1000000, 1000000, size=length, dtype=dtype)
+    logger.debug('reading fifo, offset: 0x%X, length: 0x%X', offset, length)
     data = np.zeros(int(length/2), dtype=np.complex64)
     x = np.linspace(0,data.size,data.size,endpoint=False)
     for i in range(10):
