@@ -1,5 +1,5 @@
 import React from 'react';
-import ReconnectingWebSocket from 'reconnecting-websocket';
+import WebSocketClient from '@gamestdio/websocket';
 import update from 'immutability-helper';
 
 import shortUID from './util/shortUID';
@@ -34,7 +34,7 @@ export default class App extends React.Component {
     this.setRunning = this.setRunning.bind(this);
 
     this.connPending = {}; // for storing promises to be resolved later
-    this.conn = new ReconnectingWebSocket(props.server);
+    this.conn = new WebSocketClient(props.server);
 
     this.conn.onopen = this.handleConnOpen;
     this.conn.onmessage = this.handleConnMessage;

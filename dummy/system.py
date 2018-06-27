@@ -53,7 +53,7 @@ def read_fifo(
     data = np.zeros(int(length/2), dtype=np.complex64)
     x = np.linspace(0,data.size,data.size,endpoint=False)
     for i in range(10):
-        data += 10000*np.exp(1j*np.random.random_sample()*10*x)*np.exp(-np.random.random_sample()*0.05*x)
-    data += 100000 * np.exp(1j*0.0*x) * np.exp(-0.005 * x)
-    data += (1j*np.random.sample(data.size)+np.random.sample(data.size)-0.5j-0.5)*10000
+        data += 100*np.exp(1j*np.random.random_sample()*10*x)*np.exp(-np.random.random_sample()*0.05*x)
+    data += 1000 * np.exp(1j*0.0*x) * np.exp(-0.005 * x)
+    data += (1j*np.random.sample(data.size)+np.random.sample(data.size)-0.5j-0.5)*100
     return data.view(np.float32).astype(np.int32)

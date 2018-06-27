@@ -50,14 +50,17 @@ def handler_raw(cmd):
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        setpoint = data['value']
         logger.info('new setpoint: %.3f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$TCP': # P
         data['name'] = 'P'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        P = data['value']
         logger.info('new constant P: %.3f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$TCI': # I
         data['name'] = 'I'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        I = data['value']
         logger.info('new constant I: %.5f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$AMP':
         if cmd[CMD_SIZE:PACKET_SIZE]==b'ON##':

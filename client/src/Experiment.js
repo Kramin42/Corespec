@@ -18,6 +18,8 @@ export default class Experiment extends React.Component {
   constructor(props) {
     super(props);
 
+    this.plotrefs = [];
+
     this.state = {
       parameters: {},
       activeParameterGroupIndex: 0,
@@ -57,7 +59,9 @@ export default class Experiment extends React.Component {
     })
     .then(data => {
       console.log('done '+this.props.experiment.name);
-      //TODO: plot data
+      this.plotrefs.forEach(p => {
+        p.current.replot();
+      });
     })
     .catch(err => {
       console.log(err);
@@ -100,8 +104,15 @@ export default class Experiment extends React.Component {
       defaultPlotNames = experiment.defaults.plots;
     }
     defaultPlotNames.forEach((plotName, i) => {
+      // if the ref doesn't exist yet then create it
+      if (this.plotrefs.length<=i) {this.plotrefs.push(React.createRef());}
       plots.push(
-        <Plot key={i} />
+        <Plot key={i}
+          ref={this.plotrefs[i]}
+          defaultPlot={plotName}
+          experiment={experiment}
+          deviceQuery={this.props.deviceQuery}
+        />
       );
     });
 
