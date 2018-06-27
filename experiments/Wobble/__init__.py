@@ -23,10 +23,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.raw_data()
         width = self.par['bandwidth']
         center = self.par['freq']
-        samples = self.par['samples']
+        samples = int(self.par['samples'])
 
         y = data.astype(np.float32)
-        y = np.mean(y.reshape(-1, int(samples)), axis=1)
+        y = np.mean(y.reshape(-1, samples), axis=1)
         x = np.linspace(center-width/2, center+width/2, len(y))
         return {
             'x': x,

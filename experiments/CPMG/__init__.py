@@ -20,19 +20,21 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_real_imag(self):
+        samples = int(self.par['samples'])
+        echo_count = int(self.par['echo_count'])
         data = self.autophase(self.raw_data())
         t = np.zeros(data.size)
         offset = 0
-        sample_times = np.linspace(0, self.par['samples']*self.par['dwell_time'],
-                                 num=self.par['samples'], endpoint=False)
-        for i in range(self.par['echo_count']):
-            t[i*self.par['samples']:(i+1)*self.par['samples']] = sample_times + offset
+        sample_times = np.linspace(0, samples*self.par['dwell_time'],
+                                 num=samples, endpoint=False)
+        for i in range(echo_count):
+            t[i*samples:(i+1)*samples] = sample_times + offset
             offset+=self.par['echo_time']
         return {'real': data.real, 'imag': data.imag, 'unit': 'μV', 'time': t, 'time_unit': 'μs'}
     
     def export_echo_integrals(self):
         y = self.autophase(self.integrated_data())
-        echo_count = self.par['echo_count']
+        echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time']/1000000.0
         x = np.linspace(0, echo_count*echo_time, echo_count)
         return {
@@ -45,8 +47,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_echo_envelope(self):
         data = self.raw_data()
-        samples = self.par['samples']
-        echo_count = self.par['echo_count']
+        samples = int(self.par['samples'])
+        echo_count = int(self.par['echo_count'])
         dwell_time = self.par['dwell_time']
         x = np.linspace(0, dwell_time*samples, samples, endpoint=False)
         y = np.zeros(samples, dtype=np.complex64)
@@ -126,8 +128,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def integrated_data(self):
         data = self.raw_data()
-        samples = self.par['samples']
-        echo_count = self.par['echo_count']
+        samples = int(self.par['samples'])
+        echo_count = int(self.par['echo_count'])
         y = np.zeros(echo_count, dtype=np.complex64)
         for i in range(echo_count):
             y[i] = np.mean(data[i * samples:(i + 1) * samples])
