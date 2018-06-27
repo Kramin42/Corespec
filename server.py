@@ -125,7 +125,7 @@ async def run(ws, experiment_name):
     await experiment.run(progress_handler=progress_handler, warning_handler=warning_handler)
     if experiment.name in ['FID', 'CPMG']:
         experiment.save(workspace.new_data_dir(experiment.name))
-    await ws.send(json.dumps({'type': 'progress', 'finished': True, 'progress': 1, 'max': 1}))
+    await ws.send(json.dumps({'type': 'progress', 'experiment': experiment_name, 'finished': True}))
     await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
 async def abort(ws, experiment_name):

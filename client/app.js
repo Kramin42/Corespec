@@ -44289,9 +44289,7 @@ var Experiment = function (_React$Component) {
 
     _this.state = {
       parameters: {},
-      activeParameterGroupIndex: 0,
-      progress: 0,
-      progressMax: 1
+      activeParameterGroupIndex: 0
     };
 
     _this.handleTabChange = _this.handleTabChange.bind(_this);

@@ -23,8 +23,6 @@ export default class Experiment extends React.Component {
     this.state = {
       parameters: {},
       activeParameterGroupIndex: 0,
-      progress: 0,
-      progressMax: 1
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
