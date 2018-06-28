@@ -50,8 +50,8 @@ async def workspace_metadata():
 async def default_parameters():
     return workspace.load_default_pars()
 
-async def load_parameter_set(par_set_name):
-    return workspace.load_par_set(par_set_name)
+async def load_parameter_set(experiment_name, par_set_name):
+    return workspace.load_par_set(experiment_name, par_set_name)
 
 async def list_parameter_sets(experiment_name):
     return workspace.list_par_sets(experiment_name)
@@ -77,6 +77,11 @@ async def export_csv(experiment_name, export_name):
             if type(v) is str:
                 if rownum==0:
                     row.append(v)
+                else:
+                    row.append('')
+            elif type(v) is float:
+                if rownum==0:
+                    row.append(str(v))
                 else:
                     row.append('')
             else:
@@ -136,8 +141,8 @@ async def set_parameters(ws, experiment_name, parameters):
     workspace.save_default_pars(experiment_name, parameters, experiments[experiment_name].par_def)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
-async def save_parameter_set(ws, par_set_name, parameters):
-    workspace.save_par_set(par_set_name, parameters)
+async def save_parameter_set(ws, experiment_name, par_set_name, parameters):
+    workspace.save_par_set(experiment_name, par_set_name, parameters)
     await ws.send(json.dumps({'type': 'message', 'message': 'Saved parameter set %s.' % par_set_name}))
 
 async def set_workspace(ws, workspace_name):

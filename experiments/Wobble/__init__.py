@@ -19,7 +19,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
-    def export_wobble(self):
+    def export_Raw(self):
         data = self.raw_data()
         width = self.par['bandwidth']
         center = self.par['freq']
@@ -35,8 +35,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
-    def plot_wobble(self):
-        data = self.export_wobble()
+    def plot_Wobble(self):
+        data = self.export_Raw()
         min_i = np.argmin(data['y'])
         # return object according to plotly schema
         return {'data': [{

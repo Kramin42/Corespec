@@ -21,7 +21,8 @@ export default class Experiment extends React.Component {
     this.plotrefs = [];
 
     this.state = {
-      activeParameterGroupIndex: 0
+      activeParameterGroupIndex: 0,
+      parSetNames: []
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
@@ -31,6 +32,9 @@ export default class Experiment extends React.Component {
     this.run = this.run.bind(this);
     this.abort = this.abort.bind(this);
     this.replot = this.replot.bind(this);
+    this.parSetLoad = this.parSetLoad.bind(this);
+    this.parSetSave = this.parSetSave.bind(this);
+    this.refreshParSetList = this.refreshParSetList.bind(this);
   }
 
   handleTabChange(tabIndex) {
@@ -45,6 +49,48 @@ export default class Experiment extends React.Component {
 
   setSharedPar(name, value) {
     this.props.setPar('shared', name, value);
+  }
+
+  refreshParSetList() {
+    return this.props.deviceQuery('list_parameter_sets', {
+      experiment_name: this.props.experiment.name
+    })
+    .then((data) => {
+      this.setState(update(this.state, {
+        parSetNames: {$set: data}
+      }));
+    });
+  }
+
+  parSetLoad(name) {
+    return this.props.deviceQuery('load_parameter_set', {
+      experiment_name: this.props.experiment.name,
+      par_set_name: name
+    })
+    .then(data => {
+      Object.keys(data).forEach(parName => {
+        let parDef = this.props.experiment.parameters[parName];
+        if (parDef) {
+          if (parDef.shared) {
+            this.setSharedPar(parName, data[parName]);
+          } else {
+            this.setOwnPar(parName, data[parName]);
+          }
+        }
+      });
+    });
+  }
+
+  parSetSave(name) {
+    let pars = Object.assign({},
+      this.props.parValues[this.props.experiment.name],
+      this.props.parValues['shared']
+    );
+    return this.props.deviceCommand('save_parameter_set', {
+      experiment_name: this.props.experiment.name,
+      par_set_name: name,
+      parameters: pars
+    }).then(this.refreshParSetList);
   }
 
   run() {
@@ -112,6 +158,10 @@ export default class Experiment extends React.Component {
     this.plotrefs.forEach(p => {
       p.current.replot();
     });
+  }
+
+  componentDidMount() {
+    this.refreshParSetList();
   }
 
   componentDidUpdate(prevProps) {
@@ -184,7 +234,11 @@ export default class Experiment extends React.Component {
               onValueChange={this.setOwnPar}
             />
           </div>
-          <ParameterControls parSetNames={experiment.parSetNames} />
+          <ParameterControls
+            parSetNames={this.state.parSetNames}
+            parSetLoad={this.parSetLoad}
+            parSetSave={this.parSetSave}
+          />
           <div className={classNames('shared-parameters')}>
             <div className="par-box-title">Shared</div>
             <ParameterBox
@@ -206,7 +260,10 @@ export default class Experiment extends React.Component {
             progress={experiment.progress.value}
             progressMax={experiment.progress.max}
           />
-          <ExportControls />
+          <ExportControls
+            experimentName={experiment.name}
+            deviceQuery={this.props.deviceQuery}
+          />
           <MessageBox messages={this.props.messages} />
         </div>
       </div>

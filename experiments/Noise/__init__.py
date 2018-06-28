@@ -19,18 +19,18 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
-    def export_Noise(self):
+    def export_Raw(self):
         y = self.raw_data()
         x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
         return {
             'x': x,
             'y_real': y.real,
             'y_imag': y.imag,
-            'rms': np.sqrt(np.mean(y.real**2)).item(),
+            'rms': np.sqrt(np.mean(y.real*y.real)).item(),
             'y_unit': 'μV',
             'x_unit': 'μs'}
 
-    def export_FFT(self):
+    def export_FT(self):
         y = self.raw_data()
         fft = np.fft.fft(y)
         freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
@@ -47,8 +47,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
-    def plot_Noise(self):
-        data = self.export_Noise()
+    def plot_Raw(self):
+        data = self.export_Raw()
         # return object according to plotly schema
         return {'data': [{
                     'name': 'Real',
@@ -65,8 +65,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'yaxis': {'title': data['y_unit']}
                 }}
 
-    def plot_FFT(self):
-        data = self.export_FFT()
+    def plot_FT(self):
+        data = self.export_FT()
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',

@@ -8,12 +8,12 @@ import './css/ParameterControls.css'
 export default class ParameterControls extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {value: null};
+    this.state = {parSet: null};
     this.handleParSetChange = this.handleParSetChange.bind(this);
   }
 
   handleParSetChange(value) {
-    this.setState({value: value});
+    this.setState({parSet: value});
   }
 
   render() {
@@ -26,14 +26,23 @@ export default class ParameterControls extends React.Component {
         <div className="parameter-controls-title">Parameter Sets</div>
         <div className="parameter-controls-container">
           <Select.Creatable
+            promptTextCreator={(label) => {return `Create "${label}"`}}
             name="par-set-select"
             options={parSetOptions}
-            value={this.state.value}
+            value={this.state.parSet}
             onChange={this.handleParSetChange}
           />
           <div className="button-group">
-            <div className="button">Load</div>
-            <div className="button">Save</div>
+            <div
+              className="button"
+              onClick={() => this.props.parSetLoad(this.state.parSet.value)}>
+              Load
+            </div>
+            <div
+              className="button"
+              onClick={() => this.props.parSetSave(this.state.parSet.value)}>
+              Save
+            </div>
           </div>
         </div>
       </div>

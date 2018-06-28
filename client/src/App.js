@@ -28,7 +28,6 @@ export default class App extends React.Component {
     this.handleTabChange = this.handleTabChange.bind(this);
     this.handleConnOpen = this.handleConnOpen.bind(this);
     this.handleConnMessage = this.handleConnMessage.bind(this);
-    this.refreshParSetList = this.refreshParSetList.bind(this);
     this.command = this.command.bind(this);
     this.query = this.query.bind(this);
     this.setPar = this.setPar.bind(this);
@@ -94,7 +93,6 @@ export default class App extends React.Component {
             return d;
           })
         });
-        data.forEach(exp => this.refreshParSetList(exp.name))
       });
 
       this.query('load_language', {lang_name: 'english'})
@@ -185,16 +183,6 @@ export default class App extends React.Component {
     this.setState(update(this.state, {
       messages: {$push: [{text: text, type: type}]}
     }));
-  }
-
-  refreshParSetList(expName) {
-    this.query('list_parameter_sets', {experiment_name: expName})
-    .then((data) => {
-      let expIndex = this.state.experiments.findIndex(exp => exp.name==expName);
-      this.setState(update(this.state, {
-        experiments: {[expIndex]: {$merge: {parSetNames: data}}}
-      }));
-    });
   }
 
   render() {

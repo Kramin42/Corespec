@@ -19,7 +19,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
-    def export_real_imag(self):
+    def export_Raw(self):
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
         data = self.autophase(self.raw_data())
@@ -30,9 +30,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         for i in range(echo_count):
             t[i*samples:(i+1)*samples] = sample_times + offset
             offset+=self.par['echo_time']
-        return {'real': data.real, 'imag': data.imag, 'unit': 'μV', 'time': t, 'time_unit': 'μs'}
+        return {'time': t, 'real': data.real, 'imag': data.imag, 'unit': 'μV', 'time_unit': 'μs'}
     
-    def export_echo_integrals(self):
+    def export_Echo_Integrals(self):
         y = self.autophase(self.integrated_data())
         echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time']/1000000.0
@@ -45,7 +45,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x_unit': 's',
             'y_unit': 'μV'}
 
-    def export_echo_envelope(self):
+    def export_Echo_Envelope(self):
         data = self.raw_data()
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
@@ -62,10 +62,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x_unit': 'μs',
             'y_unit': 'μV'}
 
+    def export_default(self):
+        return self.export_Raw()
+
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
-    def plot_real_imag(self):
-        data = self.export_real_imag()
+    def plot_Raw(self):
+        data = self.export_Raw()
         # return object according to plotly schema
         return {'data': [{
                     'name': 'Real',
@@ -82,8 +85,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['time_unit']}
                 }}
     
-    def plot_echo_integrals(self):
-        data = self.export_echo_integrals()
+    def plot_Echo_Integrals(self):
+        data = self.export_Echo_Integrals()
         return {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
@@ -103,8 +106,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'yaxis': {'title': data['y_unit']}
                 }}
 
-    def plot_echo_envelope(self):
-        data = self.export_echo_envelope()
+    def plot_Echo_Envelope(self):
+        data = self.export_Echo_Envelope()
         return {'data': [{
                     'name': 'Real',
                     'type': 'scatter',

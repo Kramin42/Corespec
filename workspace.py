@@ -39,15 +39,17 @@ class Workspace:
         self._par_dir = os.path.join(self._dir, 'parameters')
         self._data_dir = os.path.join(self._dir, 'data')
 
-    def list_par_sets(self, experiment_name): # TODO: each experiment needs its own par sets
-        return [s[:-5] for s in os.listdir(self._par_dir) if s.endswith('.yaml')] # [:-5] removes the '.yaml' part
+    def list_par_sets(self, exp_name):
+        os.makedirs(os.path.join(self._par_dir, exp_name), exist_ok=True)
+        return [s[:-5] for s in os.listdir(os.path.join(self._par_dir, exp_name)) if s.endswith('.yaml')] # [:-5] removes the '.yaml' part
 
-    def load_par_set(self, name):
-        with open(os.path.join(self._par_dir, name+'.yaml'), 'r') as f:
+    def load_par_set(self, exp_name, par_set_name):
+        with open(os.path.join(self._par_dir, exp_name, par_set_name+'.yaml'), 'r') as f:
             return yaml.load(f.read())
 
-    def save_par_set(self, name, parameters):
-        with open(os.path.join(self._par_dir, name+'.yaml'), 'w') as f:
+    def save_par_set(self, exp_name, par_set_name, parameters):
+        os.makedirs(os.path.join(self._par_dir, exp_name), exist_ok=True)
+        with open(os.path.join(self._par_dir, exp_name, par_set_name+'.yaml'), 'w') as f:
             yaml.dump(parameters, f, default_flow_style=False)
 
     def save_default_pars(self, experiment_name, parameters, par_def):

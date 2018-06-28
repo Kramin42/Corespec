@@ -52,6 +52,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': x,
             'y': y,
             'x_unit': 'μs'}
+
+    def export_Raw(self):
+        return self.export_Calibration()
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

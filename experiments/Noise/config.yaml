@@ -5,5 +5,5 @@ programs:
   - Noise
 defaults:
   plots:
-    - Noise
-    - FFT
+    - Raw
+    - FT
