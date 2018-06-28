@@ -159,7 +159,7 @@ export default class App extends React.Component {
         if (newTemp.times.length > newTemp.limit) {newTemp.times.unshift();}
         newTemp.count++;
         this.setState(update(this.state, {
-          temperature: newTemp
+          temperature: {$set: newTemp}
         }));
   	  } else {
   	    if (data.data.name === 'amp-power') {

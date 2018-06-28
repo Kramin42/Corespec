@@ -44149,7 +44149,7 @@ var App = function (_React$Component) {
           }
           newTemp.count++;
           this.setState((0, _immutabilityHelper2.default)(this.state, {
-            temperature: newTemp
+            temperature: { $set: newTemp }
           }));
         } else {
           if (data.data.name === 'amp-power') {
