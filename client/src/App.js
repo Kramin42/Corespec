@@ -105,7 +105,13 @@ export default class App extends React.Component {
 
       this.query('default_parameters')
       .then(data => {
-        this.setState({parValues: data});
+        this.setState(update(this.state, {parValues: {$merge: data}}));
+      });
+
+      this.query('get_tempcontrol')
+      .then(data => {
+        delete data.amp_on; // don't want this being passed to set_tempcontrol
+        this.setState(update(this.state, {parValues: {Temperature: {$set: data}}}));
       });
     }
   }

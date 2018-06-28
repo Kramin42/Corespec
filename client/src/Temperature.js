@@ -22,6 +22,7 @@ export default class Temperature extends React.Component {
 
     this.handleTabChange = this.handleTabChange.bind(this);
     this.setOwnPar = this.setOwnPar.bind(this);
+    this.setTempControl = this.setTempControl.bind(this);
   }
 
   handleTabChange(tabIndex) {
@@ -32,6 +33,13 @@ export default class Temperature extends React.Component {
 
   setOwnPar(name, value) {
     this.props.setPar(this.props.data.name, name, value);
+  }
+
+  setTempControl() {
+    return this.props.deviceCommand(
+      'set_tempcontrol',
+      this.props.parValues[this.props.data.name]
+    );
   }
 
   render() {
@@ -103,7 +111,7 @@ export default class Temperature extends React.Component {
         </div>
         <div className={classNames('controls-block')}>
           <div className="run-controls">
-            <div className="button set">Set Parameters</div>
+            <div className="button set" onClick={this.setTempControl}>Set Parameters</div>
           </div>
           <MessageBox messages={this.props.messages}/>
         </div>

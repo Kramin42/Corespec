@@ -44090,7 +44090,12 @@ var App = function (_React$Component) {
         });
 
         this.query('default_parameters').then(function (data) {
-          _this4.setState({ parValues: data });
+          _this4.setState((0, _immutabilityHelper2.default)(_this4.state, { parValues: { $merge: data } }));
+        });
+
+        this.query('get_tempcontrol').then(function (data) {
+          delete data.amp_on; // don't want this being passed to set_tempcontrol
+          _this4.setState((0, _immutabilityHelper2.default)(_this4.state, { parValues: { Temperature: { $set: data } } }));
         });
       }
     }
@@ -45542,6 +45547,7 @@ var Temperature = function (_React$Component) {
 
     _this.handleTabChange = _this.handleTabChange.bind(_this);
     _this.setOwnPar = _this.setOwnPar.bind(_this);
+    _this.setTempControl = _this.setTempControl.bind(_this);
     return _this;
   }
 
@@ -45556,6 +45562,11 @@ var Temperature = function (_React$Component) {
     key: 'setOwnPar',
     value: function setOwnPar(name, value) {
       this.props.setPar(this.props.data.name, name, value);
+    }
+  }, {
+    key: 'setTempControl',
+    value: function setTempControl() {
+      return this.props.deviceCommand('set_tempcontrol', this.props.parValues[this.props.data.name]);
     }
   }, {
     key: 'render',
@@ -45647,7 +45658,7 @@ var Temperature = function (_React$Component) {
             { className: 'run-controls' },
             _react2.default.createElement(
               'div',
-              { className: 'button set' },
+              { className: 'button set', onClick: this.setTempControl },
               'Set Parameters'
             )
           ),
