@@ -44392,7 +44392,21 @@ var Experiment = function (_React$Component) {
         this.run().then(function (data) {
           _this3.props.setRunning(false);
         });
-      } else if (command === 'runinf') {} else if (command === 'abort') {
+      } else if (command === 'runinf') {
+        this.props.setRunning(true);
+        this.runinf = true;
+        var runinf = function runinf() {
+          if (_this3.runinf) {
+            return _this3.run().then(runinf);
+          } else {
+            return Promise.resolve();
+          }
+        };
+        runinf().then(function (data) {
+          _this3.props.setRunning(false);
+        });
+      } else if (command === 'abort') {
+        this.runinf = false;
         this.abort().then(function (data) {
           _this3.props.setRunning(false);
         });
@@ -44652,8 +44666,15 @@ var MessageBox = function (_React$Component) {
   }
 
   _createClass(MessageBox, [{
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate() {
+      this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+    }
+  }, {
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       var messages = [];
       this.props.messages.forEach(function (m, i) {
         messages.push(_react2.default.createElement(
@@ -44665,7 +44686,13 @@ var MessageBox = function (_React$Component) {
       return _react2.default.createElement(
         'div',
         { className: 'message-box' },
-        messages
+        messages,
+        _react2.default.createElement('div', {
+          style: { float: 'left', clear: 'both' },
+          ref: function ref(el) {
+            _this2.messagesEnd = el;
+          }
+        })
       );
     }
   }]);
@@ -45682,7 +45709,7 @@ var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-co
 },{"browserify-css":86}],186:[function(require,module,exports){
 var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],187:[function(require,module,exports){
-var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box :nth-last-child(n+2) {\n  opacity: 0.7;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],188:[function(require,module,exports){
 var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],189:[function(require,module,exports){

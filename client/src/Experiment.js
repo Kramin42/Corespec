@@ -86,8 +86,21 @@ export default class Experiment extends React.Component {
         this.props.setRunning(false);
       });
     } else if (command==='runinf') {
-
+      this.props.setRunning(true);
+      this.runinf = true;
+      let runinf = () => {
+        if (this.runinf) {
+          return this.run().then(runinf);
+        } else {
+          return Promise.resolve();
+        }
+      }
+      runinf()
+      .then(data => {
+        this.props.setRunning(false);
+      });
     } else if (command==='abort') {
+      this.runinf = false;
       this.abort()
       .then(data => {
         this.props.setRunning(false);

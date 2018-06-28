@@ -8,8 +8,12 @@
     flex-shrink: 0;
 }
 
-.message-box :nth-last-child(n+2) {
+.message-box div {
     opacity: 0.7;
+}
+
+.message-box div:nth-last-child(2) {
+    opacity: 1.0;
 }
 
 .message-box .error {
