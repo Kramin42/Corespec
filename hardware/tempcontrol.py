@@ -27,11 +27,13 @@ I = 0.001
 
 # average temperature readings so we dont spam too much
 TEMP_AVERAGING = 10
+TEMP_PERIOD = 1 # seconds
 temp_sum = 0
 temp_count = 0
+temp_time = 0
 
 def handler_raw(cmd):
-    global setpoint, P, I, amp_enabled, mcs_ready, temp_sum, temp_count
+    global setpoint, P, I, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
     if cmd[0:CMD_SIZE]==b'$TMP':
@@ -41,9 +43,11 @@ def handler_raw(cmd):
             asyncio.ensure_future(amp_on_delayed())
         temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
         temp_count += 1
+        temp_time += TEMP_PERIOD
         if temp_count == TEMP_AVERAGING:
             data['name'] = 'temperature'
             data['value'] = temp_sum/TEMP_AVERAGING
+            data['time'] = temp_time
             temp_sum = 0
             temp_count = 0
             logger.debug('temperature: %.3f' % data['value'])

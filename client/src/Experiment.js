@@ -30,6 +30,7 @@ export default class Experiment extends React.Component {
     this.handleCommand = this.handleCommand.bind(this);
     this.run = this.run.bind(this);
     this.abort = this.abort.bind(this);
+    this.replot = this.replot.bind(this);
   }
 
   handleTabChange(tabIndex) {
@@ -61,9 +62,7 @@ export default class Experiment extends React.Component {
     })
     .then(data => {
       console.log('done '+this.props.experiment.name);
-      this.plotrefs.forEach(p => {
-        p.current.replot();
-      });
+      this.replot();
     })
     .catch(err => {
       console.log(err);
@@ -96,6 +95,18 @@ export default class Experiment extends React.Component {
     }
   }
 
+  replot() {
+    this.plotrefs.forEach(p => {
+      p.current.replot();
+    });
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.experiment.progress.value > prevProps.experiment.progress.value) {
+      this.replot();
+    }
+  }
+
   render() {
     const experiment = this.props.experiment;
     const active = this.props.active;
@@ -111,6 +122,7 @@ export default class Experiment extends React.Component {
       plots.push(
         <Plot key={i}
           ref={this.plotrefs[i]}
+          plotMethod={'query'}
           defaultPlot={plotName}
           experiment={experiment}
           deviceQuery={this.props.deviceQuery}

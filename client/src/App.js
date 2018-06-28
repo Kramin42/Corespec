@@ -20,7 +20,8 @@ export default class App extends React.Component {
       runningExperiment: false,
       runningExperimentIndex: 0,
       activeTabIndex: 0,
-      messages: []
+      messages: [],
+      temperature: {count: 0, limit: 1000, times: [], values: []}
     };
 
     // bind 'this' as context
@@ -148,6 +149,26 @@ export default class App extends React.Component {
         }));
       }
     }
+
+    if (data.type=='tempcontrol') {
+  	  if (data.data.name=='temperature') {
+        let newTemp = this.state.temperature;
+  	    newTemp.values.push(data.data.value);
+        newTemp.times.push(data.data.time);
+        if (newTemp.values.length > newTemp.limit) {newTemp.values.unshift();}
+        if (newTemp.times.length > newTemp.limit) {newTemp.times.unshift();}
+        newTemp.count++;
+        this.setState(update(this.state, {
+          temperature: newTemp
+        }));
+  	  } else {
+  	    if (data.data.name === 'amp-power') {
+          this.message('Amplifier powered');
+  	    } else {
+          this.message(`temp control ${data.data.name} set to ${data.data.value}`);
+  	    }
+  	  }
+  	}
   }
 
   handleTabChange(tabIndex) {
@@ -200,6 +221,7 @@ export default class App extends React.Component {
         />
         <TabPanes
           data={allTabs}
+          temperature={this.state.temperature}
           parValues={this.state.parValues}
           setPar={this.setPar}
           setRunning={this.setRunning}

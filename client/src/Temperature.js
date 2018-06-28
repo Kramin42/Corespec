@@ -14,13 +14,14 @@ export default class Temperature extends React.Component {
   constructor(props) {
     super(props);
 
+    this.plotId = 0;
+
     this.state = {
-      parameters: {},
       activeParameterGroupIndex: 0
     };
 
     this.handleTabChange = this.handleTabChange.bind(this);
-    this.setParameter = this.setParameter.bind(this);
+    this.setOwnPar = this.setOwnPar.bind(this);
   }
 
   handleTabChange(tabIndex) {
@@ -29,17 +30,34 @@ export default class Temperature extends React.Component {
     });
   }
 
-  setParameter(name, value) {
-    this.setState(update(this.state, {
-      parameters: {[name]: {$set: value}}
-    }));
+  setOwnPar(name, value) {
+    this.props.setPar(this.props.data.name, name, value);
   }
 
   render() {
     const data = this.props.data;
     const active = this.props.active;
 
-    const plots = [(<Plot key={0} />)];
+    const plots = [
+      (<Plot
+        key={0}
+        ref={this.plotref}
+        plotMethod={'direct'}
+        plot={{
+          id: this.plotId++,
+          data: [{
+            name: '',
+            type: 'scatter',
+            x: this.props.temperature.times,
+            y: this.props.temperature.values}],
+          layout: {
+            title: 'Temperature',
+            xaxis: {title: 'time (s)'},
+            yaxis: {title: 'Temperature (\u00b0C)'}
+          }
+        }}
+      />)
+    ];
 
     const parGroupsObj = {};
     const sharedParameters = {};
@@ -76,10 +94,10 @@ export default class Temperature extends React.Component {
             </div>
             <ParameterPanes
               parameterGroups={parameterGroups}
-              parameterValues={this.state.parameters}
+              parameterValues={this.props.parValues[data.name] || {}}
               activeParameterGroupIndex={this.state.activeParameterGroupIndex}
               language={this.props.language}
-              onValueChange={this.setParameter}
+              onValueChange={this.setOwnPar}
             />
           </div>
         </div>

@@ -37,17 +37,21 @@ export default class Plot extends React.Component {
     if (plotIndex===null || plotIndex===undefined) {
       plotIndex = this.state.activePlotIndex;
     }
-    return this.props.deviceQuery('plot', {
-      experiment_name: this.props.experiment.name,
-      plot_name: this.props.experiment.plots[plotIndex]
-    })
-    .then(result => {
-      result.data = decode_plot_data(result.data);
-      d3plot(d3.select('#'+this.svgid), result);
-    })
-    .catch(err => {
-      console.log(err);
-    });
+    if (this.props.plotMethod==='query') {
+      return this.props.deviceQuery('plot', {
+        experiment_name: this.props.experiment.name,
+        plot_name: this.props.experiment.plots[plotIndex]
+      })
+      .then(result => {
+        result.data = decode_plot_data(result.data);
+        d3plot(d3.select('#'+this.svgid), result);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    } else {
+      console.log('cant replot without plotMethod=query');
+    }
   }
 
   handlePlotChange(tabIndex) {
@@ -61,6 +65,14 @@ export default class Plot extends React.Component {
     this.setState({
       activeFormatIndex: tabIndex
     });
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.plotMethod === 'direct') {
+      if (this.props.plot.id !== prevProps.plot.id) {
+        d3plot(d3.select('#'+this.svgid), this.props.plot);
+      }
+    }
   }
 
   render() {

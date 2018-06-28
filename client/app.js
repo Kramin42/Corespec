@@ -43993,7 +43993,8 @@ var App = function (_React$Component) {
       runningExperiment: false,
       runningExperimentIndex: 0,
       activeTabIndex: 0,
-      messages: []
+      messages: [],
+      temperature: { count: 0, limit: 1000, times: [], values: [] }
     };
 
     // bind 'this' as context
@@ -44134,6 +44135,30 @@ var App = function (_React$Component) {
           }));
         }
       }
+
+      if (data.type == 'tempcontrol') {
+        if (data.data.name == 'temperature') {
+          var newTemp = this.state.temperature;
+          newTemp.values.push(data.data.value);
+          newTemp.times.push(data.data.time);
+          if (newTemp.values.length > newTemp.limit) {
+            newTemp.values.unshift();
+          }
+          if (newTemp.times.length > newTemp.limit) {
+            newTemp.times.unshift();
+          }
+          newTemp.count++;
+          this.setState((0, _immutabilityHelper2.default)(this.state, {
+            temperature: newTemp
+          }));
+        } else {
+          if (data.data.name === 'amp-power') {
+            this.message('Amplifier powered');
+          } else {
+            this.message('temp control ' + data.data.name + ' set to ' + data.data.value);
+          }
+        }
+      }
     }
   }, {
     key: 'handleTabChange',
@@ -44196,6 +44221,7 @@ var App = function (_React$Component) {
         }),
         _react2.default.createElement(_TabPanes2.default, {
           data: allTabs,
+          temperature: this.state.temperature,
           parValues: this.state.parValues,
           setPar: this.setPar,
           setRunning: this.setRunning,
@@ -44301,6 +44327,7 @@ var Experiment = function (_React$Component) {
     _this.handleCommand = _this.handleCommand.bind(_this);
     _this.run = _this.run.bind(_this);
     _this.abort = _this.abort.bind(_this);
+    _this.replot = _this.replot.bind(_this);
     return _this;
   }
 
@@ -44336,9 +44363,7 @@ var Experiment = function (_React$Component) {
         });
       }).then(function (data) {
         console.log('done ' + _this2.props.experiment.name);
-        _this2.plotrefs.forEach(function (p) {
-          p.current.replot();
-        });
+        _this2.replot();
       }).catch(function (err) {
         console.log(err);
       });
@@ -44369,6 +44394,20 @@ var Experiment = function (_React$Component) {
       }
     }
   }, {
+    key: 'replot',
+    value: function replot() {
+      this.plotrefs.forEach(function (p) {
+        p.current.replot();
+      });
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate(prevProps) {
+      if (this.props.experiment.progress.value > prevProps.experiment.progress.value) {
+        this.replot();
+      }
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this4 = this;
@@ -44388,6 +44427,7 @@ var Experiment = function (_React$Component) {
         }
         plots.push(_react2.default.createElement(_Plot2.default, { key: i,
           ref: _this4.plotrefs[i],
+          plotMethod: 'query',
           defaultPlot: plotName,
           experiment: experiment,
           deviceQuery: _this4.props.deviceQuery
@@ -45047,15 +45087,19 @@ var Plot = function (_React$Component) {
       if (plotIndex === null || plotIndex === undefined) {
         plotIndex = this.state.activePlotIndex;
       }
-      return this.props.deviceQuery('plot', {
-        experiment_name: this.props.experiment.name,
-        plot_name: this.props.experiment.plots[plotIndex]
-      }).then(function (result) {
-        result.data = (0, _decode.decode_plot_data)(result.data);
-        (0, _d3plot2.default)(d3.select('#' + _this2.svgid), result);
-      }).catch(function (err) {
-        console.log(err);
-      });
+      if (this.props.plotMethod === 'query') {
+        return this.props.deviceQuery('plot', {
+          experiment_name: this.props.experiment.name,
+          plot_name: this.props.experiment.plots[plotIndex]
+        }).then(function (result) {
+          result.data = (0, _decode.decode_plot_data)(result.data);
+          (0, _d3plot2.default)(d3.select('#' + _this2.svgid), result);
+        }).catch(function (err) {
+          console.log(err);
+        });
+      } else {
+        console.log('cant replot without plotMethod=query');
+      }
     }
   }, {
     key: 'handlePlotChange',
@@ -45071,6 +45115,15 @@ var Plot = function (_React$Component) {
       this.setState({
         activeFormatIndex: tabIndex
       });
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate(prevProps) {
+      if (this.props.plotMethod === 'direct') {
+        if (this.props.plot.id !== prevProps.plot.id) {
+          (0, _d3plot2.default)(d3.select('#' + this.svgid), this.props.plot);
+        }
+      }
     }
   }, {
     key: 'render',
@@ -45304,6 +45357,9 @@ var TabPanes = function (_React$Component) {
             key: i,
             data: d,
             active: activeIndex === i,
+            temperature: _this2.props.temperature,
+            parValues: _this2.props.parValues,
+            setPar: _this2.props.setPar,
             deviceCommand: _this2.props.deviceCommand,
             deviceQuery: _this2.props.deviceQuery,
             messages: _this2.props.messages,
@@ -45464,8 +45520,6 @@ var _MessageBox2 = _interopRequireDefault(_MessageBox);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -45480,13 +45534,14 @@ var Temperature = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (Temperature.__proto__ || Object.getPrototypeOf(Temperature)).call(this, props));
 
+    _this.plotId = 0;
+
     _this.state = {
-      parameters: {},
       activeParameterGroupIndex: 0
     };
 
     _this.handleTabChange = _this.handleTabChange.bind(_this);
-    _this.setParameter = _this.setParameter.bind(_this);
+    _this.setOwnPar = _this.setOwnPar.bind(_this);
     return _this;
   }
 
@@ -45498,11 +45553,9 @@ var Temperature = function (_React$Component) {
       });
     }
   }, {
-    key: 'setParameter',
-    value: function setParameter(name, value) {
-      this.setState((0, _immutabilityHelper2.default)(this.state, {
-        parameters: _defineProperty({}, name, { $set: value })
-      }));
+    key: 'setOwnPar',
+    value: function setOwnPar(name, value) {
+      this.props.setPar(this.props.data.name, name, value);
     }
   }, {
     key: 'render',
@@ -45510,7 +45563,24 @@ var Temperature = function (_React$Component) {
       var data = this.props.data;
       var active = this.props.active;
 
-      var plots = [_react2.default.createElement(_Plot2.default, { key: 0 })];
+      var plots = [_react2.default.createElement(_Plot2.default, {
+        key: 0,
+        ref: this.plotref,
+        plotMethod: 'direct',
+        plot: {
+          id: this.plotId++,
+          data: [{
+            name: '',
+            type: 'scatter',
+            x: this.props.temperature.times,
+            y: this.props.temperature.values }],
+          layout: {
+            title: 'Temperature',
+            xaxis: { title: 'time (s)' },
+            yaxis: { title: 'Temperature (\xB0C)' }
+          }
+        }
+      })];
 
       var parGroupsObj = {};
       var sharedParameters = {};
@@ -45562,10 +45632,10 @@ var Temperature = function (_React$Component) {
             ),
             _react2.default.createElement(_ParameterPanes2.default, {
               parameterGroups: parameterGroups,
-              parameterValues: this.state.parameters,
+              parameterValues: this.props.parValues[data.name] || {},
               activeParameterGroupIndex: this.state.activeParameterGroupIndex,
               language: this.props.language,
-              onValueChange: this.setParameter
+              onValueChange: this.setOwnPar
             })
           )
         ),
