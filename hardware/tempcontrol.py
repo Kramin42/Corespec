@@ -1,3 +1,4 @@
+import os
 import asyncio
 import serial_asyncio
 import logging
@@ -12,7 +13,11 @@ CMD_SIZE = 4
 DATA_SIZE = 4
 PACKET_SIZE = CMD_SIZE + DATA_SIZE
 
+DEFAULT_PAR_FILE = 'tempcontrol.yaml'
+
 AMP_COOLDOWN_TIME = 2 # minutes
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 handler = None
 write = None
@@ -108,13 +113,13 @@ def set_parameters(setpoint=None, P=None, I=None):
         raise Exception('Temperature control not ready')
     logger.debug('setting initial parameters %.2f %.3f %.5f' % (setpoint, P, I))
     if setpoint is not None:
-        cmd = b'$TSP' + pack('>f', setpoint)
+        cmd = b'$TSP' + pack('>f', float(setpoint))
         write(cmd)
     if P is not None:
-        cmd = b'$TCP' + pack('>f', P)
+        cmd = b'$TCP' + pack('>f', float(P))
         write(cmd)
     if I is not None:
-        cmd = b'$TCI' + pack('>f', I)
+        cmd = b'$TCI' + pack('>f', float(I))
         write(cmd)
 
 class TempControl(asyncio.Protocol):
