@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-VERSION = '1.0.2'
+VERSION = '1.1.0'
 
 class AdminHandler(web.RequestHandler):
     def get(self):
