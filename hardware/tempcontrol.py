@@ -115,19 +115,21 @@ def amp_off():
     write(b'$AMPOFF#')
 
 def set_parameters(**pars):
+    for key in pars: # ensure they are floats
+        pars[key] = float(pars[key])
     with open(os.path.join(dir_path, PAR_FILE), 'w') as f:
         yaml.dump(pars, f, default_flow_style=False)
     if not mcs_ready:
         raise Exception('Temperature control not ready')
     logger.debug('setting tempcontrol parameters %.2f %.3f %.5f' % (pars['setpoint'], pars['P'], pars['I']))
     if pars['setpoint'] is not None:
-        cmd = b'$TSP' + pack('>f', float(pars['setpoint']))
+        cmd = b'$TSP' + pack('>f', pars['setpoint'])
         write(cmd)
     if pars['P'] is not None:
-        cmd = b'$TCP' + pack('>f', float(pars['P']))
+        cmd = b'$TCP' + pack('>f', pars['P'])
         write(cmd)
     if pars['I'] is not None:
-        cmd = b'$TCI' + pack('>f', float(pars['I']))
+        cmd = b'$TCI' + pack('>f', pars['I'])
         write(cmd)
 
 class TempControl(asyncio.Protocol):
