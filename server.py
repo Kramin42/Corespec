@@ -127,8 +127,8 @@ async def run(ws, experiment_name):
     def warning_handler(warning):
         asyncio.ensure_future(ws.send(json.dumps({'type': 'warning', 'message': warning})))
     await experiment.run(progress_handler=progress_handler, warning_handler=warning_handler)
-    if experiment.name in ['FID', 'CPMG']:
-        experiment.save(workspace.new_data_dir(experiment.name))
+    #if experiment.name in ['FID', 'CPMG']:
+    #    experiment.save(workspace.new_data_dir(experiment.name))
     await ws.send(json.dumps({'type': 'progress', 'experiment': experiment_name, 'finished': True}))
     await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
