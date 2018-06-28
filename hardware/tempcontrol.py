@@ -4,6 +4,8 @@ import serial_asyncio
 import logging
 from struct import pack, unpack
 
+import yaml
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -13,7 +15,7 @@ CMD_SIZE = 4
 DATA_SIZE = 4
 PACKET_SIZE = CMD_SIZE + DATA_SIZE
 
-DEFAULT_PAR_FILE = 'tempcontrol.yaml'
+PAR_FILE = 'tempcontrol.yaml'
 
 AMP_COOLDOWN_TIME = 2 # minutes
 
@@ -26,9 +28,17 @@ mcs_ready = False
 
 amp_enabled = False
 
-setpoint = 30.0
-P = 0.5
-I = 0.001
+parameters = {
+    'setpoint': 30.0,
+    'P': 0.5,
+    'I': 0.001
+}
+
+try:
+    with open(os.path.join(dir_path, PAR_FILE), 'r') as f:
+        parameters = yaml.load(f.read())
+except Exception as e:
+    logger.exception(e)
 
 # average temperature readings so we dont spam too much
 TEMP_AVERAGING = 10
@@ -38,13 +48,13 @@ temp_count = 0
 temp_time = 0
 
 def handler_raw(cmd):
-    global setpoint, P, I, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time
+    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
     if cmd[0:CMD_SIZE]==b'$TMP':
         if not mcs_ready:
             mcs_ready = True
-            set_parameters(setpoint=setpoint, P=P, I=I)  # set initial parameters
+            set_parameters(**parameters)  # set initial parameters
             asyncio.ensure_future(amp_on_delayed())
         temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
         temp_count += 1
@@ -86,12 +96,8 @@ def handler_raw(cmd):
         handler(data)
 
 def get_parameters():
-    return {
-        'setpoint': setpoint,
-        'P': P,
-        'I': I,
-        'amp_on': amp_enabled,
-    }
+    global parameters
+    return parameters
 
 async def amp_on_delayed():
     await asyncio.sleep(60*AMP_COOLDOWN_TIME)
@@ -108,18 +114,20 @@ def amp_off():
         raise Exception('Temperature control not ready')
     write(b'$AMPOFF#')
 
-def set_parameters(setpoint=None, P=None, I=None):
+def set_parameters(**pars):
+    with open(os.path.join(dir_path, PAR_FILE), 'w') as f:
+        yaml.dump(pars, f, default_flow_style=False)
     if not mcs_ready:
         raise Exception('Temperature control not ready')
-    logger.debug('setting initial parameters %.2f %.3f %.5f' % (setpoint, P, I))
-    if setpoint is not None:
-        cmd = b'$TSP' + pack('>f', float(setpoint))
+    logger.debug('setting tempcontrol parameters %.2f %.3f %.5f' % (pars['setpoint'], pars['P'], pars['I']))
+    if pars['setpoint'] is not None:
+        cmd = b'$TSP' + pack('>f', float(pars['setpoint']))
         write(cmd)
-    if P is not None:
-        cmd = b'$TCP' + pack('>f', float(P))
+    if pars['P'] is not None:
+        cmd = b'$TCP' + pack('>f', float(pars['P']))
         write(cmd)
-    if I is not None:
-        cmd = b'$TCI' + pack('>f', float(I))
+    if pars['I'] is not None:
+        cmd = b'$TCI' + pack('>f', float(pars['I']))
         write(cmd)
 
 class TempControl(asyncio.Protocol):
