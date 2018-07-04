@@ -34,7 +34,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_FT(self):
         y = self.raw_data()
-        dwell_time = self.par['dwell_time'] * 0.001  # μs->ms
+        dwell_time = self.par['dwell_time'] * 0.000001  # μs->s
         fft = np.fft.fft(y)
         freq = np.fft.fftfreq(y.size, d=dwell_time)
         # sort the frequency axis
@@ -42,13 +42,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         freq = freq[p]
         fft = fft[p]
         fft /= 1000000  # μV->V
-        fft *= dwell_time  # V->V/kHz
+        fft *= dwell_time*1000  # V->V/kHz
         return {
             'freq': freq,
             'fft_real': fft.real,
             'fft_imag': fft.imag,
-            'fft_unit': 'V/kHz',
-            'freq_unit': 'Hz'}
+            'fft_unit': 'V/Hz',
+            'freq_unit': 'kHz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
