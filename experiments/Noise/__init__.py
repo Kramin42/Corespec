@@ -47,8 +47,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'freq': freq,
             'fft_real': fft.real,
             'fft_imag': fft.imag,
-            'fft_unit': 'V/Hz',
-            'freq_unit': 'kHz'}
+            'fft_unit': 'V/kHz',
+            'freq_unit': 'Hz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

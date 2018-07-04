@@ -47,7 +47,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         fft_mag = np.abs(np.fft.fft(self.raw_data(), axis=1))
         fft_mag *= dwell_time
         halfwidth = int(fft_mag.shape[1]*self.par['int_width']*dwell_time*500)+1
-        y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)/(2*halfwidth+1)
+        y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)
+        y /= (2*halfwidth+1)
         y *= self.par['int_width']/1000
         x = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         return {
