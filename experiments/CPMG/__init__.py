@@ -22,18 +22,27 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
+        dwell_time = self.par['dwell_time']
         data = self.autophase(self.raw_data())
         t = np.zeros(data.size)
         offset = 0
-        sample_times = np.linspace(0, samples*self.par['dwell_time'],
+        sample_times = np.linspace(0, samples*dwell_time,
                                  num=samples, endpoint=False)
         for i in range(echo_count):
             t[i*samples:(i+1)*samples] = sample_times + offset
             offset+=self.par['echo_time']
-        return {'time': t, 'real': data.real, 'imag': data.imag, 'unit': 'μV', 'time_unit': 'μs'}
+        t/= 1000000  # μs -> s
+        data/=1000000  # μV -> V
+        return {
+            'time': t,
+            'real': data.real,
+            'imag': data.imag,
+            'unit': 'V',
+            'time_unit': 's'}
     
     def export_Echo_Integrals(self):
         y = self.autophase(self.integrated_data())
+        y/=1000000 # μV -> V
         echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time']/1000000.0
         x = np.linspace(0, echo_count*echo_time, echo_count)
@@ -43,24 +52,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_imag': y.imag,
             'y_mag': np.absolute(y),
             'x_unit': 's',
-            'y_unit': 'μV'}
+            'y_unit': 'V'}
 
     def export_Echo_Envelope(self):
         data = self.raw_data()
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
         dwell_time = self.par['dwell_time']
+        dwell_time/=1000000 # μs -> s
         x = np.linspace(0, dwell_time*samples, samples, endpoint=False)
         y = np.zeros(samples, dtype=np.complex64)
         for i in range(len(data)):
             y[i%samples] += data[i]
         y /= echo_count
+        y /= 1000000  # μV -> V
         return {
             'x': x,
             'y_real': y.real,
             'y_imag': y.imag,
-            'x_unit': 'μs',
-            'y_unit': 'μV'}
+            'x_unit': 's',
+            'y_unit': 'V'}
 
     def export_default(self):
         return self.export_Raw()

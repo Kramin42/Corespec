@@ -43,15 +43,19 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_Calibration(self):
+        dwell_time = self.par['dwell_time']/1000000
         fft_mag = np.abs(np.fft.fft(self.raw_data(), axis=1))
-        halfwidth = int(fft_mag.shape[1]*self.par['int_width']*self.par['dwell_time']/2000)+1
+        fft_mag *= dwell_time
+        halfwidth = int(fft_mag.shape[1]*self.par['int_width']*dwell_time*500)+1
         y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)
-        y /= (2*halfwidth+1)
+        #y /= (2*halfwidth+1)
+        y *= self.par['int_width']/1000
         x = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         return {
             'x': x,
             'y': y,
-            'x_unit': 'μs'}
+            'x_unit': 'μs',
+            'y_unit': 'V'}
 
     def export_Raw(self):
         return self.export_Calibration()
@@ -69,12 +73,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'layout': {
                     'title': 'Pulse Width Calibration',
                     'xaxis': {'title': data['x_unit']},
-                    'yaxis': {'title': 'FFT Integral'}
+                    'yaxis': {'title': 'FT Integral (%s)' % data['y_unit']}
                 }}
 
     def plot_FID(self):
         y = self.autophase(self.raw_data()[-1,:])
         x = np.linspace(0, self.par['dwell_time'] * len(y), len(y), endpoint=False)
+        y /= 1000000  # μV->V
+        x /= 1000000  # μs->s
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
@@ -86,8 +92,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y': y.imag}],
             'layout': {
                 'title': 'FID',
-                'xaxis': {'title': 'μs'},
-                'yaxis': {'title': 'μV'}
+                'xaxis': {'title': 's'},
+                'yaxis': {'title': 'V'}
             }}
 
     def raw_data(self):

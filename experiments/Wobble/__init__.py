@@ -40,12 +40,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         min_i = np.argmin(data['y'])
         # return object according to plotly schema
         return {'data': [{
-                    'name': 'Wobble',
+                    'name': '',
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y']}],
                 'layout': {
-                    'title': 'Wobble, Min: ({:.4g},{:.4g})'.format(data['x'][min_i], data['y'][min_i]),
+                    'title': 'Wobble, Min: ({:.5g},{:.3g})'.format(data['x'][min_i], data['y'][min_i]),
                     'xaxis': {'title': data['x_unit']}
                 }}
 

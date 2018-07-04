@@ -50372,8 +50372,9 @@ function d3plot(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000;
   var width = 600;
   var height = 400;
-  var margin = { left: 40, right: 40, top: 30, bottom: 40 };
-  var f_w = 40;
+  var margin = { left: 60, right: 20, top: 30, bottom: 40 };
+  var f_w = 60;
+  var f_h = 13;
   var fontS = 12;
   var fontM = 14;
   var fontL = 16;
@@ -50396,12 +50397,25 @@ function d3plot(svg, plotDef) {
     dataLabels.push(d.name);
   });
 
+  var SITickFormatX = d3.format('.4~s');
+  var SITickFormatY = d3.format('.3~s');
+  var SIFocusFormat = d3.format('.5~s');
+  var tickFormatX = function tickFormatX(val) {
+    return SITickFormatX(val).replace(/µ/, '\u03BC');
+  };
+  var tickFormatY = function tickFormatY(val) {
+    return SITickFormatY(val).replace(/µ/, '\u03BC');
+  };
+  var focusFormat = function focusFormat(val) {
+    return SIFocusFormat(val).replace(/µ/, '\u03BC');
+  };
+
   var base_scale_x = d3.scaleLinear().domain([domain.left, domain.right]).range([0, w]);
   var base_scale_y = d3.scaleLinear().domain([domain.bot, domain.top]).range([h, 0]);
   var scale_x = base_scale_x.copy();
   var scale_y = base_scale_y.copy();
-  var axis_x = d3.axisBottom().scale(scale_x);
-  var axis_y = d3.axisLeft().scale(scale_y);
+  var axis_x = d3.axisBottom().scale(scale_x).ticks(10).tickFormat(tickFormatX);
+  var axis_y = d3.axisLeft().scale(scale_y).ticks(10).tickFormat(tickFormatY);
   var bisect_x = d3.bisector(function (d) {
     return d.x;
   }).left;
@@ -50484,12 +50498,6 @@ function d3plot(svg, plotDef) {
     axis_x_g.append('text').attr('font-size', fontM).attr('dx', w / 2).attr('dy', margin.bottom - fontM / 4).style('text-anchor', 'middle').text(plotDef.layout.xaxis.title);
   }
   var axis_y_g = g.append('g').attr("class", "y axis").attr("transform", "translate(-0.5," + -0.5 + ")").call(axis_y);
-  //    .selectAll("text")
-  //        .style("text-anchor", "middle")
-  //        .attr("x", "0")
-  //        .attr("y", "-9")
-  //        .attr('dy', '0')
-  //        .attr("transform", "rotate(-90)");
   if (plotDef.layout.yaxis) {
     axis_y_g.append('text').attr('font-size', fontM).attr('transform', 'rotate(-90)').attr('dx', -h / 2).attr('dy', -margin.left + fontM).style('text-anchor', 'middle').text(plotDef.layout.yaxis.title);
   }
@@ -50504,17 +50512,23 @@ function d3plot(svg, plotDef) {
 
   //legends
   var legends = [];
-  var prevLegendBBox = null;
+  //var prevLegendBBox = null
   for (var i = 0; i < data.length; i++) {
-    var offsetY = 0;
-    if (prevLegendBBox) {
-      offsetY = prevLegendBBox.y + prevLegendBBox.height + fontS;
+    if (dataLabels[i]) {
+      var offsetY = fontS / 2 + i * 1.5 * fontS;
+      var offsetX = -fontS / 2;
+      //if (prevLegendBBox) {
+      //offsetY = prevLegendBBox.y + prevLegendBBox.height + fontS
+      //}
+      var legend = g.append('g').attr('class', 'legend');
+      var txt = legend.append('text').text(dataLabels[i]).attr('font-size', fontS).attr('dy', '0.85em');
+      //  .call(wrap, margin.right-2)
+      var txtlen = txt.node().getComputedTextLength();
+      txt.attr('x', w + offsetX - txtlen).attr('y', offsetY);
+      legend.append('rect').attr('x', w + offsetX - fontS / 4 - txtlen - fontS).attr('y', offsetY).attr('width', fontS).attr('height', fontS).attr('fill', plotColors[i % numPlotColors]);
+      legends.push(legend);
+      //prevLegendBBox = legend.node().getBBox()
     }
-    var legend = g.append('g').attr('class', 'legend');
-    legend.append('rect').attr('x', w + 2).attr('y', offsetY).attr('width', margin.right - 4).attr('height', 2).attr('fill', plotColors[i % numPlotColors]);
-    legend.append('text').attr('font-size', fontS).attr('x', w + 2).attr('y', offsetY + 2 + fontS).text(dataLabels[i]).call(wrap, margin.right - 2);
-    legends.push(legend);
-    prevLegendBBox = legend.node().getBBox();
   }
 
   // crosshairs
@@ -50527,26 +50541,26 @@ function d3plot(svg, plotDef) {
 
   //focus labels
   var focusX = g.append('g').attr('class', 'focus').style('display', 'none');
-  focusX.append('rect').attr('width', f_w).attr('height', fontS).style('fill', '#333');
+  focusX.append('rect').attr('width', f_w).attr('height', f_h).style('fill', '#333');
   focusX.append('text').attr('font-size', fontS).attr('dx', '0.25em').attr('dy', '0.85em');
   var lineFoci = [];
   for (var i = 0; i < data.length; i++) {
     var focus = g.append('g').attr('class', 'focus').style('display', 'none');
     focus.append('circle').attr('r', 1).attr('clip-path', 'url(#' + clipID + ')');
-    focus.append('rect').attr('width', f_w).attr('height', fontS).style('fill', plotColors[i % numPlotColors]).attr('clip-path', 'url(#' + clipID + ')');
+    focus.append('rect').attr('width', f_w).attr('height', f_h).style('fill', plotColors[i % numPlotColors]).attr('clip-path', 'url(#' + clipID + ')');
     focus.append('text').attr('font-size', fontS).attr('dx', '0.25em').attr('dy', '0.85em').attr('clip-path', 'url(#' + clipID + ')');
     lineFoci.push(focus);
   }
 
-  var overlay = g.append('rect').attr('class', 'zoom-xy overlay').attr('width', w).attr('height', h).call(zoom).on('mouseover', function () {
-    g.selectAll('.focus').style('display', null);
-  }).on('mouseout', function () {
+  var overlay = g.append('rect').attr('class', 'zoom-xy overlay').attr('width', w).attr('height', h).call(zoom)
+  //.on('mouseover', () => {g.selectAll('.focus').style('display', null)})
+  .on('mouseout', function () {
     g.selectAll('.focus').style('display', 'none');
   }).on('mousemove', update_hover);
 
-  g.append('rect').attr('class', 'zoom-x overlay').attr('width', w).attr('height', margin.bottom).attr('transform', 'translate(' + 0 + ',' + h + ')').call(zoom_x).on('mouseover', function () {
-    g.selectAll('.focus').style('display', null);
-  }).on('mouseout', function () {
+  g.append('rect').attr('class', 'zoom-x overlay').attr('width', w).attr('height', margin.bottom).attr('transform', 'translate(' + 0 + ',' + h + ')').call(zoom_x)
+  //.on('mouseover', () => {g.selectAll('.focus').style('display', null)})
+  .on('mouseout', function () {
     g.selectAll('.focus').style('display', 'none');
   }).on('mousemove', update_hover);
 
@@ -50622,6 +50636,7 @@ function d3plot(svg, plotDef) {
     var x0 = scale_x.invert(d3.mouse(overlay.node())[0]);
     var prev_f_y = null;
     for (var i = 0; i < data.length; i++) {
+      if (data[i].length == 0) return;
       var index = bisect_x(data[i], x0, 1);
       var p0 = data[i][index - 1];
       var p1 = data[i][index];
@@ -50637,54 +50652,20 @@ function d3plot(svg, plotDef) {
       f_y = Math.min(Math.max(f_y, 0), h - fontS);
       if (prev_f_y !== null) {
         var vertdist = f_y - prev_f_y;
-        if (Math.abs(vertdist) < fontS) {
+        if (Math.abs(vertdist) < f_h) {
           var sign = vertdist === 0 ? 1 : Math.sign(vertdist);
-          sign = prev_f_y === h - fontS ? -1 : sign;
-          f_y = prev_f_y + sign * fontS;
+          sign = prev_f_y === h - f_h ? -1 : sign;
+          f_y = prev_f_y + sign * f_h;
         }
       }
       lineFoci[i].select('rect').attr('x', f_x).attr('y', f_y);
-      lineFoci[i].select('text').attr('x', f_x).attr('y', f_y).text(p.y.toPrecision(4));
+      lineFoci[i].select('text').attr('x', f_x).attr('y', f_y).text(focusFormat(p.y));
+      //var txtlen = lineFoci[i].select('text').node().getComputedTextLength()
+      //lineFoci[i].select('rect').attr('width', txtlen+fontS/2)
       prev_f_y = f_y;
+      g.selectAll('.focus').style('display', null);
     }
 
-    //    //focus.attr('transform', 'translate('+scale_x(d[0])+','+scale_y(d[1])+')')
-    //    var f1_x = scale_x(d[0])
-    //    var f1_y = scale_y(d[1])
-    //    g.select('line.focus-1').attr('y1', f1_y).attr('y2', f1_y)
-    //    if (w - f1_x < f_w+fontS/2) // no room on right for focus label
-    //      f1_x-=f_w+fontS/2
-    //    else
-    //      f1_x+=fontS/2
-    //    f1_y-=fontS/2
-    //    f1_y = Math.min(Math.max(f1_y, 0), h-fontS)
-    //    focus.select('rect').attr('x', f1_x)
-    //    focus.select('rect').attr('y', f1_y)
-    //    focus.select('text').attr('x', f1_x)
-    //    focus.select('text').attr('y', f1_y)
-    //    focus.select('text').text(d[1].toPrecision(4))
-    //
-    //    var f2_x = scale_x(d[0])
-    //    var f2_y = scale_y(d[2])
-    //    g.select('line.focus-2').attr('y1', f2_y).attr('y2', f2_y)
-    //    if (w - f2_x < f_w+fontS/2) // no room on right for focus label
-    //      f2_x-=f_w+fontS/2
-    //    else
-    //      f2_x+=fontS/2
-    //    f2_y-=fontS/2
-    //    f2_y = Math.min(Math.max(f2_y, 0), h-fontS)
-    //    var vertdist = f2_y-f1_y
-    //    if (Math.abs(vertdist) < fontS) {
-    //      var sign = vertdist === 0 ? 1 : Math.sign(vertdist)
-    //      sign = f1_y === h-fontS ? -1 : sign
-    //      f2_y = f1_y+sign*fontS
-    //    }
-    //    focus2.select('rect').attr('x', f2_x)
-    //    focus2.select('rect').attr('y', f2_y)
-    //    focus2.select('text').attr('x', f2_x)
-    //    focus2.select('text').attr('y', f2_y)
-    //    focus2.select('text').text(d[2].toPrecision(4))
-    //
     // vertical crosshair
     var fx_x = scale_x(x0);
     crosshairX.attr('x1', fx_x).attr('x2', fx_x);
@@ -50692,7 +50673,7 @@ function d3plot(svg, plotDef) {
     var fx_x = Math.min(w - f_w + 0.5, Math.max(0.5, fx_x - f_w / 2));
     var fx_y = h;
     focusX.select('rect').attr('x', fx_x).attr('y', fx_y);
-    focusX.select('text').attr('x', fx_x).attr('y', fx_y).text(x0.toPrecision(4));
+    focusX.select('text').attr('x', fx_x).attr('y', fx_y).text(focusFormat(x0));
   }
 
   function wrap(text, width) {

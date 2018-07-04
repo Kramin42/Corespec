@@ -22,28 +22,33 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         y = self.autophase(self.raw_data())
         x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
+        y /= 1000000  # μV->V
+        x /= 1000000  # μs->s
         return {
             'x': x,
             'y_real': y.real,
             'y_imag': y.imag,
-            'y_unit': 'μV',
-            'x_unit': 'μs'}
+            'y_unit': 'V',
+            'x_unit': 's'}
 
 
     def export_FT(self):
         y = self.autophase(self.raw_data())
+        dwell_time = self.par['dwell_time']*0.000001  # μs->s
         fft = np.fft.fft(y)
-        freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
+        freq = np.fft.fftfreq(y.size, d=dwell_time)
         # sort the frequency axis
         p = freq.argsort()
         freq = freq[p]
         fft = fft[p]
+        fft /= 1000000  # μV->V
+        fft *= dwell_time  # V->V/Hz
         return {
             'freq': freq,
             'fft_real': fft.real,
             'fft_imag': fft.imag,
-            'fft_unit': 'μV',
-            'freq_unit': 'kHz'}
+            'fft_unit': 'V/Hz',
+            'freq_unit': 'Hz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

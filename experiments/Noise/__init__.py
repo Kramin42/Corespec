@@ -22,28 +22,33 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         y = self.raw_data()
         x = np.linspace(0, 0.5*len(y), len(y), endpoint=False)
+        y /= 1000000  # μV->V
+        x /= 1000000  # μs->s
         return {
             'x': x,
             'y_real': y.real,
             'y_imag': y.imag,
             'rms': np.sqrt(np.mean(y.real*y.real)).item(),
-            'y_unit': 'μV',
-            'x_unit': 'μs'}
+            'y_unit': 'V',
+            'x_unit': 's'}
 
     def export_FT(self):
         y = self.raw_data()
+        dwell_time = self.par['dwell_time'] * 0.000001  # μs->s
         fft = np.fft.fft(y)
-        freq = np.fft.fftfreq(y.size, d=self.par['dwell_time']*0.001)
+        freq = np.fft.fftfreq(y.size, d=dwell_time)
         # sort the frequency axis
         p = freq.argsort()
         freq = freq[p]
         fft = fft[p]
+        fft /= 1000000  # μV->V
+        fft *= dwell_time  # V->V/Hz
         return {
             'freq': freq,
             'fft_real': fft.real,
             'fft_imag': fft.imag,
-            'fft_unit': 'μV',
-            'freq_unit': 'kHz'}
+            'fft_unit': 'V/Hz',
+            'freq_unit': 'Hz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
@@ -60,7 +65,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'x': data['x'],
                     'y': data['y_imag']}],
                 'layout': {
-                    'title': 'Noise, RMS: {:0.2f}{}'.format(data['rms'], data['y_unit']),
+                    'title': 'Noise, RMS: {:0.2f}{}'.format(data['rms']*1000000, 'μ'+data['y_unit']),
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
