@@ -34,7 +34,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_FT(self):
         y = self.autophase(self.raw_data())
-        dwell_time = self.par['dwell_time']*0.000001  # μs->s
+        dwell_time = self.par['dwell_time']*0.001  # μs->ms
         fft = np.fft.fft(y)
         freq = np.fft.fftfreq(y.size, d=dwell_time)
         # sort the frequency axis
@@ -42,12 +42,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         freq = freq[p]
         fft = fft[p]
         fft /= 1000000  # μV->V
-        fft *= dwell_time  # V->V/Hz
+        fft *= dwell_time  # V->V/kHz
         return {
             'freq': freq,
             'fft_real': fft.real,
             'fft_imag': fft.imag,
-            'fft_unit': 'V/Hz',
+            'fft_unit': 'V/kHz',
             'freq_unit': 'Hz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
