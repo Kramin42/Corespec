@@ -43,7 +43,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Echo_Integrals(self):
         y = self.autophase(self.integrated_data())
         if y.size > 200:
-            SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.real[-100:] * y.real[-100:])).item()
+            SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[-100:] * y.imag[-100:])).item()
             logger.info('SNR: %d' % SNR)
         y/=1000000 # μV -> V
         echo_count = int(self.par['echo_count'])
