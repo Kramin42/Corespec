@@ -7,10 +7,11 @@ import shutil
 import logging
 import numpy as np
 import yaml
+from mmap import mmap
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -41,15 +42,16 @@ mem_d = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_d
 mem_p = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_p
 mailbox = ol.microblaze_ppu.microblaze_core.mailbox
 
-
 def stop() -> None:
     reset.write(0x0, 0)
+    logger.debug('reset read: %i' % reset.read(0x8))
     if reset.read(0x8)!=1:
         logger.error('stop command failed!')
 
 
 def run() -> None:
     reset.write(0x0, 1)
+    logger.debug('reset read: %i' % reset.read(0x8))
     if reset.read(0x8)!=0:
         logger.error('run command failed!')
 
@@ -70,6 +72,7 @@ def write_elf(path: str) -> None:
                 mem_i.write(offset, data)
             else:
                 offset-=mem_i.mmio.length
+                logger.debug('writing to D mem at offset 0x%X' % offset)
                 mem_d.write(offset, data)
 
 
@@ -93,12 +96,14 @@ def read_dma(
         dtype=np.dtype(np.int32)) -> np.ndarray:
     # length is relative to the dtype size
     # offset is absolute
+    # skip is relative to the dtype size
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
     with open('/dev/mem', 'r+b') as f:
         mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
+        logger.debug('reading from %i to %i' % (offset, offset+length))
         data = np.frombuffer(mem[offset:offset+length], dtype=dtype)
-    return data*CONFIG['input_calibration']
+    return data
 
 
 def read_fifo(
@@ -110,4 +115,15 @@ def read_fifo(
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
     data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)
-    return data*CONFIG['input_calibration']
+    return data
+
+
+def calibrate(
+        data: np.ndarray,
+        decimation: int=None) -> np.ndarray:
+    data = data * CONFIG['input_calibration']
+    if decimation is not None:
+        # TODO: ensure these config properties exist or copy them from default_config
+        Bmax = CONFIG['DSP_CIC_N']*np.log2(decimation*CONFIG['DSP_CIC_M']) + CONFIG['DSP_CIC_B']
+        data = data * (2**(np.ceil(Bmax) - Bmax))
+    return data

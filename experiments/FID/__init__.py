@@ -70,6 +70,22 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'yaxis': {'title': data['y_unit']}
                 }}
 
+    def plot_Phase(self):
+        y = self.autophase(self.raw_data())
+        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
+        x /= 1000000  # μs->s
+        
+        # return object according to plotly schema
+        return {'data': [{
+                    'name': '',
+                    'type': 'scatter',
+                    'x': x,
+                    'y': np.angle(y)}],
+                'layout': {
+                    'title': 'Phase',
+                    'xaxis': {'title': 's'},
+                    'yaxis': {'title': 'rad'}
+                }}
 
     def plot_FT(self):
         data = self.export_FT()
@@ -90,7 +106,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def raw_data(self):
         data = self.programs['FID'].data
-        return data.astype(np.float32).view(np.complex64)
+        data = data.astype(np.float32).view(np.complex64)
+        #logger.debug(data.size)
+        # average the scans
+        data = np.mean(np.split(data, int(self.par['scans'])), axis=0)
+        #data = np.split(data, int(self.par['scans']))[1]
+        #logger.debug(data.size)
+        return data
 
     def autophase(self, data):
         phase = np.angle(np.sum(data)) # get average phase

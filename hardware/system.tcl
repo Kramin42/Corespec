@@ -2915,9 +2915,9 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net xlconstant_1_dout [get_bd_pins azynq_0/SDIO1_CDN] [get_bd_pins xlconstant_1/dout]
 
   # Create address segments
-  create_bd_addr_seg -range 0x00008000 -offset 0x40008000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_d/S_AXI/Mem0] SEG_axi_bram_ctrl_d_Mem0
-  create_bd_addr_seg -range 0x00008000 -offset 0x40000000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_i/S_AXI/Mem0] SEG_axi_bram_ctrl_i_Mem0
-  create_bd_addr_seg -range 0x00020000 -offset 0x40020000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_p/S_AXI/Mem0] SEG_axi_bram_ctrl_p_Mem0
+  create_bd_addr_seg -range 0x00008000 -offset 0x40020000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_d/S_AXI/Mem0] SEG_axi_bram_ctrl_d_Mem0
+  create_bd_addr_seg -range 0x00020000 -offset 0x40000000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_i/S_AXI/Mem0] SEG_axi_bram_ctrl_i_Mem0
+  create_bd_addr_seg -range 0x00020000 -offset 0x40040000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_p/S_AXI/Mem0] SEG_axi_bram_ctrl_p_Mem0
   create_bd_addr_seg -range 0x00010000 -offset 0x43800000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/mailbox/S1_AXI/Reg] SEG_mailbox_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x41000000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/pp_reset/S_AXI/Reg] SEG_pp_reset_Reg
   create_bd_addr_seg -range 0x10000000 -offset 0x30000000 [get_bd_addr_spaces ddc/dma_con/Data_S2MM] [get_bd_addr_segs azynq_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
@@ -2926,14 +2926,14 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   create_bd_addr_seg -range 0x00010000 -offset 0x41C00000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/axi_timer_0/S_AXI/Reg] SEG_axi_timer_0_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x42001000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs DDS_AD9951/dds_outputs/S_AXI/Reg] SEG_dds_outputs_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x42000000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs DDS_AD9951/dds_spi/AXI_LITE/Reg] SEG_dds_spi_Reg
-  create_bd_addr_seg -range 0x00008000 -offset 0x00008000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/dlmb_bram_if_cntlr_d/SLMB/Mem] SEG_dlmb_bram_if_cntlr_d_Mem
-  create_bd_addr_seg -range 0x00020000 -offset 0x00020000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/dlmb_bram_if_cntlr_p/SLMB/Mem] SEG_dlmb_bram_if_cntlr_p_Mem
+  create_bd_addr_seg -range 0x00008000 -offset 0x00020000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/dlmb_bram_if_cntlr_d/SLMB/Mem] SEG_dlmb_bram_if_cntlr_d_Mem
+  create_bd_addr_seg -range 0x00020000 -offset 0x00040000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/dlmb_bram_if_cntlr_p/SLMB/Mem] SEG_dlmb_bram_if_cntlr_p_Mem
   create_bd_addr_seg -range 0x00010000 -offset 0x42400000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs ddc/dma_con/S_AXI_LITE/Reg] SEG_dma_con_Reg
   create_bd_addr_seg -range 0x00010000 -offset 0x42430000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs ddc/gpio_DDC_control/S_AXI/Reg] SEG_gpio_DDC_control_Reg
   create_bd_addr_seg -range 0x00010000 -offset 0x42420000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs ddc/gpio_DDC_fifo/S_AXI/Reg] SEG_gpio_DDC_fifo_Reg
   create_bd_addr_seg -range 0x00010000 -offset 0x42410000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs ddc/gpio_DDS/S_AXI/Reg] SEG_gpio_DDS_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x42300000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs TTL/gpio_ttl/S_AXI/Reg] SEG_gpio_ttl_Reg
-  create_bd_addr_seg -range 0x00008000 -offset 0x00000000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Instruction] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/ilmb_bram_if_ctrl_i/SLMB/Mem] SEG_ilmb_bram_if_cntlr_Mem
+  create_bd_addr_seg -range 0x00020000 -offset 0x00000000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Instruction] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/ilmb_bram_if_ctrl_i/SLMB/Mem] SEG_ilmb_bram_if_cntlr_Mem
   create_bd_addr_seg -range 0x00010000 -offset 0x43600000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/mailbox/S0_AXI/Reg] SEG_mailbox_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x41400000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/mdm_1/S_AXI/Reg] SEG_mdm_1_Reg
 

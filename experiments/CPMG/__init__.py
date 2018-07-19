@@ -48,7 +48,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y/=1000000 # μV -> V
         echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time']/1000000.0
-        x = np.linspace(0, echo_count*echo_time, echo_count)
+        x = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
         return {
             'x': x,
             'y_real': y.real,
@@ -58,7 +58,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_unit': 'V'}
 
     def export_Echo_Envelope(self):
-        data = self.raw_data()
+        data = self.autophase(self.raw_data())
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
         dwell_time = self.par['dwell_time']
@@ -139,8 +139,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     def raw_data(self):
         data = self.programs['CPMG'].data
+        #logger.debug(data.size)
         # deinterleave
         data = data.astype(np.float32).view(np.complex64)
+        #logger.debug(data.size)
+        # average the scans
+        data = np.mean(np.split(data, int(self.par['scans'])), axis=0)
+        #data = np.split(data, int(self.par['scans']))[1]
+        #logger.debug(data.size)
         return data
 
     def integrated_data(self):

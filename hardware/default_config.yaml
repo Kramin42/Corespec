@@ -1,3 +1,6 @@
 # hardware configuration
 ---
-input_calibration: 0.00000267
+input_calibration: 0.00000179
+DSP_CIC_N: 4
+DSP_CIC_M: 2
+DSP_CIC_B: 16

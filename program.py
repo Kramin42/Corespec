@@ -14,7 +14,7 @@ import numpy as np
 from config import CONFIG
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 programs_dir = os.path.join(dir_path, 'programs')
@@ -101,6 +101,8 @@ class Program:
         # no heavy processing or blocking IO
         prev_progress = -1
         while self.status!=self.config_get('status.values.finished'):
+            #logger.debug('action: %i' % system.read_par(0x0))
+            #logger.debug('status: %i' % system.read_par(0x04))
             if self._aborted:
                 raise Exception('Aborted')
             if self.has_progress:
@@ -184,28 +186,55 @@ class Program:
         logger.debug('run: reading data')
         if self.config_get('output.type') == 'FIFO':
             self._data = system.read_fifo(
-                int(self.config_get('output.offset')),
-                int(self.config_get('output.length')),
-                self.config_get('output.dtype'))
+                offset=int(self.config_get('output.offset')),
+                length=int(self.config_get('output.length')),
+                dtype=self.config_get('output.dtype'))
         elif self.config_get('output.type') == 'DMA':
-            self._data = system.read_dma(
-                self.config_get('output.offset'),
-                self.config_get('output.length'),
-                self.config_get('output.dtype'))
-        try:
+            cfg_output = self.config_get('output')
+            # block method for (e.g.) skipping ignore_sample data
+            if 'block_count' in cfg_output and 'block_length' in cfg_output:
+                block_count = int(self.config_get('output.block_count'))
+                block_length = int(self.config_get('output.block_length'))
+                self._data = np.empty(
+                    block_count*block_length,
+                    dtype=self.config_get('output.dtype'))
+                block_skip = 0
+                if 'block_skip' in cfg_output:
+                    block_skip = int(self.config_get('output.block_skip'))
+                logger.debug('reading %i blocks, length %i, skip %i' % (block_count, block_length, block_skip))
+                tempdata = system.read_dma(
+                    offset=int(self.config_get('output.offset')),
+                    length=(block_skip+block_length)*block_count,
+                    dtype=self.config_get('output.dtype'))
+                self._data = np.array(np.split(tempdata, block_count))[:,block_skip:].flatten()
+                #for i in range(block_count):
+                #    self._data[i*block_length:(i+1)*block_length] = \
+                #        tempdata[block_skip+i*(block_length+block_skip):(i+1)*(block_length+block_skip)]
+            else:  # basic method
+                self._data = system.read_dma(
+                    offset=int(self.config_get('output.offset')),
+                    length=int(self.config_get('output.length')),
+                    dtype=self.config_get('output.dtype'))
+        
+        self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
+        if 'scale_factor' in self.config_get('output'):
             self._data = self._data*self.config_get('output.scale_factor')
-        except KeyError as e: # no scale factor set in config
-            logger.warning(e)
+        
         self._data_ready = True
         if warning_handler:
             try:
                 adc_overflow_count = system.read_par(self.config_get('adc_overflow_count.offset'))
+                logger.debug('ADC overflow count: %i' % adc_overflow_count)
                 # TODO: test adc overflow count
                 #if adc_overflow_count>0:
                 #    warning_handler('ADC overflow detected! (count: %i)' % adc_overflow_count)
             except Exception as e: # errors here are not important
                 logger.debug('Error during warning check: %s' % str(e))
         logger.debug('run: finished')
+        logger.debug('error: %i' % system.read_par(0x08))
+        logger.debug('debug1: %i' % system.read_par(0x0c))
+        logger.debug('debug2: %i' % system.read_par(0x10))
+        logger.debug('status: %i' % self.status)
         system.stop()
 
     def abort(self):

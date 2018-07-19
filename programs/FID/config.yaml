@@ -2,7 +2,7 @@
 ---
 description:
   A FID experiment.
-executable: FID_FIFO.elf
+executable: FID_DMA.elf
 action:
   offset: 0x0
   values:
@@ -19,11 +19,13 @@ progress:
   offset: 0x1c
   limit: ${{scans}-1}
 output:
-  type: FIFO
+  type: DMA
   dtype: int32
-  offset: 0x100
-  length: ${2*{samples}}
-  scale_factor: ${1/{scans}}
+  offset: 0x0
+  block_count: ${{scans}}
+  block_length: ${2*{samples}}
+  block_skip: 14
+  scale_factor: 1
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -77,13 +79,13 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
-    max: 16000
+    max: 1000000
     group: acquisition
   dwell_time:
     offset: 0xcc
     dtype: uint32
-    min: 0.5
-    max: 16
+    min: 0.1
+    max: 80
     unit: us
     scaling: 100
     group: acquisition

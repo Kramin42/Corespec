@@ -6,4 +6,4 @@ programs:
 defaults:
   plots:
     - Echo_Integrals
-    - Raw
+    - Echo_Envelope
