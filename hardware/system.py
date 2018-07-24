@@ -15,16 +15,16 @@ logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-CONFIG = {}
-def load_config():
-    with open(os.path.join(dir_path, 'config.yaml'), 'r') as f:
+def load_config(file_name):
+    with open(os.path.join(dir_path, file_name), 'r') as f:
         return yaml.load(f.read())
 
+CONFIG = load_config('default_config.yaml')
+
 try:
-    CONFIG = load_config()
+    CONFIG.update(load_config('config.yaml'))
 except IOError:
     shutil.copyfile(os.path.join(dir_path, 'default_config.yaml'), os.path.join(dir_path, 'config.yaml'))
-    CONFIG = load_config()
 
 from pynq import Overlay
 from elftools.elf.elffile import ELFFile
@@ -123,7 +123,6 @@ def calibrate(
         decimation: int=None) -> np.ndarray:
     data = data * CONFIG['input_calibration']
     if decimation is not None:
-        # TODO: ensure these config properties exist or copy them from default_config
         Bmax = CONFIG['DSP_CIC_N']*np.log2(decimation*CONFIG['DSP_CIC_M']) + CONFIG['DSP_CIC_B']
         data = data * (2**(np.ceil(Bmax) - Bmax))
     return data

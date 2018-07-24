@@ -226,8 +226,8 @@ class Program:
                 adc_overflow_count = system.read_par(self.config_get('adc_overflow_count.offset'))
                 logger.debug('ADC overflow count: %i' % adc_overflow_count)
                 # TODO: test adc overflow count
-                #if adc_overflow_count>0:
-                #    warning_handler('ADC overflow detected! (count: %i)' % adc_overflow_count)
+                if adc_overflow_count>0:
+                    warning_handler('ADC overflow detected! (count: %i)' % adc_overflow_count)
             except Exception as e: # errors here are not important
                 logger.debug('Error during warning check: %s' % str(e))
         logger.debug('run: finished')
