@@ -111,10 +111,11 @@ class Program:
             block_skip = 0
             if 'block_skip' in self.config_get('output'):
                 block_skip = int(self.config_get('output.block_skip'))
+            block_count = int(self.config_get('output.block_count'))
             block_length = int(self.config_get('output.block_length'))
-            block_counter = 0
+            bbuf_counter = 0
             self._acc_data = np.zeros(
-                int(self.config_get('output.block_skip')),
+                block_count*(block_length+block_skip),
                 dtype=self.config_get('output.dtype'))
         while self.status!=self.config_get('status.values.finished'):
             #logger.debug('action: %i' % system.read_par(0x0))
@@ -132,13 +133,13 @@ class Program:
                     self.config_get('output.bbuf_write_index_offset'), 'uint32')
                 if bbuf_write_index!=bbuf_read_index:
                     logger.debug('bbuf_read_index: %i, bbuf_write_index: %i, bbuf_length: %i' % (bbuf_read_index, bbuf_write_index, bbuf_length))
-                    dma_read_offset = int(self.config_get('output.offset')) + (block_skip+block_length)*bbuf_read_index+block_skip
+                    dma_read_offset = int(self.config_get('output.offset')) + (block_skip+block_length)*bbuf_read_index
                     self._acc_data += system.read_dma(
                         offset=dma_read_offset,
-                        length=block_length,
+                        length=block_count*(block_length+block_skip),
                         dtype=self.config_get('output.dtype'))
-                    block_counter += 1
-                    self._data = self._acc_data / block_counter
+                    bbuf_counter += 1
+                    self._data = np.array(np.split(self._acc_data/bbuf_counter, block_count))[:, block_skip:].flatten()
                     bbuf_read_index+=1
                     bbuf_read_index%=bbuf_length
                     system.write_par(int(self.config_get('output.bbuf_read_index_offset')), bbuf_read_index, 'uint32')
