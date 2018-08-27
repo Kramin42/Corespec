@@ -37,6 +37,7 @@ class Program:
         self.par_deps = {}
         self._data_ready = False
         self._data = None
+        self._acc_data = None
         self._aborted = False
 
     def set_par(self, name: str, value):
@@ -100,6 +101,21 @@ class Program:
         # progress_handler should return quickly:
         # no heavy processing or blocking IO
         prev_progress = -1
+        if 'bbuf_length' in self.config_get('output'):
+            bbuf_write_index = system.read_par(
+                int(self.config_get('output.bbuf_write_index_offset')), 'uint32')
+            bbuf_read_index = system.read_par(
+                int(self.config_get('output.bbuf_read_index_offset')), 'uint32')
+            bbuf_length = system.read_par(
+                int(self.config_get('output.bbuf_length_offset')), 'uint32')
+            block_skip = 0
+            if 'block_skip' in self.config_get('output'):
+                block_skip = int(self.config_get('output.block_skip'))
+            block_length = int(self.config_get('output.block_length'))
+            block_counter = 0
+            self._acc_data = np.zeros(
+                int(self.config_get('output.block_skip')),
+                dtype=self.config_get('output.dtype'))
         while self.status!=self.config_get('status.values.finished'):
             #logger.debug('action: %i' % system.read_par(0x0))
             #logger.debug('status: %i' % system.read_par(0x04))
@@ -110,6 +126,24 @@ class Program:
                 if progress_handler is not None and cur_progress!=prev_progress:
                     progress_handler(cur_progress, self.config_get('progress.limit')+1)
                     prev_progress = cur_progress
+
+            if 'bbuf_length' in self.config_get('output'):
+                bbuf_write_index = system.read_par(
+                    self.config_get('output.bbuf_write_index_offset'), 'uint32')
+                if bbuf_write_index!=bbuf_read_index:
+                    logger.debug('bbuf_read_index: %i, bbuf_write_index: %i, bbuf_length: %i' % (bbuf_read_index, bbuf_write_index, bbuf_length))
+                    dma_read_offset = int(self.config_get('output.offset')) + (block_skip+block_length)*bbuf_read_index+block_skip
+                    self._acc_data += system.read_dma(
+                        offset=dma_read_offset,
+                        length=block_length,
+                        dtype=self.config_get('output.dtype'))
+                    block_counter += 1
+                    self._data = self._acc_data / block_counter
+                    bbuf_read_index+=1
+                    bbuf_read_index%=bbuf_length
+                    system.write_par(int(self.config_get('output.bbuf_read_index_offset')), bbuf_read_index, 'uint32')
+
+
             await asyncio.sleep(0.1)
 
     async def run(self, progress_handler=None, warning_handler=None):
@@ -168,6 +202,19 @@ class Program:
                         self.config_get('derived_parameters.'+par_name+'.offset'),
                         self.par[par_name],
                         self.config_get('derived_parameters.'+par_name+'.dtype'))
+
+
+        if self.config_get('output.type') == 'DMA':
+            # DMA rotating buffer
+            if 'bbuf_length' in self.config_get('output'):
+                system.write_par(
+                    int(self.config_get('output.bbuf_length_offset')),
+                    int(self.config_get('output.bbuf_length')),
+                    'uint32')
+                system.write_par(
+                    int(self.config_get('output.bbuf_read_index_offset')),
+                    0,
+                    'uint32')
         
         logger.debug('run: running')
         # reset progress

@@ -24,6 +24,10 @@ output:
   block_count: ${{scans}*{echo_count}}
   block_length: ${2*{samples}}
   block_skip: 14
+  bbuf_length: 10
+  bbuf_length_offset: 0x30
+  bbuf_read_index_offset: 0x34
+  bbuf_write_index_offset: 0x38
   scale_factor: 1
 adc_overflow_count:
   offset: 0x20
