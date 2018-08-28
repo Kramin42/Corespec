@@ -223,6 +223,10 @@ class Program:
                     int(self.config_get('output.bbuf_read_index_offset')),
                     0,
                     'uint32')
+                system.write_par(
+                    int(self.config_get('output.bbuf_write_index_offset')),
+                    0,
+                    'uint32')
         
         logger.debug('run: running')
         # reset progress
