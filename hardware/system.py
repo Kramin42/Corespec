@@ -93,12 +93,14 @@ def read_par(offset: int, dtype=np.dtype(np.int32)):
 def read_dma(
         offset: int,
         length: int,
+        reloffset: int=0,
         dtype=np.dtype(np.int32)) -> np.ndarray:
     # length is relative to the dtype size
     # offset is absolute
     # skip is relative to the dtype size
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
+    offset += reloffset*dtype.itemsize
     with open('/dev/mem', 'r+b') as f:
         mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
         logger.debug('reading from %i to %i' % (offset, offset+length))

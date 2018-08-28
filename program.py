@@ -136,9 +136,9 @@ class Program:
                     self.config_get('output.bbuf_write_index_offset'), 'uint32')
                 if bbuf_write_index!=bbuf_read_index and not bbuf_finished:
                     logger.debug('bbuf_read_index: %i, bbuf_write_index: %i, bbuf_length: %i' % (bbuf_read_index, bbuf_write_index, bbuf_length))
-                    dma_read_offset = int(self.config_get('output.offset')) + block_count*(block_skip+block_length)*bbuf_read_index
                     self._acc_data += system.read_dma(
-                        offset=dma_read_offset,
+                        offset=int(self.config_get('output.offset')),
+                        reloffset=block_count*(block_skip+block_length)*bbuf_read_index,
                         length=block_count*(block_length+block_skip),
                         dtype=self.config_get('output.dtype'))
 
