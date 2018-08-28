@@ -101,13 +101,14 @@ class Program:
         # progress_handler should return quickly:
         # no heavy processing or blocking IO
         prev_progress = -1
+        bbuf_finished = True # use this to prevent early ending when using the rotary buffer
         if 'bbuf_length' in self.config_get('output'):
             bbuf_write_index = system.read_par(
                 int(self.config_get('output.bbuf_write_index_offset')), 'uint32')
             bbuf_read_index = system.read_par(
                 int(self.config_get('output.bbuf_read_index_offset')), 'uint32')
-            bbuf_length = system.read_par(
-                int(self.config_get('output.bbuf_length_offset')), 'uint32')
+            bbuf_length = int(self.config_get('output.bbuf_length'))
+            bbuf_total = int(self.config_get('output.bbuf_total'))
             block_skip = 0
             if 'block_skip' in self.config_get('output'):
                 block_skip = int(self.config_get('output.block_skip'))
@@ -117,7 +118,9 @@ class Program:
             self._acc_data = np.zeros(
                 block_count*(block_length+block_skip),
                 dtype=self.config_get('output.dtype'))
-        while self.status!=self.config_get('status.values.finished'):
+            bbuf_finished = False
+        while self.status!=self.config_get('status.values.finished') or not bbuf_finished:
+            final_run_done = self.status==self.config_get('status.values.finished')
             #logger.debug('action: %i' % system.read_par(0x0))
             #logger.debug('status: %i' % system.read_par(0x04))
             if self._aborted:
@@ -131,7 +134,7 @@ class Program:
             if 'bbuf_length' in self.config_get('output'):
                 bbuf_write_index = system.read_par(
                     self.config_get('output.bbuf_write_index_offset'), 'uint32')
-                if bbuf_write_index!=bbuf_read_index:
+                if bbuf_write_index!=bbuf_read_index and not bbuf_finished:
                     logger.debug('bbuf_read_index: %i, bbuf_write_index: %i, bbuf_length: %i' % (bbuf_read_index, bbuf_write_index, bbuf_length))
                     dma_read_offset = int(self.config_get('output.offset')) + block_count*(block_skip+block_length)*bbuf_read_index
                     self._acc_data += system.read_dma(
@@ -150,6 +153,7 @@ class Program:
                     bbuf_read_index+=1
                     bbuf_read_index%=bbuf_length
                     system.write_par(int(self.config_get('output.bbuf_read_index_offset')), bbuf_read_index, 'uint32')
+                    bbuf_finished = (bbuf_counter == bbuf_total)
 
 
             await asyncio.sleep(0.1)

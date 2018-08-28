@@ -25,6 +25,7 @@ output:
   block_length: ${2*{samples}}
   block_skip: 14
   bbuf_length: 10
+  bbuf_total: ${{scans}}
   bbuf_length_offset: 0x30
   bbuf_read_index_offset: 0x34
   bbuf_write_index_offset: 0x38
