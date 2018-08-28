@@ -138,8 +138,15 @@ class Program:
                         offset=dma_read_offset,
                         length=block_count*(block_length+block_skip),
                         dtype=self.config_get('output.dtype'))
+
+                    # allow partial data to be retrieved
                     bbuf_counter += 1
                     self._data = np.array(np.split(self._acc_data/bbuf_counter, block_count))[:, block_skip:].flatten()
+                    self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
+                    if 'scale_factor' in self.config_get('output'):
+                        self._data = self._data * self.config_get('output.scale_factor')
+                    self._data_ready = True
+
                     bbuf_read_index+=1
                     bbuf_read_index%=bbuf_length
                     system.write_par(int(self.config_get('output.bbuf_read_index_offset')), bbuf_read_index, 'uint32')
@@ -239,36 +246,38 @@ class Program:
                 dtype=self.config_get('output.dtype'))
         elif self.config_get('output.type') == 'DMA':
             cfg_output = self.config_get('output')
-            # block method for (e.g.) skipping ignore_sample data
-            if 'block_count' in cfg_output and 'block_length' in cfg_output:
-                block_count = int(self.config_get('output.block_count'))
-                block_length = int(self.config_get('output.block_length'))
-                self._data = np.empty(
-                    block_count*block_length,
-                    dtype=self.config_get('output.dtype'))
-                block_skip = 0
-                if 'block_skip' in cfg_output:
-                    block_skip = int(self.config_get('output.block_skip'))
-                logger.debug('reading %i blocks, length %i, skip %i' % (block_count, block_length, block_skip))
-                tempdata = system.read_dma(
-                    offset=int(self.config_get('output.offset')),
-                    length=(block_skip+block_length)*block_count,
-                    dtype=self.config_get('output.dtype'))
-                self._data = np.array(np.split(tempdata, block_count))[:,block_skip:].flatten()
-                #for i in range(block_count):
-                #    self._data[i*block_length:(i+1)*block_length] = \
-                #        tempdata[block_skip+i*(block_length+block_skip):(i+1)*(block_length+block_skip)]
-            else:  # basic method
-                self._data = system.read_dma(
-                    offset=int(self.config_get('output.offset')),
-                    length=int(self.config_get('output.length')),
-                    dtype=self.config_get('output.dtype'))
-        
-        self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
-        if 'scale_factor' in self.config_get('output'):
-            self._data = self._data*self.config_get('output.scale_factor')
-        
-        self._data_ready = True
+            if 'bbuf_length' not in cfg_output:
+                # block method for (e.g.) skipping ignore_sample data
+                if 'block_count' in cfg_output and 'block_length' in cfg_output:
+                    block_count = int(self.config_get('output.block_count'))
+                    block_length = int(self.config_get('output.block_length'))
+                    self._data = np.empty(
+                        block_count*block_length,
+                        dtype=self.config_get('output.dtype'))
+                    block_skip = 0
+                    if 'block_skip' in cfg_output:
+                        block_skip = int(self.config_get('output.block_skip'))
+                    logger.debug('reading %i blocks, length %i, skip %i' % (block_count, block_length, block_skip))
+                    tempdata = system.read_dma(
+                        offset=int(self.config_get('output.offset')),
+                        length=(block_skip+block_length)*block_count,
+                        dtype=self.config_get('output.dtype'))
+                    self._data = np.array(np.split(tempdata, block_count))[:,block_skip:].flatten()
+                    #for i in range(block_count):
+                    #    self._data[i*block_length:(i+1)*block_length] = \
+                    #        tempdata[block_skip+i*(block_length+block_skip):(i+1)*(block_length+block_skip)]
+                else:  # basic method
+                    self._data = system.read_dma(
+                        offset=int(self.config_get('output.offset')),
+                        length=int(self.config_get('output.length')),
+                        dtype=self.config_get('output.dtype'))
+
+        if 'bbuf_length' not in cfg_output:
+            self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
+            if 'scale_factor' in self.config_get('output'):
+                self._data = self._data*self.config_get('output.scale_factor')
+            self._data_ready = True
+
         if warning_handler:
             try:
                 adc_overflow_count = system.read_par(self.config_get('adc_overflow_count.offset'))
