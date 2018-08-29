@@ -134,11 +134,9 @@ class Program:
             if 'bbuf_length' in self.config_get('output'):
                 bbuf_write_index = system.read_par(
                     int(self.config_get('output.bbuf_write_index_offset')), 'uint32')
-                bbuf_read_index = system.read_par(
-                    int(self.config_get('output.bbuf_read_index_offset')), 'uint32')
                 if bbuf_write_index!=bbuf_read_index and not bbuf_finished:
                     logger.debug('bbuf_read_index: %i, bbuf_write_index: %i, bbuf_length: %i' % (bbuf_read_index, bbuf_write_index, bbuf_length))
-                    self._acc_data = system.read_dma(
+                    self._acc_data += system.read_dma(
                         offset=int(self.config_get('output.offset')),
                         reloffset=block_count*(block_skip+block_length)*bbuf_read_index,
                         length=block_count*(block_length+block_skip),
@@ -146,7 +144,7 @@ class Program:
 
                     # allow partial data to be retrieved
                     bbuf_counter += 1
-                    self._data = np.array(np.split(self._acc_data, block_count))[:, block_skip:].flatten()
+                    self._data = np.array(np.split(self._acc_data/bbuf_counter, block_count))[:, block_skip:].flatten()
                     self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
                     if 'scale_factor' in self.config_get('output'):
                         self._data = self._data * self.config_get('output.scale_factor')
