@@ -280,7 +280,7 @@ class Program:
                         length=int(self.config_get('output.length')),
                         dtype=self.config_get('output.dtype'))
 
-        if 'bbuf_length' not in cfg_output:
+        if 'bbuf_length' not in self.config_get('output'):
             self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
             if 'scale_factor' in self.config_get('output'):
                 self._data = self._data*self.config_get('output.scale_factor')
