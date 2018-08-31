@@ -122,8 +122,6 @@ class Program:
             rotbuf_finished = False
         while self.status!=self.config_get('status.values.finished') or not rotbuf_finished:
             final_run_done = self.status==self.config_get('status.values.finished')
-            #logger.debug('action: %i' % system.read_par(0x0))
-            #logger.debug('status: %i' % system.read_par(0x04))
             if self._aborted:
                 raise Exception('Aborted')
             if self.has_progress:
@@ -140,21 +138,31 @@ class Program:
                     warning_handler("Warning: scans delayed by full memory buffer.")
                 if rotbuf_write_index!=rotbuf_read_index and not rotbuf_finished:
                     logger.debug('rotbuf_read_index: %i, rotbuf_write_index: %i, rotbuf_length: %i' % (rotbuf_read_index, rotbuf_write_index, rotbuf_length))
-                    self._acc_data += system.read_dma(
-                        offset=int(self.config_get('output.offset')),
-                        reloffset=block_count*(block_skip+block_length)*rotbuf_read_index,
-                        length=block_count*(block_length+block_skip),
-                        dtype=self.config_get('output.dtype'))
+                    # calculate the length of continuous readable data
+                    if rotbuf_write_index>rotbuf_read_index:
+                        scans_to_read = rotbuf_write_index - rotbuf_read_index
+                    else:
+                        scans_to_read = rotbuf_length - rotbuf_read_index
+                        data = np.mean(np.split(data, int(self.par['scans'])), axis=0)
+                    self._acc_data += np.sum(
+                        np.split(
+                            system.read_dma(
+                                offset=int(self.config_get('output.offset')),
+                                reloffset=block_count*(block_skip+block_length)*rotbuf_read_index,
+                                length=block_count*(block_length+block_skip)*scans_to_read,
+                                dtype=self.config_get('output.dtype')),
+                            scans_to_read),
+                        axis=0)
 
                     # allow partial data to be retrieved
-                    rotbuf_counter += 1
+                    rotbuf_counter += scans_to_read
                     self._data = np.array(np.split(self._acc_data/rotbuf_counter, block_count))[:, block_skip:].flatten()
                     self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
                     if 'scale_factor' in self.config_get('output'):
                         self._data = self._data * self.config_get('output.scale_factor')
                     self._data_ready = True
 
-                    rotbuf_read_index+=1
+                    rotbuf_read_index+=scans_to_read
                     rotbuf_read_index%=rotbuf_length
                     system.write_par(int(self.config_get('output.rotbuf_read_index_offset')), rotbuf_read_index, 'uint32')
                     rotbuf_finished = (rotbuf_counter == rotbuf_total)
