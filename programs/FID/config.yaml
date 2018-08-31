@@ -25,11 +25,11 @@ output:
   block_count: 1
   block_length: ${2*{samples}}
   block_skip: 14
-  bbuf_length: 10
-  bbuf_total: ${{scans}}
-  bbuf_length_offset: 0x30
-  bbuf_read_index_offset: 0x34
-  bbuf_write_index_offset: 0x38
+  rotbuf: true
+  rotbuf_total: ${{scans}}
+  rotbuf_length_offset: 0x30
+  rotbuf_read_index_offset: 0x34
+  rotbuf_write_index_offset: 0x38
   scale_factor: 1
 adc_overflow_count:
   offset: 0x20

@@ -97,29 +97,30 @@ class Program:
             deps = new_deps
         return deps
 
-    async def ensure_finished(self, progress_handler=None):
+    async def ensure_finished(self, progress_handler=None, warning_handler=None):
         # progress_handler should return quickly:
         # no heavy processing or blocking IO
         prev_progress = -1
-        bbuf_finished = True # use this to prevent early ending when using the rotary buffer
-        if 'bbuf_length' in self.config_get('output'):
-            bbuf_write_index = system.read_par(
-                int(self.config_get('output.bbuf_write_index_offset')), 'uint32')
-            bbuf_read_index = system.read_par(
-                int(self.config_get('output.bbuf_read_index_offset')), 'uint32')
-            bbuf_length = int(self.config_get('output.bbuf_length'))
-            bbuf_total = int(self.config_get('output.bbuf_total'))
+        rotbuf_scandelayed = False
+        rotbuf_finished = True # use this to prevent early ending when using the rotary buffer
+        rotbuf = 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
+        if rotbuf:
+            rotbuf_read_index = system.read_par(
+                int(self.config_get('output.rotbuf_read_index_offset')), 'uint32')
+            rotbuf_length = system.read_par(
+                int(self.config_get('output.rotbuf_length_offset')), 'uint32')
+            rotbuf_total = int(self.config_get('output.rotbuf_total'))
             block_skip = 0
             if 'block_skip' in self.config_get('output'):
                 block_skip = int(self.config_get('output.block_skip'))
             block_count = int(self.config_get('output.block_count'))
             block_length = int(self.config_get('output.block_length'))
-            bbuf_counter = 0
+            rotbuf_counter = 0
             self._acc_data = np.zeros(
                 block_count*(block_length+block_skip),
                 dtype=self.config_get('output.dtype'))
-            bbuf_finished = False
-        while self.status!=self.config_get('status.values.finished') or not bbuf_finished:
+            rotbuf_finished = False
+        while self.status!=self.config_get('status.values.finished') or not rotbuf_finished:
             final_run_done = self.status==self.config_get('status.values.finished')
             #logger.debug('action: %i' % system.read_par(0x0))
             #logger.debug('status: %i' % system.read_par(0x04))
@@ -131,30 +132,32 @@ class Program:
                     progress_handler(cur_progress, self.config_get('progress.limit')+1)
                     prev_progress = cur_progress
 
-            if 'bbuf_length' in self.config_get('output'):
-                bbuf_write_index = system.read_par(
-                    int(self.config_get('output.bbuf_write_index_offset')), 'uint32')
-                if bbuf_write_index!=bbuf_read_index and not bbuf_finished:
-                    logger.debug('bbuf_read_index: %i, bbuf_write_index: %i, bbuf_length: %i' % (bbuf_read_index, bbuf_write_index, bbuf_length))
+            if rotbuf:
+                rotbuf_write_index = system.read_par(
+                    int(self.config_get('output.rotbuf_write_index_offset')), 'uint32')
+                if not rotbuf_scandelayed and (rotbuf_write_index+1)%rotbuf_length == rotbuf_read_index:
+                    rotbuf_scandelayed = True
+                    warning_handler("Warning: scans delayed by full memory buffer.")
+                if rotbuf_write_index!=rotbuf_read_index and not rotbuf_finished:
+                    logger.debug('rotbuf_read_index: %i, rotbuf_write_index: %i, rotbuf_length: %i' % (rotbuf_read_index, rotbuf_write_index, rotbuf_length))
                     self._acc_data += system.read_dma(
                         offset=int(self.config_get('output.offset')),
-                        reloffset=block_count*(block_skip+block_length)*bbuf_read_index,
+                        reloffset=block_count*(block_skip+block_length)*rotbuf_read_index,
                         length=block_count*(block_length+block_skip),
                         dtype=self.config_get('output.dtype'))
 
                     # allow partial data to be retrieved
-                    bbuf_counter += 1
-                    self._data = np.array(np.split(self._acc_data/bbuf_counter, block_count))[:, block_skip:].flatten()
+                    rotbuf_counter += 1
+                    self._data = np.array(np.split(self._acc_data/rotbuf_counter, block_count))[:, block_skip:].flatten()
                     self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
                     if 'scale_factor' in self.config_get('output'):
                         self._data = self._data * self.config_get('output.scale_factor')
                     self._data_ready = True
 
-                    bbuf_read_index+=1
-                    bbuf_read_index%=bbuf_length
-                    system.write_par(int(self.config_get('output.bbuf_read_index_offset')), bbuf_read_index, 'uint32')
-                    bbuf_finished = (bbuf_counter == bbuf_total)
-
+                    rotbuf_read_index+=1
+                    rotbuf_read_index%=rotbuf_length
+                    system.write_par(int(self.config_get('output.rotbuf_read_index_offset')), rotbuf_read_index, 'uint32')
+                    rotbuf_finished = (rotbuf_counter == rotbuf_total)
 
             await asyncio.sleep(0.1)
 
@@ -215,20 +218,30 @@ class Program:
                         self.par[par_name],
                         self.config_get('derived_parameters.'+par_name+'.dtype'))
 
+        rotbuf = 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
 
         if self.config_get('output.type') == 'DMA':
             # DMA rotating buffer
-            if 'bbuf_length' in self.config_get('output'):
+            if rotbuf:
+                block_count = int(self.config_get('output.block_count'))
+                block_length = int(self.config_get('output.block_length'))
+                block_skip = 0
+                if 'block_skip' in self.config_get('output'):
+                    block_skip = int(self.config_get('output.block_skip'))
+                dtype_size = np.dtype(self.config_get('output.dtype')).itemsize
+                rotbuf_length = int(system.DMA_SIZE/((block_length+block_skip)*block_count*dtype_size))
+                if rotbuf_length<3: # must be at least 2 for buffer to work
+                    raise Exception('Number of samples per scan too large, cannot fit in memory')
                 system.write_par(
-                    int(self.config_get('output.bbuf_length_offset')),
-                    int(self.config_get('output.bbuf_length')),
+                    int(self.config_get('output.rotbuf_length_offset')),
+                    int(self.config_get('output.rotbuf_length')),
                     'uint32')
                 system.write_par(
-                    int(self.config_get('output.bbuf_read_index_offset')),
+                    int(self.config_get('output.rotbuf_read_index_offset')),
                     0,
                     'uint32')
                 system.write_par(
-                    int(self.config_get('output.bbuf_write_index_offset')),
+                    int(self.config_get('output.rotbuf_write_index_offset')),
                     0,
                     'uint32')
         
@@ -244,7 +257,7 @@ class Program:
 
         # wait until status finished
         logger.debug('run: waiting until finished')
-        await self.ensure_finished(progress_handler=progress_handler)
+        await self.ensure_finished(progress_handler=progress_handler, warning_handler=warning_handler)
         # read the data
         logger.debug('run: reading data')
         if self.config_get('output.type') == 'FIFO':
@@ -254,7 +267,7 @@ class Program:
                 dtype=self.config_get('output.dtype'))
         elif self.config_get('output.type') == 'DMA':
             cfg_output = self.config_get('output')
-            if 'bbuf_length' not in cfg_output:
+            if not rotbuf:
                 # block method for (e.g.) skipping ignore_sample data
                 if 'block_count' in cfg_output and 'block_length' in cfg_output:
                     block_count = int(self.config_get('output.block_count'))
@@ -280,7 +293,7 @@ class Program:
                         length=int(self.config_get('output.length')),
                         dtype=self.config_get('output.dtype'))
 
-        if 'bbuf_length' not in self.config_get('output'):
+        if not rotbuf:
             self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
             if 'scale_factor' in self.config_get('output'):
                 self._data = self._data*self.config_get('output.scale_factor')
