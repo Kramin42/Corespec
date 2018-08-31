@@ -242,7 +242,7 @@ class Program:
                     raise Exception('Number of samples per scan too large, cannot fit in memory')
                 system.write_par(
                     int(self.config_get('output.rotbuf_length_offset')),
-                    int(self.config_get('output.rotbuf_length')),
+                    rotbuf_length,
                     'uint32')
                 system.write_par(
                     int(self.config_get('output.rotbuf_read_index_offset')),
