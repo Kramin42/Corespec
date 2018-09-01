@@ -19,6 +19,7 @@ export default class Experiment extends React.Component {
     super(props);
 
     this.plotrefs = [];
+    this.replotting = false;
 
     this.state = {
       activeParameterGroupIndex: 0,
@@ -155,8 +156,8 @@ export default class Experiment extends React.Component {
   }
 
   replot() {
-    this.plotrefs.forEach(p => {
-      p.current.replot();
+    return Promise.map(this.plotrefs, p => {
+      return p.current.replot();
     });
   }
 
@@ -165,8 +166,12 @@ export default class Experiment extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.experiment.progress.value > prevProps.experiment.progress.value) {
-      this.replot();
+    if (this.props.experiment.progress.value > prevProps.experiment.progress.value &&
+        (!this.replotting || this.props.experiment.progress.finished)) {
+      this.replotting = true;
+      this.replot().then(() => {
+        this.replotting = false;
+      });
     }
   }
 
