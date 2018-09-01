@@ -156,9 +156,9 @@ export default class Experiment extends React.Component {
   }
 
   replot() {
-    return Promise.map(this.plotrefs, p => {
+    return Promise.all(this.plotrefs.map(p => {
       return p.current.replot();
-    });
+    }));
   }
 
   componentDidMount() {

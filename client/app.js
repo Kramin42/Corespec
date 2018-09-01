@@ -48954,9 +48954,9 @@ var Experiment = function (_React$Component) {
   }, {
     key: 'replot',
     value: function replot() {
-      return Promise.map(this.plotrefs, function (p) {
+      return Promise.all(this.plotrefs.map(function (p) {
         return p.current.replot();
-      });
+      }));
     }
   }, {
     key: 'componentDidMount',
