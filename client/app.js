@@ -48811,6 +48811,7 @@ var Experiment = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Experiment.__proto__ || Object.getPrototypeOf(Experiment)).call(this, props));
 
     _this.plotrefs = [];
+    _this.replotting = false;
 
     _this.state = {
       activeParameterGroupIndex: 0,
@@ -48953,8 +48954,8 @@ var Experiment = function (_React$Component) {
   }, {
     key: 'replot',
     value: function replot() {
-      this.plotrefs.forEach(function (p) {
-        p.current.replot();
+      return Promise.map(this.plotrefs, function (p) {
+        return p.current.replot();
       });
     }
   }, {
@@ -48965,14 +48966,19 @@ var Experiment = function (_React$Component) {
   }, {
     key: 'componentDidUpdate',
     value: function componentDidUpdate(prevProps) {
-      if (this.props.experiment.progress.value > prevProps.experiment.progress.value) {
-        this.replot();
+      var _this6 = this;
+
+      if (this.props.experiment.progress.value > prevProps.experiment.progress.value && (!this.replotting || this.props.experiment.progress.finished)) {
+        this.replotting = true;
+        this.replot().then(function () {
+          _this6.replotting = false;
+        });
       }
     }
   }, {
     key: 'render',
     value: function render() {
-      var _this6 = this;
+      var _this7 = this;
 
       var experiment = this.props.experiment;
       var active = this.props.active;
@@ -48984,15 +48990,15 @@ var Experiment = function (_React$Component) {
       }
       defaultPlotNames.forEach(function (plotName, i) {
         // if the ref doesn't exist yet then create it
-        if (_this6.plotrefs.length <= i) {
-          _this6.plotrefs.push(_react2.default.createRef());
+        if (_this7.plotrefs.length <= i) {
+          _this7.plotrefs.push(_react2.default.createRef());
         }
         plots.push(_react2.default.createElement(_Plot2.default, { key: i,
-          ref: _this6.plotrefs[i],
+          ref: _this7.plotrefs[i],
           plotMethod: 'query',
           defaultPlot: plotName,
           experiment: experiment,
-          deviceQuery: _this6.props.deviceQuery
+          deviceQuery: _this7.props.deviceQuery
         }));
       });
 
@@ -49749,6 +49755,7 @@ var Plot = function (_React$Component) {
       } else {
         console.log('cant replot without plotMethod=query');
       }
+      return Promise.resolve();
     }
   }, {
     key: 'handlePlotChange',

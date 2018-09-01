@@ -52,6 +52,7 @@ export default class Plot extends React.Component {
     } else {
       console.log('cant replot without plotMethod=query');
     }
+    return Promise.resolve();
   }
 
   handlePlotChange(tabIndex) {
