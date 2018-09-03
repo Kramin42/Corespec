@@ -42,3 +42,5 @@ english:
       label: Power
     int_width:
       label: Int. window
+    calibration:
+      label: Rx cal.
