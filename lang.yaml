@@ -9,31 +9,31 @@ english:
     amp_180:
       label: 180 power
     width_90:
-      label: 90 width
+      label: 90 Width
     width_180:
-      label: 180 width
+      label: 180 Width
     start_width:
-      label: Min width
+      label: Min Width
     end_width:
-      label: Max width
+      label: Max Width
     damp_time:
       label: Damping
     echo_time:
-      label: Echo time
+      label: Echo Time
     echo_shift:
-      label: Echo shift
+      label: Echo Shift
     rep_time:
-      label: Rep. time
+      label: Rep. Time
     echo_count:
-      label: Echo count
+      label: Echo Count
     samples:
       label: Samples
     dwell_time:
-      label: Dwell time
+      label: Dwell Time
     scans:
       label: Scans
     acq_delay:
-      label: Acq. delay
+      label: Acq. Delay
     bandwidth:
       label: Bandwidth
     steps:
@@ -41,8 +41,8 @@ english:
     amp:
       label: Power
     int_width:
-      label: Int. window
+      label: Int. Window
     calibration:
-      label: Rx cal.
+      label: Rx Cal.
     gainRx:
-      label: Rx gain
+      label: Rx Gain

@@ -22,7 +22,7 @@ output:
   block_count: 1
   block_length: ${2*{samples}}
   block_skip: 14
-  scale_factor: ${{calibration}*(2**(7-{gainRx}))}
+  scale_factor: ${{calibration}*(1.4142135623730951**(7-{gainRx}))}
 adc_overflow_count:
   offset: 0x20
 parameters:
