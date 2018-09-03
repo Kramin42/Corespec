@@ -61,6 +61,7 @@ parameters:
     group: acquisition
   calibration:
     dtype: float32
+    shared: true
     group: acquisition
   bandwidth:
     offset: 0xdc

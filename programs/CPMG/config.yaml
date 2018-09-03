@@ -122,6 +122,7 @@ parameters:
   calibration:
     dtype: float32
     group: acquisition
+    shared: true
   scans:
     offset: 0xd0
     dtype: uint32

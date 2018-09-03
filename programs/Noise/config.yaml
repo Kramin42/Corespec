@@ -47,6 +47,7 @@ parameters:
     group: acquisition
   calibration:
     dtype: float32
+    shared: true
     group: acquisition
 derived_parameters:
   ignore_samples:

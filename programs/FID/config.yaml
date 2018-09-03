@@ -96,6 +96,7 @@ parameters:
     group: acquisition
   calibration:
     dtype: float32
+    shared: true
     group: acquisition
   scans:
     offset: 0xd0
