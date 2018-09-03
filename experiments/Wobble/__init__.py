@@ -27,11 +27,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
         y = data.astype(np.float32)
         y = np.mean(y.reshape(-1, samples), axis=1)
-        x = np.linspace(center-width/2, center+width/2, len(y))
+        x = 1000000*np.linspace(center-width/2, center+width/2, len(y))
         return {
             'x': x,
             'y': y,
-            'x_unit': 'MHz'}
+            'x_unit': 'Hz'}
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
