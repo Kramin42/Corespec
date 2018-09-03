@@ -30,7 +30,7 @@ output:
   rotbuf_length_offset: 0x30
   rotbuf_read_index_offset: 0x34
   rotbuf_write_index_offset: 0x38
-  scale_factor: 1
+  scale_factor: ${{calibration}}
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -93,6 +93,9 @@ parameters:
     max: 80
     unit: us
     scaling: 100
+    group: acquisition
+  calibration:
+    dtype: float32
     group: acquisition
   scans:
     offset: 0xd0

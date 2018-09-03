@@ -22,7 +22,7 @@ output:
   block_count: 1
   block_length: ${2*{samples}}
   block_skip: 14
-  scale_factor: 1
+  scale_factor: ${{calibration}}
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -44,6 +44,9 @@ parameters:
     max: 80
     unit: us
     scaling: 100
+    group: acquisition
+  calibration:
+    dtype: float32
     group: acquisition
 derived_parameters:
   ignore_samples:

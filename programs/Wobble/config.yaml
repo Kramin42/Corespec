@@ -23,7 +23,7 @@ output:
   dtype: int32
   offset: 0x100
   length: ${{steps}*{samples}}
-  scale_factor: 1
+  scale_factor: ${{calibration}}
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -58,6 +58,9 @@ parameters:
     max: 80
     unit: us
     scaling: 100
+    group: acquisition
+  calibration:
+    dtype: float32
     group: acquisition
   bandwidth:
     offset: 0xdc
