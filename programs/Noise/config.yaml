@@ -22,7 +22,7 @@ output:
   block_count: 1
   block_length: ${2*{samples}}
   block_skip: 14
-  scale_factor: ${{calibration}}
+  scale_factor: ${{calibration}*(2**(7-{gainRx}))}
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -49,6 +49,14 @@ parameters:
     dtype: float32
     shared: true
     group: acquisition
+  gainRx:
+    offset: 0xe4
+    dtype: uint32
+    min: 0
+    max: 15
+    unit: x3 dB
+    group: acquisition
+    shared: true
 derived_parameters:
   ignore_samples:
     offset: 0xc8
@@ -58,7 +66,3 @@ derived_parameters:
     offset: 0x88
     dtype: float64
     value: ${{freq}}
-  gainRx:
-    offset: 0xe4
-    dtype: uint32
-    value: 7

@@ -30,7 +30,7 @@ output:
   rotbuf_length_offset: 0x30
   rotbuf_read_index_offset: 0x34
   rotbuf_write_index_offset: 0x38
-  scale_factor: ${{calibration}}
+  scale_factor: ${{calibration}*(2**(7-{gainRx}))}
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -98,6 +98,14 @@ parameters:
     dtype: float32
     shared: true
     group: acquisition
+  gainRx:
+    offset: 0xe4
+    dtype: uint32
+    min: 0
+    max: 15
+    unit: x3 dB
+    group: acquisition
+    shared: true
   scans:
     offset: 0xd0
     dtype: uint32
@@ -124,7 +132,3 @@ derived_parameters:
     offset: 0x9c
     dtype: float32
     value: 90
-  gainRx:
-    offset: 0xe4
-    dtype: uint32
-    value: 7

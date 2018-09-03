@@ -44,3 +44,5 @@ english:
       label: Int. window
     calibration:
       label: Rx cal.
+    gainRx:
+      label: Rx gain
