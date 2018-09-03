@@ -167,3 +167,7 @@ derived_parameters:
     offset: 0xa4
     dtype: float32
     value: 180
+  gainRx:
+    offset: 0xe4
+    dtype: uint32
+    value: 7

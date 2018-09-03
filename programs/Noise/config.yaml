@@ -54,3 +54,7 @@ derived_parameters:
     offset: 0x88
     dtype: float64
     value: ${{freq}}
+  gainRx:
+    offset: 0xe4
+    dtype: uint32
+    value: 7

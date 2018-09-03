@@ -139,14 +139,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     def raw_data(self):
         data = self.programs['CPMG'].data
-        #logger.debug(data.size)
         # deinterleave
         data = data.astype(np.float32).view(np.complex64)
-        #logger.debug(data.size)
-        # average the scans
-        #data = np.mean(np.split(data, int(self.par['scans'])), axis=0)
-        #data = np.split(data, int(self.par['scans']))[1]
-        #logger.debug(data.size)
         return data
 
     def integrated_data(self):
