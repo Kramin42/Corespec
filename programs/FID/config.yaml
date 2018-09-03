@@ -105,7 +105,6 @@ parameters:
     max: 15
     unit: x3 dB
     group: acquisition
-    shared: true
   scans:
     offset: 0xd0
     dtype: uint32

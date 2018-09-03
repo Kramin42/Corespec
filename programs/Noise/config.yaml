@@ -56,7 +56,6 @@ parameters:
     max: 15
     unit: x3 dB
     group: acquisition
-    shared: true
 derived_parameters:
   ignore_samples:
     offset: 0xc8
