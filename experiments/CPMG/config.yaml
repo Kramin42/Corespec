@@ -1,9 +1,0 @@
-# CPMG experiment configuration
-description:
-  A CPMG experiment.
-programs:
-  - CPMG
-defaults:
-  plots:
-    - Echo_Integrals
-    - Echo_Envelope

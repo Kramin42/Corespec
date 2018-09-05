@@ -95,7 +95,7 @@ parameters:
     min: 0.5
     max: 400
     unit: us
-    scaling: 500 # 100 to convert to hardware decimation, 5 for the post decimation
+    scaling: 20 # *100 to convert to hardware decimation, /5 for the post decimation
     group: acquisition
   calibration:
     dtype: float32
