@@ -22,7 +22,7 @@ output:
   block_count: 1
   block_length: ${2*{samples}}
   block_skip: 14
-  scale_factor: ${{calibration}*(1.4125375446227544**(7-{gainRx}))}
+  scale_factor: ${{calibration}*(1.4125375446227544**(7-{gain_rx}))}
 postprocess:
   decimation: 5
 adc_overflow_count:
@@ -52,7 +52,7 @@ parameters:
     dtype: float32
     shared: true
     group: acquisition
-  gainRx:
+  gain_rx:
     offset: 0xe4
     dtype: uint32
     min: 0

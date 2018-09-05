@@ -53,7 +53,7 @@ class Workspace:
             yaml.dump(parameters, f, default_flow_style=False)
 
     def save_default_pars(self, experiment_name, parameters, par_def):
-        logger.debug('par: %s, par_def: %s' % (parameters, par_def))
+        #logger.debug('par: %s, par_def: %s' % (parameters, par_def))
         default_pars = self.load_default_pars()
         if experiment_name not in default_pars:
             default_pars[experiment_name] = {}

@@ -30,7 +30,7 @@ output:
   rotbuf_length_offset: 0x30
   rotbuf_read_index_offset: 0x34
   rotbuf_write_index_offset: 0x38
-  scale_factor: ${{calibration}*(1.4125375446227544**(7-{gainRx}))}
+  scale_factor: ${{calibration}*(1.4125375446227544**(7-{gain_rx}))}
 postprocess:
   decimation: 5
 adc_overflow_count:
@@ -101,7 +101,7 @@ parameters:
     dtype: float32
     shared: true
     group: acquisition
-  gainRx:
+  gain_rx:
     offset: 0xe4
     dtype: uint32
     min: 0
