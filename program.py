@@ -10,7 +10,7 @@ import asyncio
 import logging
 import yaml
 import numpy as np
-import scipy as sp
+import scipy.signal as signal
 
 from config import CONFIG
 
@@ -339,7 +339,7 @@ class Program:
             self._data_postprocessed = True
             if 'postprocess' in self._config:
                 if 'decimation' in self.config_get('postprocess'):
-                    self._data = sp.signal.decimate(self.data, self.config_get('postprocess.decimation'))
+                    self._data = signal.decimate(self.data, self.config_get('postprocess.decimation'))
 
         return np.copy(self._data)  # don't let them change our data!
 
