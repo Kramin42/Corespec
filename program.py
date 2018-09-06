@@ -339,7 +339,7 @@ class Program:
             self._data_postprocessed = True
             if 'postprocess' in self._config:
                 if 'decimation' in self.config_get('postprocess'):
-                    self._data = signal.decimate(self.data, int(self.config_get('postprocess.decimation')), zero_phase=True)
+                    self._data = signal.decimate(self.data, int(self.config_get('postprocess.decimation')), ftype='iir', zero_phase=True)
                     #self._data = np.mean(self._data.reshape(-1, self.config_get('postprocess.decimation')), axis=1)
 
         return np.copy(self._data)  # don't let them change our data!
