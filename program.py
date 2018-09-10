@@ -340,8 +340,8 @@ class Program:
             if 'postprocess' in self._config:
                 if 'decimation' in self.config_get('postprocess'):
                     dec = int(self.config_get('postprocess.decimation'))
-                    system = signal.dlti(*signal.cheby1(8, 0.05, 0.8 / dec))
-                    b, a = system.num, system.den
+                    filt_system = signal.dlti(*signal.cheby1(8, 0.05, 0.8 / dec))
+                    b, a = filt_system.num, filt_system.den
                     self._data = signal.filtfilt(b, a, self._data)
                     self._data = self._data[slice(None, None, dec)]
                     #self._data = signal.decimate(self._data, int(self.config_get('postprocess.decimation')), ftype='iir', zero_phase=True)
