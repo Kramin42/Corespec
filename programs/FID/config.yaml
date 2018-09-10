@@ -20,11 +20,11 @@ progress:
   limit: ${{scans}-1}
 output:
   type: DMA
-  dtype: int32
+  dtype: complex64
   offset: 0x0
   block_count: 1
-  block_length: ${2*{samples}}
-  block_skip: 14
+  block_length: ${{samples}}
+  block_skip: 7
   rotbuf: true
   rotbuf_total: ${{scans}}
   rotbuf_length_offset: 0x30

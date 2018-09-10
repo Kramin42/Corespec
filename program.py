@@ -332,20 +332,17 @@ class Program:
         if not self._data_ready:
             raise Exception('Data is not ready to be read!')
         if not self._data_postprocessed:
+            self._data_postprocessed = True
             # calibrate step
             self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
             if 'scale_factor' in self.config_get('output'):
                 self._data = self._data * self.config_get('output.scale_factor')
-            self._data_postprocessed = True
             if 'postprocess' in self._config:
                 if 'decimation' in self.config_get('postprocess'):
                     dec = int(self.config_get('postprocess.decimation'))
-                    filt_system = signal.dlti(*signal.cheby1(8, 0.05, 0.8 / dec))
-                    b, a = filt_system.num, filt_system.den
+                    b, a = signal.cheby1(8, 0.05, 0.8 / dec)
                     self._data = signal.filtfilt(b, a, self._data)
                     self._data = self._data[slice(None, None, dec)]
-                    #self._data = signal.decimate(self._data, int(self.config_get('postprocess.decimation')), ftype='iir', zero_phase=True)
-                    #self._data = np.mean(self._data.reshape(-1, self.config_get('postprocess.decimation')), axis=1)
 
         return np.copy(self._data)  # don't let them change our data!
 

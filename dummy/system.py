@@ -5,7 +5,7 @@ from time import sleep, time
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 status = 0
 run_time = time()
@@ -40,9 +40,15 @@ def read_par(offset: int, dtype=np.dtype(np.int32)):
 def read_dma(
         offset: int,
         length: int,
+        reloffset: int=0,
         dtype=np.dtype(np.int32)) -> np.ndarray:
-    data = None
-    return data
+    logger.debug('reading dma, offset: 0x%X, length: 0x%X', offset, length)
+    data = np.zeros(int(length), dtype=np.complex64)
+    x = np.linspace(0, 2, length)
+    for i in range(4000):
+        data += (1000000/(length))*np.exp((0.4*i)*2*np.pi*1j*(x-1))
+    #data += (1j * np.random.sample(data.size) + np.random.sample(data.size) - 0.5j - 0.5) * 10
+    return data.view(dtype)
 
 
 def read_fifo(
@@ -57,4 +63,10 @@ def read_fifo(
         data += 100*np.exp(1j*np.random.random_sample()*10*x)*np.exp(-np.random.random_sample()*0.05*x)
     data += 1000 * np.exp(1j*0.0*x) * np.exp(-0.005 * x)
     data += (1j*np.random.sample(data.size)+np.random.sample(data.size)-0.5j-0.5)*100
-    return data.view(np.float32).astype(np.int32)
+    return data.view(dtype)
+
+
+def calibrate(
+        data: np.ndarray,
+        decimation: int=None) -> np.ndarray:
+    return data

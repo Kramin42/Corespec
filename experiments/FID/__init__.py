@@ -106,7 +106,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def raw_data(self):
         data = self.programs['FID'].data
-        data = data.astype(np.float32).view(np.complex64)
         return data
 
     def autophase(self, data):
