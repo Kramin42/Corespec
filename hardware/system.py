@@ -104,7 +104,10 @@ def read_dma(
     with open('/dev/mem', 'r+b') as f:
         mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
         logger.debug('reading from %i to %i' % (offset, offset+length))
-        data = np.frombuffer(mem[offset:offset+length], dtype=dtype)
+        data = np.frombuffer(mem[offset:offset+length], dtype=np.int32)
+    if dtype.kind in 'fc':
+        data = data.astype(np.float32)
+    data = data.view(dtype)
     return data
 
 
@@ -116,7 +119,10 @@ def read_fifo(
     # offset is absolute
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
-    data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)
+    data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=np.int32)
+    if dtype.kind in 'fc':
+        data = data.astype(np.float32)
+    data = data.view(dtype)
     return data
 
 
