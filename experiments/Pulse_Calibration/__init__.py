@@ -31,7 +31,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             logger.debug('running width %s' % width)
             self.programs['FID'].set_par('width_90', width)
             await self.programs['FID'].run(warning_handler=warning_handler)
-            run_data = self.programs['FID'].data.astype(np.float32).view(np.complex64)
+            run_data = self.programs['FID'].data
             #self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
             if self.data is None:
                 self.data = np.array([run_data])

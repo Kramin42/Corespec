@@ -46,41 +46,43 @@ TEMP_PERIOD = 1 # seconds
 temp_sum = 0
 temp_count = 0
 temp_time = 0
+temp_enabled = True
 
 def handler_raw(cmd):
-    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time
+    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, temp_enabled
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
-    if cmd[0:CMD_SIZE]==b'$TMP':
-        if not mcs_ready:
-            mcs_ready = True
-            set_parameters(**parameters)  # set initial parameters
-            asyncio.ensure_future(amp_on_delayed())
-        temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        temp_count += 1
-        temp_time += TEMP_PERIOD
-        if temp_count == TEMP_AVERAGING:
-            data['name'] = 'temperature'
-            data['value'] = temp_sum/TEMP_AVERAGING
-            data['time'] = temp_time
-            temp_sum = 0
-            temp_count = 0
-            logger.debug('temperature: %.3f' % data['value'])
-    if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
-        data['name'] = 'setpoint'
-        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        setpoint = data['value']
-        logger.info('new setpoint: %.3f' % data['value'])
-    if cmd[0:CMD_SIZE]==b'$TCP': # P
-        data['name'] = 'P'
-        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        P = data['value']
-        logger.info('new constant P: %.3f' % data['value'])
-    if cmd[0:CMD_SIZE]==b'$TCI': # I
-        data['name'] = 'I'
-        data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        I = data['value']
-        logger.info('new constant I: %.5f' % data['value'])
+    if temp_enabled:
+        if cmd[0:CMD_SIZE]==b'$TMP':
+            if not mcs_ready:
+                mcs_ready = True
+                set_parameters(**parameters)  # set initial parameters
+                asyncio.ensure_future(amp_on_delayed())
+            temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+            temp_count += 1
+            temp_time += TEMP_PERIOD
+            if temp_count == TEMP_AVERAGING:
+                data['name'] = 'temperature'
+                data['value'] = temp_sum/TEMP_AVERAGING
+                data['time'] = temp_time
+                temp_sum = 0
+                temp_count = 0
+                logger.debug('temperature: %.3f' % data['value'])
+        if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
+            data['name'] = 'setpoint'
+            data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+            setpoint = data['value']
+            logger.info('new setpoint: %.3f' % data['value'])
+        if cmd[0:CMD_SIZE]==b'$TCP': # P
+            data['name'] = 'P'
+            data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+            P = data['value']
+            logger.info('new constant P: %.3f' % data['value'])
+        if cmd[0:CMD_SIZE]==b'$TCI': # I
+            data['name'] = 'I'
+            data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+            I = data['value']
+            logger.info('new constant I: %.5f' % data['value'])
     if cmd[0:CMD_SIZE]==b'$AMP':
         if cmd[CMD_SIZE:PACKET_SIZE]==b'ON##':
             amp_enabled = True
@@ -109,7 +111,6 @@ def amp_on():
     write(b'$AMPON##')
 
 def amp_off():
-    print('bye')
     if not mcs_ready:
         raise Exception('Temperature control not ready')
     write(b'$AMPOFF#')
@@ -167,8 +168,9 @@ class TempControl(asyncio.Protocol):
         logger.debug(self.transport.get_write_buffer_size())
         logger.debug('resume writing')
 
-def init(event_loop, response_handler=None):
-    global handler
+def init(event_loop, response_handler=None, report_temp=True):
+    global handler, temp_enabled
+    temp_enabled = report_temp
     logger.debug('starting temperature control')
     coro = serial_asyncio.create_serial_connection(event_loop, TempControl, DEFAULT_PORT, baudrate=DEFAULT_BAUD)
     asyncio.ensure_future(coro)

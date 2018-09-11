@@ -48495,6 +48495,7 @@ var App = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
     _this.state = {
+      fixedTabs: [],
       language: {},
       experiments: [],
       parValues: {},
@@ -48502,7 +48503,7 @@ var App = function (_React$Component) {
       runningExperimentIndex: 0,
       activeTabIndex: 0,
       messages: [],
-      temperature: { count: 0, limit: 1000, times: [], values: [] }
+      temperature: { enabled: false, count: 0, limit: 1000, times: [], values: [] }
     };
 
     // bind 'this' as context
@@ -48598,8 +48599,27 @@ var App = function (_React$Component) {
         });
 
         this.query('get_tempcontrol').then(function (data) {
-          delete data.amp_on; // don't want this being passed to set_tempcontrol
-          _this4.setState((0, _immutabilityHelper2.default)(_this4.state, { parValues: { Temperature: { $set: data } } }));
+          var newState = _this4.state;
+          if (data.enabled) {
+            if (!_this4.state.temperature.enabled) {
+              newState = (0, _immutabilityHelper2.default)(newState, { temperature: { enabled: { $set: true } } });
+              newState = (0, _immutabilityHelper2.default)(newState, { fixedTabs: { $push: [{
+                    'name': 'Temperature',
+                    'parameters': {
+                      setpoint: {
+                        unit: '\xB0C',
+                        group: 'basic'
+                      },
+                      P: { group: 'advanced' },
+                      I: { group: 'advanced' }
+                    }
+                  }] } });
+            }
+            delete data.amp_on; // don't want this being passed to set_tempcontrol
+            delete data.enabled; // don't want this being passed to set_tempcontrol
+            newState = (0, _immutabilityHelper2.default)(newState, { parValues: { Temperature: { $set: data } } });
+          }
+          _this4.setState(newState);
         });
       }
     }
@@ -48686,19 +48706,7 @@ var App = function (_React$Component) {
     value: function render() {
       var _this5 = this;
 
-      var fixedTabs = [{
-        'name': 'Temperature',
-        'parameters': {
-          setpoint: {
-            unit: '\xB0C',
-            group: 'basic'
-          },
-          P: { group: 'advanced' },
-          I: { group: 'advanced' }
-        }
-      }];
-
-      var allTabs = fixedTabs.concat(this.state.experiments).map(function (exp, i) {
+      var allTabs = this.state.fixedTabs.concat(this.state.experiments).map(function (exp, i) {
         exp.canrun = !_this5.state.runningExperiment;
         exp.running = _this5.state.runningExperimentIndex == i;
         return exp;

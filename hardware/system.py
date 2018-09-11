@@ -80,7 +80,7 @@ def write_par(
         offset: int,
         value,
         dtype=np.dtype(np.int32)) -> None:
-    value = np.array([value], dtype=dtype)[0] # must be a better way...
+    value = np.array([value], dtype=dtype)[0]  # convert to correct dtype
     # offset is a bytes offset since params could have varying size
     logger.debug('writing %s at 0x%X', value, offset)
     mem_p.write(offset, value.tobytes())

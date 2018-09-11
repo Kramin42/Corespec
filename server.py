@@ -107,7 +107,10 @@ async def export_matlab(experiment_name, export_name):
         os.remove(f.name)
 
 async def get_tempcontrol():
-    return tempcontrol.get_parameters()
+    par = tempcontrol.get_parameters()
+    par['enabled'] = CONFIG['tempcontrol']
+    logger.debug(par)
+    return par
 
 #
 # commands
@@ -244,6 +247,6 @@ if __name__=='__main__':
     AsyncIOMainLoop().install()
     app.listen(CONFIG['port'])
     loop = asyncio.get_event_loop()
-    tempcontrol.init(loop, tempcontrol_handler)
+    tempcontrol.init(loop, tempcontrol_handler, report_temp=CONFIG['tempcontrol'])
     loop.run_forever()
     loop.close()

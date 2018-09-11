@@ -340,7 +340,7 @@ class Program:
             if 'postprocess' in self._config:
                 if 'decimation' in self.config_get('postprocess'):
                     dec = int(self.config_get('postprocess.decimation'))
-                    b, a = signal.cheby1(8, 0.05, 0.8 / dec)
+                    b, a = signal.butter(12, 0.8/dec)
                     self._data = signal.filtfilt(b, a, self._data)
                     self._data = self._data[slice(None, None, dec)]
 

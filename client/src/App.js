@@ -14,6 +14,7 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      fixedTabs: [],
       language: {},
       experiments: [],
       parValues: {},
@@ -21,7 +22,7 @@ export default class App extends React.Component {
       runningExperimentIndex: 0,
       activeTabIndex: 0,
       messages: [],
-      temperature: {count: 0, limit: 1000, times: [], values: []}
+      temperature: {enabled: false, count: 0, limit: 1000, times: [], values: []}
     };
 
     // bind 'this' as context
@@ -108,8 +109,29 @@ export default class App extends React.Component {
 
       this.query('get_tempcontrol')
       .then(data => {
-        delete data.amp_on; // don't want this being passed to set_tempcontrol
-        this.setState(update(this.state, {parValues: {Temperature: {$set: data}}}));
+        let newState = this.state;
+        if (data.enabled) {
+          if (!this.state.temperature.enabled) {
+            newState = update(newState, {temperature: {enabled: {$set: true}}});
+            newState = update(newState, {fixedTabs: {$push: [
+              {
+                'name': 'Temperature',
+                'parameters': {
+                  setpoint: {
+                    unit: '\u00b0C',
+                    group: 'basic'
+                  },
+                  P: {group: 'advanced'},
+                  I: {group: 'advanced'}
+                }
+              }
+            ]}});
+          }
+          delete data.amp_on; // don't want this being passed to set_tempcontrol
+          delete data.enabled; // don't want this being passed to set_tempcontrol
+          newState = update(newState, {parValues: {Temperature: {$set: data}}});
+        }
+        this.setState(newState);
       });
     }
   }
@@ -186,21 +208,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    const fixedTabs = [
-      {
-        'name': 'Temperature',
-        'parameters': {
-          setpoint: {
-            unit: '\u00b0C',
-            group: 'basic'
-          },
-          P: {group: 'advanced'},
-          I: {group: 'advanced'}
-        }
-      }
-    ];
-
-    const allTabs = fixedTabs.concat(this.state.experiments).map((exp, i) => {
+    const allTabs = this.state.fixedTabs.concat(this.state.experiments).map((exp, i) => {
       exp.canrun = !this.state.runningExperiment;
       exp.running = this.state.runningExperimentIndex == i;
       return exp;
