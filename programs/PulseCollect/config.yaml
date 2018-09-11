@@ -1,0 +1,136 @@
+# PulseCollect experiment configuration
+---
+description:
+  A pulse collect experiment.
+executable: PulseCollect.elf
+action:
+  offset: 0x0
+  values:
+    stop: 0
+    run: 1
+status:
+  offset: 0x4
+  values:
+    uninitialised: 1
+    running: 2
+    capture: 3
+    finished: 10
+progress:
+  offset: 0x1c
+  limit: ${{scans}-1}
+output:
+  type: DMA
+  dtype: complex64
+  offset: 0x0
+  block_count: 1
+  block_length: ${{samples}}
+  block_skip: 7 # see ignore_samples
+  rotbuf: true
+  rotbuf_total: ${{scans}}
+  rotbuf_length_offset: 0x30
+  rotbuf_read_index_offset: 0x34
+  rotbuf_write_index_offset: 0x38
+  scale_factor: ${{calibration}*(1.4125375446227544**(7-{gain_rx}))}
+postprocess:
+  decimation: 5
+adc_overflow_count:
+  offset: 0x20
+parameters:
+  freq:
+    dtype: float64
+    unit: MHz
+    shared: true
+    group: pulse
+  amp_90:
+    offset: 0x98
+    dtype: float32
+    min: 0
+    max: 100
+    unit: '%'
+    scaling: 0.01
+    shared: true
+    group: pulse
+  width_90:
+    offset: 0xa8
+    dtype: uint32
+    min: 1
+    max: 500
+    unit: us
+    scaling: 1000
+    shared: true
+    group: pulse
+  damp_time:
+    offset: 0xbc
+    dtype: uint32
+    min: 1
+    unit: us
+    scaling: 1000
+    shared: true
+    group: pulse
+  acq_delay:
+    offset: 0xb0
+    dtype: uint32
+    min: 20
+    unit: us
+    scaling: 1000
+    shared: true
+    group: pulse
+  rep_time:
+    offset: 0xd4
+    dtype: uint64
+    min: 0
+    unit: s
+    scaling: 1000000000
+    group: pulse
+  samples:
+    offset: 0xc4
+    dtype: uint32
+    min: 1
+    max: 1000000
+    scaling: 5 # for the post decimation
+    group: acquisition
+  dwell_time:
+    offset: 0xcc
+    dtype: uint32
+    min: 0.5
+    max: 400
+    unit: us
+    scaling: 20 # *100 to convert to hardware decimation, /5 for the post decimation
+    group: acquisition
+  calibration:
+    dtype: float32
+    shared: true
+    group: acquisition
+  gain_rx:
+    offset: 0xe4
+    dtype: uint32
+    min: 0
+    max: 15
+    unit: x3 dB
+    group: acquisition
+  scans:
+    offset: 0xd0
+    dtype: uint32
+    min: 1
+    group: pulse
+derived_parameters:
+  ignore_samples:
+    offset: 0xc8
+    dtype: uint32
+    value: 7
+  freqTx:
+    offset: 0x80
+    dtype: float64
+    value: ${{freq}}
+  freqRx:
+    offset: 0x88
+    dtype: float64
+    value: ${{freq}}
+  phase:
+    offset: 0x90
+    dtype: float64
+    value: 0
+  P90:
+    offset: 0x9c
+    dtype: float32
+    value: 90
