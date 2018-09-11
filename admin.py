@@ -11,6 +11,9 @@ logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+# autorun init.sh
+subprocess.call(['sh', os.path.join(dir_path, 'init.sh')])
+
 VERSION = '1.1.1-bundes'
 
 class AdminHandler(web.RequestHandler):
