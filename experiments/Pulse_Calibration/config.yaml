@@ -2,7 +2,7 @@
 description:
   An experiment for calibrating pulse power/width.
 programs:
-  - FID
+  - PulseCollect
 parameters:
   start_width:
     dtype: float

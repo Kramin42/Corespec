@@ -1,0 +1,9 @@
+# PulseCollect experiment configuration
+description:
+  A pulse-collect experiment.
+programs:
+  - PulseCollect
+defaults:
+  plots:
+    - Raw
+    - FT

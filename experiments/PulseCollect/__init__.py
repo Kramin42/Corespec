@@ -14,7 +14,7 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, warning_handler=None):
-        await self.programs['FID'].run(progress_handler=progress_handler,
+        await self.programs['PulseCollect'].run(progress_handler=progress_handler,
                                         warning_handler=warning_handler)
     
     # start a function name with "export_" for it to be listed as an export format
@@ -105,7 +105,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['FID'].data
+        data = self.programs['PulseCollect'].data
         return data
 
     def autophase(self, data):

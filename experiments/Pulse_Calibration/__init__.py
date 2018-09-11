@@ -29,9 +29,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         for width in widths:
             progress_handler(index, count)
             logger.debug('running width %s' % width)
-            self.programs['FID'].set_par('width_90', width)
-            await self.programs['FID'].run(warning_handler=warning_handler)
-            run_data = self.programs['FID'].data
+            self.programs['PulseCollect'].set_par('width_90', width)
+            await self.programs['PulseCollect'].run(warning_handler=warning_handler)
+            run_data = self.programs['PulseCollect'].data
             #self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
             if self.data is None:
                 self.data = np.array([run_data])

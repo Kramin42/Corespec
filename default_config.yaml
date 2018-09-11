@@ -2,4 +2,4 @@
 ---
 dummy_hardware: no
 port: 80
-tempcontrol: yes
+tempcontrol: no
