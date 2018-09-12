@@ -1,5 +1,5 @@
 #! /bin/sh
-#TODO: autorun this script on startup
+# autorun this script on startup
 
 # set random mac address if none is set
 prefix="02:"
