@@ -7,7 +7,7 @@ from struct import pack, unpack
 import yaml
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 
 DEFAULT_PORT = '/dev/ttyPS1'
 DEFAULT_BAUD = 115200

@@ -3,7 +3,7 @@ from experiment import BaseExperiment # required
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 import numpy as np
 

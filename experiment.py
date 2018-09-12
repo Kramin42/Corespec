@@ -12,7 +12,7 @@ import importlib
 from program import Program, list_programs
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.ERROR)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 experiments_dir = os.path.join(dir_path, 'experiments')

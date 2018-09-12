@@ -14,7 +14,7 @@ import numpy as np
 from config import CONFIG
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 programs_dir = os.path.join(dir_path, 'programs')

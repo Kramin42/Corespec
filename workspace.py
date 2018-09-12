@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.ERROR)
 
 DEFAULT_PAR_FILE = 'default_par.yaml'
 
