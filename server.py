@@ -22,7 +22,7 @@ from config import CONFIG
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 DEFAULT_PARAMETER_FILE = 'default_par.yaml'
 DEFAULT_LANGUAGE_FILE = 'lang.yaml'

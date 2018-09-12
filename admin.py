@@ -7,7 +7,7 @@ import tornado.web as web
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
