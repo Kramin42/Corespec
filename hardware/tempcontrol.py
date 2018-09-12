@@ -7,7 +7,7 @@ from struct import pack, unpack
 import yaml
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 DEFAULT_PORT = '/dev/ttyPS1'
 DEFAULT_BAUD = 115200
@@ -49,15 +49,15 @@ temp_time = 0
 temp_enabled = True
 
 def handler_raw(cmd):
+    logger.debug(cmd)
     global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, temp_enabled
-    #logger.debug(cmd)
+    if not mcs_ready:
+        mcs_ready = True
+        set_parameters(**parameters)  # set initial parameters
+        asyncio.ensure_future(amp_on_delayed())
     data = {'name': None, 'value': None}
     if temp_enabled:
         if cmd[0:CMD_SIZE]==b'$TMP':
-            if not mcs_ready:
-                mcs_ready = True
-                set_parameters(**parameters)  # set initial parameters
-                asyncio.ensure_future(amp_on_delayed())
             temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
             temp_count += 1
             temp_time += TEMP_PERIOD
