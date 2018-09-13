@@ -2,16 +2,18 @@ import React from 'react';
 import * as d3 from 'd3';
 import moment from 'moment';
 import {saveSvgAsPng} from 'save-svg-as-png';
-import * as d3SaveSvg from 'd3-save-svg';
 
+import SvgSaver from './util/svgsaver';
 import generateId from './util/generateId';
-import {decode_plot_data} from './util/decode'
+import {decode_plot_data} from './util/decode';
 import d3plot from './d3plot';
 import './css/d3plot.css';
 
 import './css/Plot.css';
 
 import Tabs from './Tabs';
+
+var svgsaver = new SvgSaver();
 
 export default class Plot extends React.Component {
   constructor(props) {
@@ -82,9 +84,7 @@ export default class Plot extends React.Component {
         backgroundColor: 'white'
       });
     } else if (format==='SVG') {
-      d3SaveSvg.save(d3.select('#'+this.svgid).node(), {
-        filename: name
-      });
+      svgsaver.asSvg(document.querySelector('#'+this.svgid), name+'.svg');
     }
   }
 

@@ -1485,6 +1485,75 @@ module.exports = {
 }());
 
 },{}],88:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var isDefined = function isDefined(a) {
+  return typeof a !== 'undefined';
+};
+var isObject = function isObject(a) {
+  return a !== null && typeof a === 'object';
+};
+
+// from https://github.com/npm-dom/is-dom/blob/master/index.js
+function isNode(val) {
+  if (!isObject(val)) return false;
+  if (isDefined(window) && isObject(window.Node)) return val instanceof window.Node;
+  return 'number' == typeof val.nodeType && 'string' == typeof val.nodeName;
+}
+
+var useComputedStyles = isDefined(window) && isDefined(window.getComputedStyle);
+
+/**
+* Returns a collection of CSS property-value pairs
+* @param  {Element} node A DOM element to copy styles from
+* @param  {Object} [target] An optional object to copy styles to
+* @param {(Object|Boolean)} [default=true] A collection of CSS property-value pairs, false: copy none, true: copy all
+* @return {object} collection of CSS property-value pairs
+* @api public
+*/
+function computedStyles(node) {
+  var target = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  var styleList = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
+  if (!isNode(node)) {
+    throw new Error('parameter 1 is not of type \'Element\'');
+  }
+
+  if (styleList === false) return target;
+
+  if (useComputedStyles) {
+    var computed = node.ownerDocument.defaultView.getComputedStyle(node, null);
+    var keysArray = styleList === true ? computed : Object.keys(styleList);
+  } else {
+    var computed = isDefined(node.currentStyle) ? node.currentStyle : node.style;
+    var keysArray = styleList === true ? Object.keys(computed) : Object.keys(styleList);
+  }
+
+  for (var i = 0, l = keysArray.length; i < l; i++) {
+    var key = keysArray[i];
+
+    var def = styleList === true || styleList[key];
+    if (def === false || !isDefined(def)) continue; // copy never
+
+    var value = useComputedStyles ? computed.getPropertyValue(key) : computed[key];
+    if (typeof value !== 'string' || value === '') continue; // invalid value
+
+    if (def === true || value !== def) {
+      // styleList === true || styleList[key] === true || styleList[key] !== value
+      target[key] = value;
+    }
+  }
+
+  return target;
+}
+
+exports['default'] = computedStyles;
+module.exports = exports['default'];
+},{}],89:[function(require,module,exports){
 // https://d3js.org/d3-array/ Version 1.2.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -2076,7 +2145,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],89:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 // https://d3js.org/d3-axis/ Version 1.0.8. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -2271,7 +2340,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],90:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 // https://d3js.org/d3-brush/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
@@ -2840,7 +2909,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":112,"d3-transition":117}],91:[function(require,module,exports){
+},{"d3-dispatch":96,"d3-drag":97,"d3-interpolate":105,"d3-selection":112,"d3-transition":117}],92:[function(require,module,exports){
 // https://d3js.org/d3-chord/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
@@ -3072,7 +3141,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":88,"d3-path":105}],92:[function(require,module,exports){
+},{"d3-array":89,"d3-path":106}],93:[function(require,module,exports){
 // https://d3js.org/d3-collection/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3291,7 +3360,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 // https://d3js.org/d3-color/ Version 1.2.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3842,7 +3911,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 // https://d3js.org/d3-contour/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
@@ -4275,7 +4344,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":88}],95:[function(require,module,exports){
+},{"d3-array":89}],96:[function(require,module,exports){
 // https://d3js.org/d3-dispatch/ Version 1.0.3. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4372,7 +4441,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 // https://d3js.org/d3-drag/ Version 1.2.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-selection')) :
@@ -4608,7 +4677,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":95,"d3-selection":112}],97:[function(require,module,exports){
+},{"d3-dispatch":96,"d3-selection":112}],98:[function(require,module,exports){
 // https://d3js.org/d3-dsv/ Version 1.0.8. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4772,7 +4841,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 // https://d3js.org/d3-ease/ Version 1.0.3. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5033,7 +5102,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],99:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 // https://d3js.org/d3-fetch/ Version 1.1.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
@@ -5137,7 +5206,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dsv":97}],100:[function(require,module,exports){
+},{"d3-dsv":98}],101:[function(require,module,exports){
 // https://d3js.org/d3-force/ Version 1.1.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
@@ -5799,7 +5868,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-collection":92,"d3-dispatch":95,"d3-quadtree":107,"d3-timer":116}],101:[function(require,module,exports){
+},{"d3-collection":93,"d3-dispatch":96,"d3-quadtree":108,"d3-timer":116}],102:[function(require,module,exports){
 // https://d3js.org/d3-format/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -6123,7 +6192,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],102:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 // https://d3js.org/d3-geo/ Version 1.10.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
@@ -9207,7 +9276,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":88}],103:[function(require,module,exports){
+},{"d3-array":89}],104:[function(require,module,exports){
 // https://d3js.org/d3-hierarchy/ Version 1.1.6. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10499,7 +10568,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 // https://d3js.org/d3-interpolate/ Version 1.2.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
@@ -11056,7 +11125,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":93}],105:[function(require,module,exports){
+},{"d3-color":94}],106:[function(require,module,exports){
 // https://d3js.org/d3-path/ Version 1.0.5. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11199,7 +11268,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],106:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 // https://d3js.org/d3-polygon/ Version 1.0.3. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11351,7 +11420,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],107:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 // https://d3js.org/d3-quadtree/ Version 1.0.3. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11788,7 +11857,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 // https://d3js.org/d3-random/ Version 1.1.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11905,223 +11974,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],109:[function(require,module,exports){
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define('d3-save-svg', ['exports'], factory) :
-  factory((global.d3_save_svg = {}));
-}(this, function (exports) { 'use strict';
-
-  function download (svgInfo, filename) {
-    window.URL = (window.URL || window.webkitURL);
-    var blob = new Blob(svgInfo.source, {type: 'text\/xml'});
-    var url = window.URL.createObjectURL(blob);
-    var body = document.body;
-    var a = document.createElement('a');
-
-    body.appendChild(a);
-    a.setAttribute('download', filename + '.svg');
-    a.setAttribute('href', url);
-    a.style.display = 'none';
-    a.click();
-    a.parentNode.removeChild(a);
-
-    setTimeout(function() {
-      window.URL.revokeObjectURL(url);
-    }, 10);
-  }
-
-  var prefix = {
-    svg: 'http://www.w3.org/2000/svg',
-    xhtml: 'http://www.w3.org/1999/xhtml',
-    xlink: 'http://www.w3.org/1999/xlink',
-    xml: 'http://www.w3.org/XML/1998/namespace',
-    xmlns: 'http://www.w3.org/2000/xmlns/',
-  };
-
-  function setInlineStyles (svg) {
-
-    // add empty svg element
-    var emptySvg = window.document.createElementNS(prefix.svg, 'svg');
-    window.document.body.appendChild(emptySvg);
-    var emptySvgDeclarationComputed = window.getComputedStyle(emptySvg);
-
-    // hardcode computed css styles inside svg
-    var allElements = traverse(svg);
-    var i = allElements.length;
-    while (i--) {
-      explicitlySetStyle(allElements[i]);
-    }
-
-    emptySvg.parentNode.removeChild(emptySvg);
-
-    function explicitlySetStyle(element) {
-      var cSSStyleDeclarationComputed = window.getComputedStyle(element);
-      var i;
-      var len;
-      var key;
-      var value;
-      var computedStyleStr = '';
-
-      for (i = 0, len = cSSStyleDeclarationComputed.length; i < len; i++) {
-        key = cSSStyleDeclarationComputed[i];
-        value = cSSStyleDeclarationComputed.getPropertyValue(key);
-        if (value !== emptySvgDeclarationComputed.getPropertyValue(key)) {
-          // Don't set computed style of width and height. Makes SVG elmements disappear.
-          if ((key !== 'height') && (key !== 'width')) {
-            computedStyleStr += key + ':' + value + ';';
-          }
-
-        }
-      }
-
-      element.setAttribute('style', computedStyleStr);
-    }
-
-    function traverse(obj) {
-      var tree = [];
-      tree.push(obj);
-      visit(obj);
-      function visit(node) {
-        if (node && node.hasChildNodes()) {
-          var child = node.firstChild;
-          while (child) {
-            if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
-              tree.push(child);
-              visit(child);
-            }
-
-            child = child.nextSibling;
-          }
-        }
-      }
-
-      return tree;
-    }
-  }
-
-  function preprocess (svg) {
-    svg.setAttribute('version', '1.1');
-
-    // removing attributes so they aren't doubled up
-    svg.removeAttribute('xmlns');
-    svg.removeAttribute('xlink');
-
-    // These are needed for the svg
-    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns')) {
-      svg.setAttributeNS(prefix.xmlns, 'xmlns', prefix.svg);
-    }
-
-    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns:xlink')) {
-      svg.setAttributeNS(prefix.xmlns, 'xmlns:xlink', prefix.xlink);
-    }
-
-    setInlineStyles(svg);
-
-    var xmls = new XMLSerializer();
-    var source = xmls.serializeToString(svg);
-    var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
-    var rect = svg.getBoundingClientRect();
-    var svgInfo = {
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
-      class: svg.getAttribute('class'),
-      id: svg.getAttribute('id'),
-      childElementCount: svg.childElementCount,
-      source: [doctype + source],
-    };
-
-    return svgInfo;
-  }
-
-  function converterEngine(input) { // fn BLOB => Binary => Base64 ?
-    var uInt8Array = new Uint8Array(input);
-    var i = uInt8Array.length;
-    var biStr = []; //new Array(i);
-    while (i--) {
-      biStr[i] = String.fromCharCode(uInt8Array[i]);
-    }
-
-    var base64 = window.btoa(biStr.join(''));
-    return base64;
-  };
-
-  function getImageBase64(url, callback) {
-    var xhr = new XMLHttpRequest(url);
-    var img64;
-    xhr.open('GET', url, true); // url is the url of a PNG/JPG image.
-    xhr.responseType = 'arraybuffer';
-    xhr.callback = callback;
-    xhr.onload = function() {
-      img64 = converterEngine(this.response); // convert BLOB to base64
-      this.callback(null, img64); // callback : err, data
-    };
-
-    xhr.onerror = function() {
-      callback('B64 ERROR', null);
-    };
-
-    xhr.send();
-  };
-
-  function isDataURL(str) {
-    var uriPattern = /^\s*data:([a-z]+\/[a-z0-9\-]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
-    return !!str.match(uriPattern);
-  }
-
-  function save(svgElement, config) {
-    if (svgElement.nodeName !== 'svg' || svgElement.nodeType !== 1) {
-      throw 'Need an svg element input';
-    }
-
-    var config = config || {};
-    var svgInfo = preprocess(svgElement, config);
-    var defaultFileName = getDefaultFileName(svgInfo);
-    var filename = config.filename || defaultFileName;
-    var svgInfo = preprocess(svgElement);
-    download(svgInfo, filename);
-  }
-
-  function embedRasterImages(svg) {
-
-    var images = svg.querySelectorAll('image');
-    [].forEach.call(images, function(image) {
-      var url = image.getAttribute('href');
-
-      // Check if it is already a data URL
-      if (!isDataURL(url)) {
-        // convert to base64 image and embed.
-        getImageBase64(url, function(err, d) {
-          image.setAttributeNS(prefix.xlink, 'href', 'data:image/png;base64,' + d);
-        });
-      }
-
-    });
-
-  }
-
-  function getDefaultFileName(svgInfo) {
-    var defaultFileName = 'untitled';
-    if (svgInfo.id) {
-      defaultFileName = svgInfo.id;
-    } else if (svgInfo.class) {
-      defaultFileName = svgInfo.class;
-    } else if (window.document.title) {
-      defaultFileName = window.document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    }
-
-    return defaultFileName;
-  }
-
-  var version = "0.0.2";
-
-  exports.version = version;
-  exports.save = save;
-  exports.embedRasterImages = embedRasterImages;
-
-}));
 },{}],110:[function(require,module,exports){
 // https://d3js.org/d3-scale-chromatic/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
@@ -12622,7 +12474,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":93,"d3-interpolate":104}],111:[function(require,module,exports){
+},{"d3-color":94,"d3-interpolate":105}],111:[function(require,module,exports){
 // https://d3js.org/d3-scale/ Version 2.1.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
@@ -13525,7 +13377,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":88,"d3-collection":92,"d3-format":101,"d3-interpolate":104,"d3-time":115,"d3-time-format":114}],112:[function(require,module,exports){
+},{"d3-array":89,"d3-collection":93,"d3-format":102,"d3-interpolate":105,"d3-time":115,"d3-time-format":114}],112:[function(require,module,exports){
 // https://d3js.org/d3-selection/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -16459,7 +16311,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-path":105}],114:[function(require,module,exports){
+},{"d3-path":106}],114:[function(require,module,exports){
 // https://d3js.org/d3-time-format/ Version 2.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
@@ -18476,7 +18328,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":93,"d3-dispatch":95,"d3-ease":98,"d3-interpolate":104,"d3-selection":112,"d3-timer":116}],118:[function(require,module,exports){
+},{"d3-color":94,"d3-dispatch":96,"d3-ease":99,"d3-interpolate":105,"d3-selection":112,"d3-timer":116}],118:[function(require,module,exports){
 // https://d3js.org/d3-voronoi/ Version 1.1.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -20033,7 +19885,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":112,"d3-transition":117}],120:[function(require,module,exports){
+},{"d3-dispatch":96,"d3-drag":97,"d3-interpolate":105,"d3-selection":112,"d3-transition":117}],120:[function(require,module,exports){
 // https://d3js.org/d3-zoom/ Version 1.7.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
@@ -20537,7 +20389,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":112,"d3-transition":117}],121:[function(require,module,exports){
+},{"d3-dispatch":96,"d3-drag":97,"d3-interpolate":105,"d3-selection":112,"d3-transition":117}],121:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -20610,7 +20462,7 @@ Object.keys(d3Zoom).forEach(function (key) { exports[key] = d3Zoom[key]; });
 exports.version = version;
 Object.defineProperty(exports, "event", {get: function() { return d3Selection.event; }});
 
-},{"d3-array":88,"d3-axis":89,"d3-brush":90,"d3-chord":91,"d3-collection":92,"d3-color":93,"d3-contour":94,"d3-dispatch":95,"d3-drag":96,"d3-dsv":97,"d3-ease":98,"d3-fetch":99,"d3-force":100,"d3-format":101,"d3-geo":102,"d3-hierarchy":103,"d3-interpolate":104,"d3-path":105,"d3-polygon":106,"d3-quadtree":107,"d3-random":108,"d3-scale":111,"d3-scale-chromatic":110,"d3-selection":112,"d3-shape":113,"d3-time":115,"d3-time-format":114,"d3-timer":116,"d3-transition":117,"d3-voronoi":118,"d3-zoom":120}],122:[function(require,module,exports){
+},{"d3-array":89,"d3-axis":90,"d3-brush":91,"d3-chord":92,"d3-collection":93,"d3-color":94,"d3-contour":95,"d3-dispatch":96,"d3-drag":97,"d3-dsv":98,"d3-ease":99,"d3-fetch":100,"d3-force":101,"d3-format":102,"d3-geo":103,"d3-hierarchy":104,"d3-interpolate":105,"d3-path":106,"d3-polygon":107,"d3-quadtree":108,"d3-random":109,"d3-scale":111,"d3-scale-chromatic":110,"d3-selection":112,"d3-shape":113,"d3-time":115,"d3-time-format":114,"d3-timer":116,"d3-transition":117,"d3-voronoi":118,"d3-zoom":120}],122:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -21140,6 +20992,196 @@ if ("production" !== 'production') {
 
 module.exports = warning;
 },{"./emptyFunction":126}],136:[function(require,module,exports){
+/* FileSaver.js
+ * A saveAs() FileSaver implementation.
+ * 1.3.2
+ * 2016-06-16 18:25:19
+ *
+ * By Eli Grey, http://eligrey.com
+ * License: MIT
+ *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+ */
+
+/*global self */
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+var saveAs = saveAs || (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
+	}
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
+		}
+		, is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
+						return;
+					}
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
+					}
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
+					}
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
+
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
+
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
+
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
+
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
+
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
+
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.saveAs = saveAs;
+} else if ((typeof define !== "undefined" && define !== null) && (define.amd !== null)) {
+  define("FileSaver.js", function() {
+    return saveAs;
+  });
+}
+
+},{}],137:[function(require,module,exports){
 var invariant = require('invariant');
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -21410,7 +21452,7 @@ function invariantMapOrSet(target, command) {
   );
 }
 
-},{"invariant":137}],137:[function(require,module,exports){
+},{"invariant":138}],138:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -21461,7 +21503,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-},{}],138:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 //! moment.js
 
 ;(function (global, factory) {
@@ -25969,7 +26011,7 @@ module.exports = invariant;
 
 })));
 
-},{}],139:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -26061,7 +26103,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],140:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26122,7 +26164,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 
 module.exports = checkPropTypes;
 
-},{"./lib/ReactPropTypesSecret":144,"fbjs/lib/invariant":131,"fbjs/lib/warning":135}],141:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":145,"fbjs/lib/invariant":131,"fbjs/lib/warning":135}],142:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26182,7 +26224,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":144,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":131}],142:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":145,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":131}],143:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26726,7 +26768,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
   return ReactPropTypes;
 };
 
-},{"./checkPropTypes":140,"./lib/ReactPropTypesSecret":144,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":131,"fbjs/lib/warning":135,"object-assign":139}],143:[function(require,module,exports){
+},{"./checkPropTypes":141,"./lib/ReactPropTypesSecret":145,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":131,"fbjs/lib/warning":135,"object-assign":140}],144:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26756,7 +26798,7 @@ if ("production" !== 'production') {
   module.exports = require('./factoryWithThrowingShims')();
 }
 
-},{"./factoryWithThrowingShims":141,"./factoryWithTypeCheckers":142}],144:[function(require,module,exports){
+},{"./factoryWithThrowingShims":142,"./factoryWithTypeCheckers":143}],145:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26770,7 +26812,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],145:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26933,7 +26975,7 @@ Circle.defaultProps = (0, _extends3['default'])({}, _types.defaultProps, {
 
 exports['default'] = (0, _enhancer2['default'])(Circle);
 module.exports = exports['default'];
-},{"./enhancer":147,"./types":149,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"prop-types":143,"react":170}],146:[function(require,module,exports){
+},{"./enhancer":148,"./types":150,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"prop-types":144,"react":171}],147:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27047,7 +27089,7 @@ Line.defaultProps = _types.defaultProps;
 
 exports['default'] = (0, _enhancer2['default'])(Line);
 module.exports = exports['default'];
-},{"./enhancer":147,"./types":149,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"react":170}],147:[function(require,module,exports){
+},{"./enhancer":148,"./types":150,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"react":171}],148:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27098,7 +27140,7 @@ var enhancer = function enhancer(WrappedComponent) {
 
 exports['default'] = enhancer;
 module.exports = exports['default'];
-},{"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/possibleConstructorReturn":12}],148:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/possibleConstructorReturn":12}],149:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27120,7 +27162,7 @@ exports['default'] = {
   Line: _Line2['default'],
   Circle: _Circle2['default']
 };
-},{"./Circle":145,"./Line":146}],149:[function(require,module,exports){
+},{"./Circle":146,"./Line":147}],150:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27155,7 +27197,7 @@ var propTypes = exports.propTypes = {
   trailColor: _propTypes2['default'].string,
   trailWidth: _propTypes2['default'].oneOfType([_propTypes2['default'].number, _propTypes2['default'].string])
 };
-},{"prop-types":143}],150:[function(require,module,exports){
+},{"prop-types":144}],151:[function(require,module,exports){
 /** @license React v16.3.2
  * react-dom.development.js
  *
@@ -43811,7 +43853,7 @@ module.exports = reactDom;
   })();
 }
 
-},{"fbjs/lib/ExecutionEnvironment":122,"fbjs/lib/camelizeStyleName":124,"fbjs/lib/containsNode":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/getActiveElement":128,"fbjs/lib/hyphenateStyleName":130,"fbjs/lib/invariant":131,"fbjs/lib/shallowEqual":134,"fbjs/lib/warning":135,"object-assign":139,"prop-types/checkPropTypes":140,"react":170}],151:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":122,"fbjs/lib/camelizeStyleName":124,"fbjs/lib/containsNode":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/getActiveElement":128,"fbjs/lib/hyphenateStyleName":130,"fbjs/lib/invariant":131,"fbjs/lib/shallowEqual":134,"fbjs/lib/warning":135,"object-assign":140,"prop-types/checkPropTypes":141,"react":171}],152:[function(require,module,exports){
 /** @license React v16.3.2
  * react-dom.production.min.js
  *
@@ -44059,7 +44101,7 @@ var Gg={createPortal:Fg,findDOMNode:function(a){return null==a?null:1===a.nodeTy
 null})}),!0):!1},unstable_createPortal:function(){return Fg.apply(void 0,arguments)},unstable_batchedUpdates:X.batchedUpdates,unstable_deferredUpdates:X.deferredUpdates,flushSync:X.flushSync,unstable_flushControlled:X.flushControlled,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{EventPluginHub:Ra,EventPluginRegistry:Ca,EventPropagators:kb,ReactControlledComponent:$b,ReactDOMComponentTree:bb,ReactDOMEventListener:$d},unstable_createRoot:function(a,b){return new tg(a,!0,null!=b&&!0===b.hydrate)}};
 X.injectIntoDevTools({findFiberByHostInstance:Ua,bundleType:0,version:"16.3.2",rendererPackageName:"react-dom"});var Hg=Object.freeze({default:Gg}),Ig=Hg&&Gg||Hg;module.exports=Ig["default"]?Ig["default"]:Ig;
 
-},{"fbjs/lib/ExecutionEnvironment":122,"fbjs/lib/containsNode":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/getActiveElement":128,"fbjs/lib/invariant":131,"fbjs/lib/shallowEqual":134,"object-assign":139,"react":170}],152:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":122,"fbjs/lib/containsNode":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/getActiveElement":128,"fbjs/lib/invariant":131,"fbjs/lib/shallowEqual":134,"object-assign":140,"react":171}],153:[function(require,module,exports){
 'use strict';
 
 function checkDCE() {
@@ -44099,7 +44141,7 @@ if ("production" === 'production') {
   module.exports = require('./cjs/react-dom.development.js');
 }
 
-},{"./cjs/react-dom.development.js":150,"./cjs/react-dom.production.min.js":151}],153:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":151,"./cjs/react-dom.production.min.js":152}],154:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44368,7 +44410,7 @@ AutosizeInput.defaultProps = {
 };
 
 exports.default = AutosizeInput;
-},{"prop-types":143,"react":170}],154:[function(require,module,exports){
+},{"prop-types":144,"react":171}],155:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44640,7 +44682,7 @@ exports.default = Async;
 
 Async.propTypes = propTypes;
 Async.defaultProps = defaultProps;
-},{"./Select":158,"./utils/stripDiacritics":166,"prop-types":143,"react":170}],155:[function(require,module,exports){
+},{"./Select":159,"./utils/stripDiacritics":167,"prop-types":144,"react":171}],156:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44746,7 +44788,7 @@ AsyncCreatableSelect.defaultProps = {
 };
 
 exports.default = AsyncCreatableSelect;
-},{"./Async":154,"./Creatable":156,"./Select":158,"prop-types":143,"react":170}],156:[function(require,module,exports){
+},{"./Async":155,"./Creatable":157,"./Select":159,"prop-types":144,"react":171}],157:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -45119,7 +45161,7 @@ CreatableSelect.propTypes = {
 };
 
 exports.default = CreatableSelect;
-},{"./Select":158,"./utils/defaultFilterOptions":164,"./utils/defaultMenuRenderer":165,"prop-types":143,"react":170}],157:[function(require,module,exports){
+},{"./Select":159,"./utils/defaultFilterOptions":165,"./utils/defaultMenuRenderer":166,"prop-types":144,"react":171}],158:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -45268,7 +45310,7 @@ Option.propTypes = {
 };
 
 exports.default = Option;
-},{"./utils/blockEvent":161,"classnames":87,"prop-types":143,"react":170}],158:[function(require,module,exports){
+},{"./utils/blockEvent":162,"classnames":87,"prop-types":144,"react":171}],159:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46730,7 +46772,7 @@ Select.defaultProps = {
 };
 
 exports.default = Select;
-},{"./Option":157,"./Value":159,"./utils/defaultArrowRenderer":162,"./utils/defaultClearRenderer":163,"./utils/defaultFilterOptions":164,"./utils/defaultMenuRenderer":165,"classnames":87,"prop-types":143,"react":170,"react-dom":152,"react-input-autosize":153}],159:[function(require,module,exports){
+},{"./Option":158,"./Value":160,"./utils/defaultArrowRenderer":163,"./utils/defaultClearRenderer":164,"./utils/defaultFilterOptions":165,"./utils/defaultMenuRenderer":166,"classnames":87,"prop-types":144,"react":171,"react-dom":153,"react-input-autosize":154}],160:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46876,7 +46918,7 @@ Value.propTypes = {
 };
 
 exports.default = Value;
-},{"classnames":87,"prop-types":143,"react":170}],160:[function(require,module,exports){
+},{"classnames":87,"prop-types":144,"react":171}],161:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46942,7 +46984,7 @@ exports.defaultMenuRenderer = _defaultMenuRenderer2.default;
 exports.defaultArrowRenderer = _defaultArrowRenderer2.default;
 exports.defaultClearRenderer = _defaultClearRenderer2.default;
 exports.defaultFilterOptions = _defaultFilterOptions2.default;
-},{"./Async":154,"./AsyncCreatable":155,"./Creatable":156,"./Option":157,"./Select":158,"./Value":159,"./utils/defaultArrowRenderer":162,"./utils/defaultClearRenderer":163,"./utils/defaultFilterOptions":164,"./utils/defaultMenuRenderer":165}],161:[function(require,module,exports){
+},{"./Async":155,"./AsyncCreatable":156,"./Creatable":157,"./Option":158,"./Select":159,"./Value":160,"./utils/defaultArrowRenderer":163,"./utils/defaultClearRenderer":164,"./utils/defaultFilterOptions":165,"./utils/defaultMenuRenderer":166}],162:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46961,7 +47003,7 @@ exports.default = function (event) {
 		window.location.href = event.target.href;
 	}
 };
-},{}],162:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46992,7 +47034,7 @@ arrowRenderer.propTypes = {
 };
 
 exports.default = arrowRenderer;
-},{"prop-types":143,"react":170}],163:[function(require,module,exports){
+},{"prop-types":144,"react":171}],164:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -47013,7 +47055,7 @@ var clearRenderer = function clearRenderer() {
 };
 
 exports.default = clearRenderer;
-},{"react":170}],164:[function(require,module,exports){
+},{"react":171}],165:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -47083,7 +47125,7 @@ var filterOptions = function filterOptions(options, filterValue, excludeOptions,
 };
 
 exports.default = filterOptions;
-},{"./stripDiacritics":166,"./trim":167}],165:[function(require,module,exports){
+},{"./stripDiacritics":167,"./trim":168}],166:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -47180,7 +47222,7 @@ menuRenderer.propTypes = {
 };
 
 exports.default = menuRenderer;
-},{"classnames":87,"prop-types":143,"react":170}],166:[function(require,module,exports){
+},{"classnames":87,"prop-types":144,"react":171}],167:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -47196,7 +47238,7 @@ var stripDiacritics = function stripDiacritics(str) {
 };
 
 exports.default = stripDiacritics;
-},{}],167:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -47207,7 +47249,7 @@ var trim = function trim(str) {
 };
 
 exports.default = trim;
-},{}],168:[function(require,module,exports){
+},{}],169:[function(require,module,exports){
 /** @license React v16.3.2
  * react.development.js
  *
@@ -48623,7 +48665,7 @@ module.exports = react;
   })();
 }
 
-},{"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/invariant":131,"fbjs/lib/warning":135,"object-assign":139,"prop-types/checkPropTypes":140}],169:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/invariant":131,"fbjs/lib/warning":135,"object-assign":140,"prop-types/checkPropTypes":141}],170:[function(require,module,exports){
 /** @license React v16.3.2
  * react.production.min.js
  *
@@ -48647,7 +48689,7 @@ _calculateChangedBits:b,_defaultValue:a,_currentValue:a,_changedBits:0,Provider:
 (k=a.type.defaultProps);for(c in b)J.call(b,c)&&!K.hasOwnProperty(c)&&(d[c]=void 0===b[c]&&void 0!==k?k[c]:b[c])}c=arguments.length-2;if(1===c)d.children=e;else if(1<c){k=Array(c);for(var l=0;l<c;l++)k[l]=arguments[l+2];d.children=k}return{$$typeof:t,type:a.type,key:g,ref:h,props:d,_owner:f}},createFactory:function(a){var b=L.bind(null,a);b.type=a;return b},isValidElement:M,version:"16.3.2",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentOwner:I,assign:m}},X=Object.freeze({default:W}),
 Y=X&&W||X;module.exports=Y["default"]?Y["default"]:Y;
 
-},{"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/invariant":131,"object-assign":139}],170:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/invariant":131,"object-assign":140}],171:[function(require,module,exports){
 'use strict';
 
 if ("production" === 'production') {
@@ -48656,7 +48698,7 @@ if ("production" === 'production') {
   module.exports = require('./cjs/react.development.js');
 }
 
-},{"./cjs/react.development.js":168,"./cjs/react.production.min.js":169}],171:[function(require,module,exports){
+},{"./cjs/react.development.js":169,"./cjs/react.production.min.js":170}],172:[function(require,module,exports){
 'use strict';
 
 (function () {
@@ -49068,7 +49110,7 @@ if ("production" === 'production') {
     });
   };
 })();
-},{}],172:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49372,7 +49414,7 @@ var App = function (_React$Component) {
 
 exports.default = App;
 
-},{"./TabPanes":183,"./Tabs":184,"./css/App.css":186,"./css/Buttons.css":187,"./util/shortUID":204,"@gamestdio/websocket":2,"immutability-helper":136,"react":170}],173:[function(require,module,exports){
+},{"./TabPanes":184,"./Tabs":185,"./css/App.css":187,"./css/Buttons.css":188,"./util/shortUID":205,"@gamestdio/websocket":2,"immutability-helper":137,"react":171}],174:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49744,7 +49786,7 @@ var Experiment = function (_React$Component) {
 
 exports.default = Experiment;
 
-},{"./ExportControls":174,"./MessageBox":175,"./ParameterBox":177,"./ParameterControls":178,"./ParameterPanes":179,"./Plot":180,"./Progress":181,"./RunControls":182,"./Tabs":184,"./css/Experiment.css":188,"classnames":87,"immutability-helper":136,"react":170}],174:[function(require,module,exports){
+},{"./ExportControls":175,"./MessageBox":176,"./ParameterBox":178,"./ParameterControls":179,"./ParameterPanes":180,"./Plot":181,"./Progress":182,"./RunControls":183,"./Tabs":185,"./css/Experiment.css":189,"classnames":87,"immutability-helper":137,"react":171}],175:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49876,7 +49918,7 @@ function downloadBytes(bytes, fileName) {
   link.click();
 }
 
-},{"./css/ExportControls.css":189,"moment":138,"react":170,"react-select":160}],175:[function(require,module,exports){
+},{"./css/ExportControls.css":190,"moment":139,"react":171,"react-select":161}],176:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49949,7 +49991,7 @@ var MessageBox = function (_React$Component) {
 
 exports.default = MessageBox;
 
-},{"./css/MessageBox.css":190,"classnames":87,"react":170}],176:[function(require,module,exports){
+},{"./css/MessageBox.css":191,"classnames":87,"react":171}],177:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50046,7 +50088,7 @@ var Parameter = function (_React$Component) {
 
 exports.default = Parameter;
 
-},{"./css/Parameter.css":191,"./util/generateId":203,"classnames":87,"react":170}],177:[function(require,module,exports){
+},{"./css/Parameter.css":192,"./util/generateId":204,"classnames":87,"react":171}],178:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50125,7 +50167,7 @@ var ParameterBox = function (_React$Component) {
 
 exports.default = ParameterBox;
 
-},{"./Parameter":176,"classnames":87,"react":170}],178:[function(require,module,exports){
+},{"./Parameter":177,"classnames":87,"react":171}],179:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50233,7 +50275,7 @@ var ParameterControls = function (_React$Component) {
 
 exports.default = ParameterControls;
 
-},{"./css/ParameterControls.css":192,"./css/Select.css":196,"react":170,"react-select":160}],179:[function(require,module,exports){
+},{"./css/ParameterControls.css":193,"./css/Select.css":197,"react":171,"react-select":161}],180:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50298,7 +50340,7 @@ var ParameterPanes = function (_React$Component) {
 
 exports.default = ParameterPanes;
 
-},{"./ParameterBox":177,"react":170}],180:[function(require,module,exports){
+},{"./ParameterBox":178,"react":171}],181:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50321,9 +50363,9 @@ var _moment2 = _interopRequireDefault(_moment);
 
 var _saveSvgAsPng = require('save-svg-as-png');
 
-var _d3SaveSvg = require('d3-save-svg');
+var _svgsaver = require('./util/svgsaver');
 
-var d3SaveSvg = _interopRequireWildcard(_d3SaveSvg);
+var _svgsaver2 = _interopRequireDefault(_svgsaver);
 
 var _generateId = require('./util/generateId');
 
@@ -50352,6 +50394,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var svgsaver = new _svgsaver2.default();
 
 var Plot = function (_React$Component) {
   _inherits(Plot, _React$Component);
@@ -50432,9 +50476,7 @@ var Plot = function (_React$Component) {
           backgroundColor: 'white'
         });
       } else if (format === 'SVG') {
-        d3SaveSvg.save(d3.select('#' + this.svgid).node(), {
-          filename: name
-        });
+        svgsaver.asSvg(document.querySelector('#' + this.svgid), name + '.svg');
       }
     }
   }, {
@@ -50488,7 +50530,7 @@ var Plot = function (_React$Component) {
 
 exports.default = Plot;
 
-},{"./Tabs":184,"./css/Plot.css":193,"./css/d3plot.css":199,"./d3plot":200,"./util/decode":202,"./util/generateId":203,"d3":121,"d3-save-svg":109,"moment":138,"react":170,"save-svg-as-png":171}],181:[function(require,module,exports){
+},{"./Tabs":185,"./css/Plot.css":194,"./css/d3plot.css":200,"./d3plot":201,"./util/decode":203,"./util/generateId":204,"./util/svgsaver":206,"d3":121,"moment":139,"react":171,"save-svg-as-png":172}],182:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50539,7 +50581,7 @@ var ProgressBar = function (_React$Component) {
 
 exports.default = ProgressBar;
 
-},{"./css/Progress.css":194,"rc-progress":148,"react":170}],182:[function(require,module,exports){
+},{"./css/Progress.css":195,"rc-progress":149,"react":171}],183:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50623,7 +50665,7 @@ var RunControls = function (_React$Component) {
 
 exports.default = RunControls;
 
-},{"./css/RunControls.css":195,"classnames":87,"react":170}],183:[function(require,module,exports){
+},{"./css/RunControls.css":196,"classnames":87,"react":171}],184:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50715,7 +50757,7 @@ var TabPanes = function (_React$Component) {
 
 exports.default = TabPanes;
 
-},{"./Experiment":173,"./Temperature":185,"./css/TabPanes.css":197,"react":170}],184:[function(require,module,exports){
+},{"./Experiment":174,"./Temperature":186,"./css/TabPanes.css":198,"react":171}],185:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50795,7 +50837,7 @@ var Tabs = function (_React$Component) {
 
 exports.default = Tabs;
 
-},{"./css/Tabs.css":198,"classnames":87,"react":170}],185:[function(require,module,exports){
+},{"./css/Tabs.css":199,"classnames":87,"react":171}],186:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50988,35 +51030,35 @@ var Temperature = function (_React$Component) {
 
 exports.default = Temperature;
 
-},{"./MessageBox":175,"./ParameterBox":177,"./ParameterPanes":179,"./Plot":180,"./Tabs":184,"./css/Experiment.css":188,"classnames":87,"immutability-helper":136,"react":170}],186:[function(require,module,exports){
+},{"./MessageBox":176,"./ParameterBox":178,"./ParameterPanes":180,"./Plot":181,"./Tabs":185,"./css/Experiment.css":189,"classnames":87,"immutability-helper":137,"react":171}],187:[function(require,module,exports){
 var css = "html,\nbody {\n  padding: 0px;\n  margin: 0px;\n  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\n  font-size: 15px;\n  cursor: default;\n  user-select: none;\n}\n.app-container {\n  height: 100vh;\n  width: 100vw;\n  background-color: #ededed;\n  display: flex;\n  flex-direction: column;\n}\n.app-container>.tab-bar {\n  background-color: #617463;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\App.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":86}],187:[function(require,module,exports){
-var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],188:[function(require,module,exports){
-var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\r\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\r\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],189:[function(require,module,exports){
-var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\r\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\r\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],190:[function(require,module,exports){
-var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],191:[function(require,module,exports){
-var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],192:[function(require,module,exports){
-var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],193:[function(require,module,exports){
-var css = ".plot-container {\n  max-width: 50%;\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],194:[function(require,module,exports){
-var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".plot-container {\n  max-width: 50%;\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],195:[function(require,module,exports){
-var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],196:[function(require,module,exports){
-var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],197:[function(require,module,exports){
-var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],198:[function(require,module,exports){
-var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 5px 10px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],199:[function(require,module,exports){
-var css = "rect {\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  vector-effect: non-scaling-stroke;\n}\ntext {\n  font-family: sans-serif;\n  fill: black;\n}\n.axis path,\n.axis line {\n  vector-effect: non-scaling-stroke;\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  fill: none;\n  stroke: black;\n}\n.axis .tick text {\n  font-size: 12px;\n}\n.focus text {\n  fill: white;\n  fill-opacity: 1;\n  whitespace: pre;\n}\nline.focus {\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\n.overlay {\n  fill: none;\n  pointer-events: all;\n}\nline.border {\n  stroke: black;\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\nrect.zoom {\n  stroke: steelblue;\n  fill-opacity: 0.5;\n}\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\d3plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 5px 10px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],200:[function(require,module,exports){
+var css = "rect {\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  vector-effect: non-scaling-stroke;\n}\ntext {\n  font-family: sans-serif;\n  fill: black;\n}\n.axis path,\n.axis line {\n  vector-effect: non-scaling-stroke;\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  fill: none;\n  stroke: black;\n}\n.axis .tick text {\n  font-size: 12px;\n}\n.focus text {\n  fill: white;\n  fill-opacity: 1;\n  whitespace: pre;\n}\nline.focus {\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\n.overlay {\n  fill: none;\n  pointer-events: all;\n}\nline.border {\n  stroke: black;\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\nrect.zoom {\n  stroke: steelblue;\n  fill-opacity: 0.5;\n}\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\d3plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":86}],201:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -51400,7 +51442,7 @@ function d3plot(svg, plotDef) {
   }
 }
 
-},{"d3":121,"d3-xyzoom":119}],201:[function(require,module,exports){
+},{"d3":121,"d3-xyzoom":119}],202:[function(require,module,exports){
 'use strict';
 
 var _reactDom = require('react-dom');
@@ -51419,7 +51461,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 _reactDom2.default.render(_react2.default.createElement(_App2.default, { server: 'ws://' + window.location.hostname + ':8765' }), document.getElementById('app'));
 
-},{"./App":172,"react":170,"react-dom":152}],202:[function(require,module,exports){
+},{"./App":173,"react":171,"react-dom":153}],203:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -51452,7 +51494,7 @@ function decode_plot_data(data) {
 exports.decode_plot_data = decode_plot_data;
 exports.decode_data = decode_data;
 
-},{}],203:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -51471,7 +51513,7 @@ function resetIdCounter() {
   current = 0;
 }
 
-},{}],204:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -51488,4 +51530,466 @@ function shortUID() {
     return firstPart + secondPart;
 }
 
-},{}]},{},[201]);
+},{}],206:[function(require,module,exports){
+'use strict';
+
+// modified from https://github.com/Hypercubed/svgsaver
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ('value' in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError('Cannot call a class as a function');
+  }
+}
+
+var _computedStyles = require('computed-styles');
+
+var _computedStyles2 = _interopRequireDefault(_computedStyles);
+
+var _fileSaver = require('file-saver');
+
+var _fileSaver2 = _interopRequireDefault(_fileSaver);
+
+var svgStyles = { // Whitelist of CSS styles and default values
+  'alignment-baseline': 'auto',
+  'baseline-shift': 'baseline',
+  'clip': 'auto',
+  'clip-path': 'none',
+  'clip-rule': 'nonzero',
+  'color': 'rgb(51, 51, 51)',
+  'color-interpolation': 'srgb',
+  'color-interpolation-filters': 'linearrgb',
+  'color-profile': 'auto',
+  'color-rendering': 'auto',
+  'cursor': 'auto',
+  'direction': 'ltr',
+  'display': 'inline',
+  'dominant-baseline': 'auto',
+  'enable-background': '',
+  'fill': 'rgb(0, 0, 0)',
+  'fill-opacity': '1',
+  'fill-rule': 'nonzero',
+  'filter': 'none',
+  'flood-color': 'rgb(0, 0, 0)',
+  'flood-opacity': '1',
+  'font': '',
+  'font-family': 'normal',
+  'font-size': 'medium',
+  'font-size-adjust': 'auto',
+  'font-stretch': 'normal',
+  'font-style': 'normal',
+  'font-variant': 'normal',
+  'font-weight': '400',
+  'glyph-orientation-horizontal': '0deg',
+  'glyph-orientation-vertical': 'auto',
+  'image-rendering': 'auto',
+  'kerning': 'auto',
+  'letter-spacing': '0',
+  'lighting-color': 'rgb(255, 255, 255)',
+  'marker': '',
+  'marker-end': 'none',
+  'marker-mid': 'none',
+  'marker-start': 'none',
+  'mask': 'none',
+  'opacity': '1',
+  'overflow': 'visible',
+  'paint-order': 'fill',
+  'pointer-events': 'auto',
+  'shape-rendering': 'auto',
+  'stop-color': 'rgb(0, 0, 0)',
+  'stop-opacity': '1',
+  'stroke': 'none',
+  'stroke-dasharray': 'none',
+  'stroke-dashoffset': '0',
+  'stroke-linecap': 'butt',
+  'stroke-linejoin': 'miter',
+  'stroke-miterlimit': '4',
+  'stroke-opacity': '1',
+  'stroke-width': '1',
+  'text-anchor': 'start',
+  'text-decoration': 'none',
+  'text-rendering': 'auto',
+  'unicode-bidi': 'normal',
+  'visibility': 'visible',
+  'word-spacing': '0px',
+  'writing-mode': 'lr-tb'
+};
+
+var svgAttrs = [// white list of attributes
+'id', 'xml: base', 'xml: lang', 'xml: space', // Core
+'height', 'result', 'width', 'x', 'y', // Primitive
+'xlink: href', // Xlink attribute
+'href', 'style', 'class', 'd', 'pathLength', // Path
+'x', 'y', 'dx', 'dy', 'glyphRef', 'format', 'x1', 'y1', 'x2', 'y2', 'rotate', 'textLength', 'cx', 'cy', 'r', 'rx', 'ry', 'fx', 'fy', 'width', 'height', 'refX', 'refY', 'orient', 'markerUnits', 'markerWidth', 'markerHeight', 'maskUnits', 'transform', 'viewBox', 'version', // Container
+'preserveAspectRatio', 'xmlns', 'points', // Polygons
+'offset', 'xlink:href'];
+
+// http://www.w3.org/TR/SVG/propidx.html
+// via https://github.com/svg/svgo/blob/master/plugins/_collections.js
+var inheritableAttrs = ['clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cursor', 'direction', 'fill', 'fill-opacity', 'fill-rule', 'font', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'glyph-orientation-horizontal', 'glyph-orientation-vertical', 'image-rendering', 'kerning', 'letter-spacing', 'marker', 'marker-end', 'marker-mid', 'marker-start', 'pointer-events', 'shape-rendering', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'text-anchor', 'text-rendering', 'transform', 'visibility', 'white-space', 'word-spacing', 'writing-mode'];
+
+/* Some simple utilities */
+
+var isFunction = function isFunction(a) {
+  return typeof a === 'function';
+};
+var isDefined = function isDefined(a) {
+  return typeof a !== 'undefined';
+};
+var isUndefined = function isUndefined(a) {
+  return typeof a === 'undefined';
+};
+var isObject = function isObject(a) {
+  return a !== null && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object';
+};
+
+// from https://github.com/npm-dom/is-dom/blob/master/index.js
+function isNode(val) {
+  if (!isObject(val)) {
+    return false;
+  }
+  if (isDefined(window) && isObject(window.Node)) {
+    return val instanceof window.Node;
+  }
+  return typeof val.nodeType === 'number' && typeof val.nodeName === 'string';
+}
+
+/* Some utilities for cloning SVGs with inline styles */
+// Removes attributes that are not valid for SVGs
+function cleanAttrs(el, attrs, styles) {
+  // attrs === false - remove all, attrs === true - allow all
+  if (attrs === true) {
+    return;
+  }
+
+  Array.prototype.slice.call(el.attributes).forEach(function (attr) {
+    // remove if it is not style nor on attrs  whitelist
+    // keeping attributes that are also styles because attributes override
+    if (attr.specified) {
+      if (attrs === '' || attrs === false || isUndefined(styles[attr.name]) && attrs.indexOf(attr.name) < 0) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+}
+
+function cleanStyle(tgt, parentStyles) {
+  parentStyles = parentStyles || tgt.parentNode.style;
+  inheritableAttrs.forEach(function (key) {
+    if (tgt.style[key] === parentStyles[key]) {
+      tgt.style.removeProperty(key);
+    }
+  });
+}
+
+function domWalk(src, tgt, down, up) {
+  down(src, tgt);
+  var children = src.childNodes;
+  for (var i = 0; i < children.length; i++) {
+    domWalk(children[i], tgt.childNodes[i], down, up);
+  }
+  up(src, tgt);
+}
+
+// Clones an SVGElement, copies approprate atttributes and styles.
+function cloneSvg(src, attrs, styles) {
+  var clonedSvg = src.cloneNode(true);
+
+  domWalk(src, clonedSvg, function (src, tgt) {
+    if (tgt.style) {
+      (0, _computedStyles2['default'])(src, tgt.style, styles);
+    }
+  }, function (src, tgt) {
+    if (tgt.style && tgt.parentNode) {
+      cleanStyle(tgt);
+    }
+    if (tgt.attributes) {
+      cleanAttrs(tgt, attrs, styles);
+    }
+  });
+
+  return clonedSvg;
+}
+
+/* global Image, MouseEvent */
+
+/* Some simple utilities for saving SVGs, including an alternative to saveAs */
+
+// detection
+var DownloadAttributeSupport = typeof document !== 'undefined' && 'download' in document.createElement('a') && typeof MouseEvent === 'function';
+
+function saveUri(uri, name) {
+  if (DownloadAttributeSupport) {
+    var dl = document.createElement('a');
+    dl.setAttribute('href', uri);
+    dl.setAttribute('download', name);
+    // firefox doesn't support `.click()`...
+    // from https://github.com/sindresorhus/multi-download/blob/gh-pages/index.js
+    dl.dispatchEvent(new MouseEvent('click'));
+    return true;
+  } else if (typeof window !== 'undefined') {
+    window.open(uri, '_blank', '');
+    return true;
+  }
+
+  return false;
+}
+
+function createCanvas(uri, name, cb) {
+  var canvas = document.createElement('canvas');
+  var context = canvas.getContext('2d');
+
+  var image = new Image();
+  image.onload = function () {
+    canvas.width = image.width;
+    canvas.height = image.height;
+    context.drawImage(image, 0, 0);
+
+    cb(canvas);
+  };
+  image.src = uri;
+  return true;
+}
+
+function savePng(uri, name) {
+  return createCanvas(uri, name, function (canvas) {
+    if (isDefined(canvas.toBlob)) {
+      canvas.toBlob(function (blob) {
+        _fileSaver2['default'].saveAs(blob, name);
+      });
+    } else {
+      saveUri(canvas.toDataURL('image/png'), name);
+    }
+  });
+}
+
+/* global Blob */
+
+var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
+
+// inheritable styles may be overridden by parent, always copy for now
+inheritableAttrs.forEach(function (k) {
+  if (k in svgStyles) {
+    svgStyles[k] = true;
+  }
+});
+
+var SvgSaver = function () {
+  _createClass(SvgSaver, null, [{
+    key: 'getSvg',
+    value: function getSvg(el) {
+      if (isUndefined(el) || el === '') {
+        el = document.body.querySelector('svg');
+      } else if (typeof el === 'string') {
+        el = document.body.querySelector(el);
+      }
+      if (el && el.tagName !== 'svg') {
+        el = el.querySelector('svg');
+      }
+      if (!isNode(el)) {
+        throw new Error('svgsaver: Can\'t find an svg element');
+      }
+      return el;
+    }
+  }, {
+    key: 'getFilename',
+    value: function getFilename(el, filename, ext) {
+      if (!filename || filename === '') {
+        filename = (el.getAttribute('title') || 'untitled') + '.' + ext;
+      }
+      return encodeURI(filename);
+    }
+
+    /**
+    * SvgSaver constructor.
+    * @constructs SvgSaver
+    * @api public
+    *
+    * @example
+    * var svgsaver = new SvgSaver();                      // creates a new instance
+    * var svg = document.querySelector('#mysvg');         // find the SVG element
+    * svgsaver.asSvg(svg);                                // save as SVG
+    */
+  }]);
+
+  function SvgSaver() {
+    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    var attrs = _ref.attrs;
+    var styles = _ref.styles;
+
+    _classCallCheck(this, SvgSaver);
+
+    this.attrs = attrs === undefined ? svgAttrs : attrs;
+    this.styles = styles === undefined ? svgStyles : styles;
+  }
+
+  /**
+  * Return the cloned SVG after cleaning
+  *
+  * @param {SVGElement} el The element to copy.
+  * @returns {SVGElement} SVG text after cleaning
+  * @api public
+  */
+
+  _createClass(SvgSaver, [{
+    key: 'cloneSVG',
+    value: function cloneSVG(el) {
+      el = SvgSaver.getSvg(el);
+      var svg = cloneSvg(el, this.attrs, this.styles);
+
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+      svg.setAttribute('version', 1.1);
+
+      // height and width needed to download in FireFox
+      //svg.setAttribute('width', svg.getAttribute('width') || '500');
+      //svg.setAttribute('height', svg.getAttribute('height') || '900');
+
+      return svg;
+    }
+
+    /**
+    * Return the SVG HTML text after cleaning
+    *
+    * @param {SVGElement} el The element to copy.
+    * @returns {String} SVG text after cleaning
+    * @api public
+    */
+  }, {
+    key: 'getHTML',
+    value: function getHTML(el) {
+      var svg = this.cloneSVG(el);
+
+      var html = svg.outerHTML;
+      if (html) {
+        return html;
+      }
+
+      // see http://stackoverflow.com/questions/19610089/unwanted-namespaces-on-svg-markup-when-using-xmlserializer-in-javascript-with-ie
+      svg.removeAttribute('xmlns');
+      svg.removeAttribute('xmlns:xlink');
+
+      svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', 'http://www.w3.org/2000/svg');
+      svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+      return new window.XMLSerializer().serializeToString(svg);
+    }
+
+    /**
+    * Return the SVG, after cleaning, as a text/xml Blob
+    *
+    * @param {SVGElement} el The element to copy.
+    * @returns {Blog} SVG as a text/xml Blob
+    * @api public
+    */
+  }, {
+    key: 'getBlob',
+    value: function getBlob(el) {
+      var html = this.getHTML(el);
+      return new Blob([html], { type: 'text/xml' });
+    }
+
+    /**
+    * Return the SVG, after cleaning, as a image/svg+xml;base64 URI encoded string
+    *
+    * @param {SVGElement} el The element to copy.
+    * @returns {String} SVG as image/svg+xml;base64 URI encoded string
+    * @api public
+    */
+  }, {
+    key: 'getUri',
+    value: function getUri(el) {
+      var html = encodeURIComponent(this.getHTML(el));
+      if (isDefined(window.btoa)) {
+        // see http://stackoverflow.com/questions/23223718/failed-to-execute-btoa-on-window-the-string-to-be-encoded-contains-characte
+        return 'data:image/svg+xml;base64,' + window.btoa(unescape(html));
+      }
+      return 'data:image/svg+xml,' + html;
+    }
+
+    /**
+    * Saves the SVG as a SVG file using method compatible with the browser
+    *
+    * @param {SVGElement} el The element to copy.
+    * @param {string} [filename] The filename to save, defaults to the SVG title or 'untitled.svg'
+    * @returns {SvgSaver} The SvgSaver instance
+    * @api public
+    */
+  }, {
+    key: 'asSvg',
+    value: function asSvg(el, filename) {
+      el = SvgSaver.getSvg(el);
+      filename = SvgSaver.getFilename(el, filename, 'svg');
+      if (isFunction(Blob)) {
+        return _fileSaver2['default'].saveAs(this.getBlob(el), filename);
+      }
+      return saveUri(this.getUri(el), filename);
+    }
+
+    /**
+    * Gets the SVG as a PNG data URI.
+    *
+    * @param {SVGElement} el The element to copy.
+    * @param {Function} cb Call back called with the PNG data uri.
+    * @api public
+    */
+  }, {
+    key: 'getPngUri',
+    value: function getPngUri(el, cb) {
+      if (isIE11) {
+        console.error('svgsaver: getPngUri not supported on IE11');
+      }
+      el = SvgSaver.getSvg(el);
+      var filename = SvgSaver.getFilename(el, null, 'png');
+      return createCanvas(this.getUri(el), filename, function (canvas) {
+        cb(canvas.toDataURL('image/png'));
+      });
+    }
+
+    /**
+    * Saves the SVG as a PNG file using method compatible with the browser
+    *
+    * @param {SVGElement} el The element to copy.
+    * @param {string} [filename] The filename to save, defaults to the SVG title or 'untitled.png'
+    * @returns {SvgSaver} The SvgSaver instance
+    * @api public
+    */
+  }, {
+    key: 'asPng',
+    value: function asPng(el, filename) {
+      if (isIE11) {
+        console.error('svgsaver: asPng not supported on IE11');
+      }
+      el = SvgSaver.getSvg(el);
+      filename = SvgSaver.getFilename(el, filename, 'png');
+      return savePng(this.getUri(el), filename);
+    }
+  }]);
+
+  return SvgSaver;
+}();
+
+exports['default'] = SvgSaver;
+module.exports = exports['default'];
+
+},{"computed-styles":88,"file-saver":136}]},{},[202]);
