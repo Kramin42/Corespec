@@ -1,5 +1,8 @@
 import React from 'react';
 import * as d3 from 'd3';
+import moment from 'moment';
+import {saveSvgAsPng} from 'save-svg-as-png';
+import * as d3SaveSvg from 'd3-save-svg';
 
 import generateId from './util/generateId';
 import {decode_plot_data} from './util/decode'
@@ -15,6 +18,7 @@ export default class Plot extends React.Component {
     super(props);
 
     this.svgid = generateId();
+    this.plotSaveFormats = ['PNG', 'SVG'];
 
     let activePlotIndex = undefined;
     if (props.experiment && props.experiment.plots && this.props.defaultPlot) {
@@ -29,6 +33,7 @@ export default class Plot extends React.Component {
 
     this.handlePlotChange = this.handlePlotChange.bind(this);
     this.handleFormatChange = this.handleFormatChange.bind(this);
+    this.handlePlotSave = this.handlePlotSave.bind(this);
     this.replot = this.replot.bind(this);
   }
 
@@ -68,6 +73,21 @@ export default class Plot extends React.Component {
     });
   }
 
+  handlePlotSave() {
+    let format = this.plotSaveFormats[this.state.activeFormatIndex];
+    let name = `${this.props.experiment.name}_${this.props.experiment.plots[this.state.activePlotIndex]}_${moment().format('YYYY-MM-DD_hh-mm-ss')}`;
+    if (format==='PNG') {
+      saveSvgAsPng(document.querySelector('#'+this.svgid), name+'.png', {
+        scale: 2,
+        backgroundColor: 'white'
+      });
+    } else if (format==='SVG') {
+      d3SaveSvg.save(d3.select('#'+this.svgid).node(), {
+        filename: name
+      });
+    }
+  }
+
   componentDidUpdate(prevProps) {
     if (this.props.plotMethod === 'direct') {
       if (this.props.plot.id !== prevProps.plot.id) {
@@ -79,7 +99,6 @@ export default class Plot extends React.Component {
   render() {
     const experiment = this.props.experiment || {};
     const plotNames = experiment.plots || [];
-    const formats = ['PNG', 'SVG'];
 
     return (
       <div className="plot-container">
@@ -91,11 +110,11 @@ export default class Plot extends React.Component {
           />
           <div className="plot-export-controls">
             <Tabs
-              tabNames={formats}
+              tabNames={this.plotSaveFormats}
               activeIndex={this.state.activeFormatIndex}
               onTabChange={this.handleFormatChange}
             />
-            <div className="button">Save</div>
+            <div className="button" onClick={this.handlePlotSave}>Save</div>
           </div>
         </div>
         <svg id={this.svgid} className="plot"></svg>

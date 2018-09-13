@@ -2840,7 +2840,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":111,"d3-transition":116}],91:[function(require,module,exports){
+},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":112,"d3-transition":117}],91:[function(require,module,exports){
 // https://d3js.org/d3-chord/ Version 1.0.4. Copyright 2017 Mike Bostock.
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
@@ -4608,7 +4608,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":95,"d3-selection":111}],97:[function(require,module,exports){
+},{"d3-dispatch":95,"d3-selection":112}],97:[function(require,module,exports){
 // https://d3js.org/d3-dsv/ Version 1.0.8. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5799,7 +5799,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-collection":92,"d3-dispatch":95,"d3-quadtree":107,"d3-timer":115}],101:[function(require,module,exports){
+},{"d3-collection":92,"d3-dispatch":95,"d3-quadtree":107,"d3-timer":116}],101:[function(require,module,exports){
 // https://d3js.org/d3-format/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11906,6 +11906,223 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 },{}],109:[function(require,module,exports){
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define('d3-save-svg', ['exports'], factory) :
+  factory((global.d3_save_svg = {}));
+}(this, function (exports) { 'use strict';
+
+  function download (svgInfo, filename) {
+    window.URL = (window.URL || window.webkitURL);
+    var blob = new Blob(svgInfo.source, {type: 'text\/xml'});
+    var url = window.URL.createObjectURL(blob);
+    var body = document.body;
+    var a = document.createElement('a');
+
+    body.appendChild(a);
+    a.setAttribute('download', filename + '.svg');
+    a.setAttribute('href', url);
+    a.style.display = 'none';
+    a.click();
+    a.parentNode.removeChild(a);
+
+    setTimeout(function() {
+      window.URL.revokeObjectURL(url);
+    }, 10);
+  }
+
+  var prefix = {
+    svg: 'http://www.w3.org/2000/svg',
+    xhtml: 'http://www.w3.org/1999/xhtml',
+    xlink: 'http://www.w3.org/1999/xlink',
+    xml: 'http://www.w3.org/XML/1998/namespace',
+    xmlns: 'http://www.w3.org/2000/xmlns/',
+  };
+
+  function setInlineStyles (svg) {
+
+    // add empty svg element
+    var emptySvg = window.document.createElementNS(prefix.svg, 'svg');
+    window.document.body.appendChild(emptySvg);
+    var emptySvgDeclarationComputed = window.getComputedStyle(emptySvg);
+
+    // hardcode computed css styles inside svg
+    var allElements = traverse(svg);
+    var i = allElements.length;
+    while (i--) {
+      explicitlySetStyle(allElements[i]);
+    }
+
+    emptySvg.parentNode.removeChild(emptySvg);
+
+    function explicitlySetStyle(element) {
+      var cSSStyleDeclarationComputed = window.getComputedStyle(element);
+      var i;
+      var len;
+      var key;
+      var value;
+      var computedStyleStr = '';
+
+      for (i = 0, len = cSSStyleDeclarationComputed.length; i < len; i++) {
+        key = cSSStyleDeclarationComputed[i];
+        value = cSSStyleDeclarationComputed.getPropertyValue(key);
+        if (value !== emptySvgDeclarationComputed.getPropertyValue(key)) {
+          // Don't set computed style of width and height. Makes SVG elmements disappear.
+          if ((key !== 'height') && (key !== 'width')) {
+            computedStyleStr += key + ':' + value + ';';
+          }
+
+        }
+      }
+
+      element.setAttribute('style', computedStyleStr);
+    }
+
+    function traverse(obj) {
+      var tree = [];
+      tree.push(obj);
+      visit(obj);
+      function visit(node) {
+        if (node && node.hasChildNodes()) {
+          var child = node.firstChild;
+          while (child) {
+            if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
+              tree.push(child);
+              visit(child);
+            }
+
+            child = child.nextSibling;
+          }
+        }
+      }
+
+      return tree;
+    }
+  }
+
+  function preprocess (svg) {
+    svg.setAttribute('version', '1.1');
+
+    // removing attributes so they aren't doubled up
+    svg.removeAttribute('xmlns');
+    svg.removeAttribute('xlink');
+
+    // These are needed for the svg
+    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns')) {
+      svg.setAttributeNS(prefix.xmlns, 'xmlns', prefix.svg);
+    }
+
+    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns:xlink')) {
+      svg.setAttributeNS(prefix.xmlns, 'xmlns:xlink', prefix.xlink);
+    }
+
+    setInlineStyles(svg);
+
+    var xmls = new XMLSerializer();
+    var source = xmls.serializeToString(svg);
+    var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+    var rect = svg.getBoundingClientRect();
+    var svgInfo = {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+      class: svg.getAttribute('class'),
+      id: svg.getAttribute('id'),
+      childElementCount: svg.childElementCount,
+      source: [doctype + source],
+    };
+
+    return svgInfo;
+  }
+
+  function converterEngine(input) { // fn BLOB => Binary => Base64 ?
+    var uInt8Array = new Uint8Array(input);
+    var i = uInt8Array.length;
+    var biStr = []; //new Array(i);
+    while (i--) {
+      biStr[i] = String.fromCharCode(uInt8Array[i]);
+    }
+
+    var base64 = window.btoa(biStr.join(''));
+    return base64;
+  };
+
+  function getImageBase64(url, callback) {
+    var xhr = new XMLHttpRequest(url);
+    var img64;
+    xhr.open('GET', url, true); // url is the url of a PNG/JPG image.
+    xhr.responseType = 'arraybuffer';
+    xhr.callback = callback;
+    xhr.onload = function() {
+      img64 = converterEngine(this.response); // convert BLOB to base64
+      this.callback(null, img64); // callback : err, data
+    };
+
+    xhr.onerror = function() {
+      callback('B64 ERROR', null);
+    };
+
+    xhr.send();
+  };
+
+  function isDataURL(str) {
+    var uriPattern = /^\s*data:([a-z]+\/[a-z0-9\-]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
+    return !!str.match(uriPattern);
+  }
+
+  function save(svgElement, config) {
+    if (svgElement.nodeName !== 'svg' || svgElement.nodeType !== 1) {
+      throw 'Need an svg element input';
+    }
+
+    var config = config || {};
+    var svgInfo = preprocess(svgElement, config);
+    var defaultFileName = getDefaultFileName(svgInfo);
+    var filename = config.filename || defaultFileName;
+    var svgInfo = preprocess(svgElement);
+    download(svgInfo, filename);
+  }
+
+  function embedRasterImages(svg) {
+
+    var images = svg.querySelectorAll('image');
+    [].forEach.call(images, function(image) {
+      var url = image.getAttribute('href');
+
+      // Check if it is already a data URL
+      if (!isDataURL(url)) {
+        // convert to base64 image and embed.
+        getImageBase64(url, function(err, d) {
+          image.setAttributeNS(prefix.xlink, 'href', 'data:image/png;base64,' + d);
+        });
+      }
+
+    });
+
+  }
+
+  function getDefaultFileName(svgInfo) {
+    var defaultFileName = 'untitled';
+    if (svgInfo.id) {
+      defaultFileName = svgInfo.id;
+    } else if (svgInfo.class) {
+      defaultFileName = svgInfo.class;
+    } else if (window.document.title) {
+      defaultFileName = window.document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    }
+
+    return defaultFileName;
+  }
+
+  var version = "0.0.2";
+
+  exports.version = version;
+  exports.save = save;
+  exports.embedRasterImages = embedRasterImages;
+
+}));
+},{}],110:[function(require,module,exports){
 // https://d3js.org/d3-scale-chromatic/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-interpolate'), require('d3-color')) :
@@ -12405,7 +12622,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":93,"d3-interpolate":104}],110:[function(require,module,exports){
+},{"d3-color":93,"d3-interpolate":104}],111:[function(require,module,exports){
 // https://d3js.org/d3-scale/ Version 2.1.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
@@ -13308,7 +13525,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":88,"d3-collection":92,"d3-format":101,"d3-interpolate":104,"d3-time":114,"d3-time-format":113}],111:[function(require,module,exports){
+},{"d3-array":88,"d3-collection":92,"d3-format":101,"d3-interpolate":104,"d3-time":115,"d3-time-format":114}],112:[function(require,module,exports){
 // https://d3js.org/d3-selection/ Version 1.3.0. Copyright 2018 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -14305,7 +14522,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],112:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 // https://d3js.org/d3-shape/ Version 1.2.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
@@ -16242,7 +16459,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-path":105}],113:[function(require,module,exports){
+},{"d3-path":105}],114:[function(require,module,exports){
 // https://d3js.org/d3-time-format/ Version 2.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
@@ -16932,7 +17149,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-time":114}],114:[function(require,module,exports){
+},{"d3-time":115}],115:[function(require,module,exports){
 // https://d3js.org/d3-time/ Version 1.0.8. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -17319,7 +17536,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],115:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 // https://d3js.org/d3-timer/ Version 1.0.7. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -17470,7 +17687,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 // https://d3js.org/d3-transition/ Version 1.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
@@ -18259,7 +18476,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":93,"d3-dispatch":95,"d3-ease":98,"d3-interpolate":104,"d3-selection":111,"d3-timer":115}],117:[function(require,module,exports){
+},{"d3-color":93,"d3-dispatch":95,"d3-ease":98,"d3-interpolate":104,"d3-selection":112,"d3-timer":116}],118:[function(require,module,exports){
 // https://d3js.org/d3-voronoi/ Version 1.1.2. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -19260,7 +19477,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],118:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -19816,7 +20033,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":111,"d3-transition":116}],119:[function(require,module,exports){
+},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":112,"d3-transition":117}],120:[function(require,module,exports){
 // https://d3js.org/d3-zoom/ Version 1.7.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
@@ -20320,7 +20537,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":111,"d3-transition":116}],120:[function(require,module,exports){
+},{"d3-dispatch":95,"d3-drag":96,"d3-interpolate":104,"d3-selection":112,"d3-transition":117}],121:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -20393,7 +20610,7 @@ Object.keys(d3Zoom).forEach(function (key) { exports[key] = d3Zoom[key]; });
 exports.version = version;
 Object.defineProperty(exports, "event", {get: function() { return d3Selection.event; }});
 
-},{"d3-array":88,"d3-axis":89,"d3-brush":90,"d3-chord":91,"d3-collection":92,"d3-color":93,"d3-contour":94,"d3-dispatch":95,"d3-drag":96,"d3-dsv":97,"d3-ease":98,"d3-fetch":99,"d3-force":100,"d3-format":101,"d3-geo":102,"d3-hierarchy":103,"d3-interpolate":104,"d3-path":105,"d3-polygon":106,"d3-quadtree":107,"d3-random":108,"d3-scale":110,"d3-scale-chromatic":109,"d3-selection":111,"d3-shape":112,"d3-time":114,"d3-time-format":113,"d3-timer":115,"d3-transition":116,"d3-voronoi":117,"d3-zoom":119}],121:[function(require,module,exports){
+},{"d3-array":88,"d3-axis":89,"d3-brush":90,"d3-chord":91,"d3-collection":92,"d3-color":93,"d3-contour":94,"d3-dispatch":95,"d3-drag":96,"d3-dsv":97,"d3-ease":98,"d3-fetch":99,"d3-force":100,"d3-format":101,"d3-geo":102,"d3-hierarchy":103,"d3-interpolate":104,"d3-path":105,"d3-polygon":106,"d3-quadtree":107,"d3-random":108,"d3-scale":111,"d3-scale-chromatic":110,"d3-selection":112,"d3-shape":113,"d3-time":115,"d3-time-format":114,"d3-timer":116,"d3-transition":117,"d3-voronoi":118,"d3-zoom":120}],122:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -20427,7 +20644,7 @@ var ExecutionEnvironment = {
 };
 
 module.exports = ExecutionEnvironment;
-},{}],122:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 "use strict";
 
 /**
@@ -20457,7 +20674,7 @@ function camelize(string) {
 }
 
 module.exports = camelize;
-},{}],123:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -20495,7 +20712,7 @@ function camelizeStyleName(string) {
 }
 
 module.exports = camelizeStyleName;
-},{"./camelize":122}],124:[function(require,module,exports){
+},{"./camelize":123}],125:[function(require,module,exports){
 'use strict';
 
 /**
@@ -20533,7 +20750,7 @@ function containsNode(outerNode, innerNode) {
 }
 
 module.exports = containsNode;
-},{"./isTextNode":132}],125:[function(require,module,exports){
+},{"./isTextNode":133}],126:[function(require,module,exports){
 "use strict";
 
 /**
@@ -20570,7 +20787,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],126:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -20588,7 +20805,7 @@ if ("production" !== 'production') {
 }
 
 module.exports = emptyObject;
-},{}],127:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 'use strict';
 
 /**
@@ -20625,7 +20842,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 }
 
 module.exports = getActiveElement;
-},{}],128:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 'use strict';
 
 /**
@@ -20656,7 +20873,7 @@ function hyphenate(string) {
 }
 
 module.exports = hyphenate;
-},{}],129:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -20693,7 +20910,7 @@ function hyphenateStyleName(string) {
 }
 
 module.exports = hyphenateStyleName;
-},{"./hyphenate":128}],130:[function(require,module,exports){
+},{"./hyphenate":129}],131:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -20747,7 +20964,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 }
 
 module.exports = invariant;
-},{}],131:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 'use strict';
 
 /**
@@ -20770,7 +20987,7 @@ function isNode(object) {
 }
 
 module.exports = isNode;
-},{}],132:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 'use strict';
 
 /**
@@ -20793,7 +21010,7 @@ function isTextNode(object) {
 }
 
 module.exports = isTextNode;
-},{"./isNode":131}],133:[function(require,module,exports){
+},{"./isNode":132}],134:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -20859,7 +21076,7 @@ function shallowEqual(objA, objB) {
 }
 
 module.exports = shallowEqual;
-},{}],134:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -20922,7 +21139,7 @@ if ("production" !== 'production') {
 }
 
 module.exports = warning;
-},{"./emptyFunction":125}],135:[function(require,module,exports){
+},{"./emptyFunction":126}],136:[function(require,module,exports){
 var invariant = require('invariant');
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -21193,7 +21410,7 @@ function invariantMapOrSet(target, command) {
   );
 }
 
-},{"invariant":136}],136:[function(require,module,exports){
+},{"invariant":137}],137:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -21244,7 +21461,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-},{}],137:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 //! moment.js
 
 ;(function (global, factory) {
@@ -25752,7 +25969,7 @@ module.exports = invariant;
 
 })));
 
-},{}],138:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -25844,7 +26061,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],139:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -25905,7 +26122,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 
 module.exports = checkPropTypes;
 
-},{"./lib/ReactPropTypesSecret":143,"fbjs/lib/invariant":130,"fbjs/lib/warning":134}],140:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":144,"fbjs/lib/invariant":131,"fbjs/lib/warning":135}],141:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -25965,7 +26182,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":143,"fbjs/lib/emptyFunction":125,"fbjs/lib/invariant":130}],141:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":144,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":131}],142:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26509,7 +26726,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
   return ReactPropTypes;
 };
 
-},{"./checkPropTypes":139,"./lib/ReactPropTypesSecret":143,"fbjs/lib/emptyFunction":125,"fbjs/lib/invariant":130,"fbjs/lib/warning":134,"object-assign":138}],142:[function(require,module,exports){
+},{"./checkPropTypes":140,"./lib/ReactPropTypesSecret":144,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":131,"fbjs/lib/warning":135,"object-assign":139}],143:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26539,7 +26756,7 @@ if ("production" !== 'production') {
   module.exports = require('./factoryWithThrowingShims')();
 }
 
-},{"./factoryWithThrowingShims":140,"./factoryWithTypeCheckers":141}],143:[function(require,module,exports){
+},{"./factoryWithThrowingShims":141,"./factoryWithTypeCheckers":142}],144:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26553,7 +26770,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],144:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26716,7 +26933,7 @@ Circle.defaultProps = (0, _extends3['default'])({}, _types.defaultProps, {
 
 exports['default'] = (0, _enhancer2['default'])(Circle);
 module.exports = exports['default'];
-},{"./enhancer":146,"./types":148,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"prop-types":142,"react":169}],145:[function(require,module,exports){
+},{"./enhancer":147,"./types":149,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"prop-types":143,"react":170}],146:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26830,7 +27047,7 @@ Line.defaultProps = _types.defaultProps;
 
 exports['default'] = (0, _enhancer2['default'])(Line);
 module.exports = exports['default'];
-},{"./enhancer":146,"./types":148,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"react":169}],146:[function(require,module,exports){
+},{"./enhancer":147,"./types":149,"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/extends":9,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/objectWithoutProperties":11,"babel-runtime/helpers/possibleConstructorReturn":12,"react":170}],147:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26881,7 +27098,7 @@ var enhancer = function enhancer(WrappedComponent) {
 
 exports['default'] = enhancer;
 module.exports = exports['default'];
-},{"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/possibleConstructorReturn":12}],147:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":8,"babel-runtime/helpers/inherits":10,"babel-runtime/helpers/possibleConstructorReturn":12}],148:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26903,7 +27120,7 @@ exports['default'] = {
   Line: _Line2['default'],
   Circle: _Circle2['default']
 };
-},{"./Circle":144,"./Line":145}],148:[function(require,module,exports){
+},{"./Circle":145,"./Line":146}],149:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26938,7 +27155,7 @@ var propTypes = exports.propTypes = {
   trailColor: _propTypes2['default'].string,
   trailWidth: _propTypes2['default'].oneOfType([_propTypes2['default'].number, _propTypes2['default'].string])
 };
-},{"prop-types":142}],149:[function(require,module,exports){
+},{"prop-types":143}],150:[function(require,module,exports){
 /** @license React v16.3.2
  * react-dom.development.js
  *
@@ -43594,7 +43811,7 @@ module.exports = reactDom;
   })();
 }
 
-},{"fbjs/lib/ExecutionEnvironment":121,"fbjs/lib/camelizeStyleName":123,"fbjs/lib/containsNode":124,"fbjs/lib/emptyFunction":125,"fbjs/lib/emptyObject":126,"fbjs/lib/getActiveElement":127,"fbjs/lib/hyphenateStyleName":129,"fbjs/lib/invariant":130,"fbjs/lib/shallowEqual":133,"fbjs/lib/warning":134,"object-assign":138,"prop-types/checkPropTypes":139,"react":169}],150:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":122,"fbjs/lib/camelizeStyleName":124,"fbjs/lib/containsNode":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/getActiveElement":128,"fbjs/lib/hyphenateStyleName":130,"fbjs/lib/invariant":131,"fbjs/lib/shallowEqual":134,"fbjs/lib/warning":135,"object-assign":139,"prop-types/checkPropTypes":140,"react":170}],151:[function(require,module,exports){
 /** @license React v16.3.2
  * react-dom.production.min.js
  *
@@ -43842,7 +44059,7 @@ var Gg={createPortal:Fg,findDOMNode:function(a){return null==a?null:1===a.nodeTy
 null})}),!0):!1},unstable_createPortal:function(){return Fg.apply(void 0,arguments)},unstable_batchedUpdates:X.batchedUpdates,unstable_deferredUpdates:X.deferredUpdates,flushSync:X.flushSync,unstable_flushControlled:X.flushControlled,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{EventPluginHub:Ra,EventPluginRegistry:Ca,EventPropagators:kb,ReactControlledComponent:$b,ReactDOMComponentTree:bb,ReactDOMEventListener:$d},unstable_createRoot:function(a,b){return new tg(a,!0,null!=b&&!0===b.hydrate)}};
 X.injectIntoDevTools({findFiberByHostInstance:Ua,bundleType:0,version:"16.3.2",rendererPackageName:"react-dom"});var Hg=Object.freeze({default:Gg}),Ig=Hg&&Gg||Hg;module.exports=Ig["default"]?Ig["default"]:Ig;
 
-},{"fbjs/lib/ExecutionEnvironment":121,"fbjs/lib/containsNode":124,"fbjs/lib/emptyFunction":125,"fbjs/lib/emptyObject":126,"fbjs/lib/getActiveElement":127,"fbjs/lib/invariant":130,"fbjs/lib/shallowEqual":133,"object-assign":138,"react":169}],151:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":122,"fbjs/lib/containsNode":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/getActiveElement":128,"fbjs/lib/invariant":131,"fbjs/lib/shallowEqual":134,"object-assign":139,"react":170}],152:[function(require,module,exports){
 'use strict';
 
 function checkDCE() {
@@ -43882,7 +44099,7 @@ if ("production" === 'production') {
   module.exports = require('./cjs/react-dom.development.js');
 }
 
-},{"./cjs/react-dom.development.js":149,"./cjs/react-dom.production.min.js":150}],152:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":150,"./cjs/react-dom.production.min.js":151}],153:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44151,7 +44368,7 @@ AutosizeInput.defaultProps = {
 };
 
 exports.default = AutosizeInput;
-},{"prop-types":142,"react":169}],153:[function(require,module,exports){
+},{"prop-types":143,"react":170}],154:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44423,7 +44640,7 @@ exports.default = Async;
 
 Async.propTypes = propTypes;
 Async.defaultProps = defaultProps;
-},{"./Select":157,"./utils/stripDiacritics":165,"prop-types":142,"react":169}],154:[function(require,module,exports){
+},{"./Select":158,"./utils/stripDiacritics":166,"prop-types":143,"react":170}],155:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44529,7 +44746,7 @@ AsyncCreatableSelect.defaultProps = {
 };
 
 exports.default = AsyncCreatableSelect;
-},{"./Async":153,"./Creatable":155,"./Select":157,"prop-types":142,"react":169}],155:[function(require,module,exports){
+},{"./Async":154,"./Creatable":156,"./Select":158,"prop-types":143,"react":170}],156:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44902,7 +45119,7 @@ CreatableSelect.propTypes = {
 };
 
 exports.default = CreatableSelect;
-},{"./Select":157,"./utils/defaultFilterOptions":163,"./utils/defaultMenuRenderer":164,"prop-types":142,"react":169}],156:[function(require,module,exports){
+},{"./Select":158,"./utils/defaultFilterOptions":164,"./utils/defaultMenuRenderer":165,"prop-types":143,"react":170}],157:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -45051,7 +45268,7 @@ Option.propTypes = {
 };
 
 exports.default = Option;
-},{"./utils/blockEvent":160,"classnames":87,"prop-types":142,"react":169}],157:[function(require,module,exports){
+},{"./utils/blockEvent":161,"classnames":87,"prop-types":143,"react":170}],158:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46513,7 +46730,7 @@ Select.defaultProps = {
 };
 
 exports.default = Select;
-},{"./Option":156,"./Value":158,"./utils/defaultArrowRenderer":161,"./utils/defaultClearRenderer":162,"./utils/defaultFilterOptions":163,"./utils/defaultMenuRenderer":164,"classnames":87,"prop-types":142,"react":169,"react-dom":151,"react-input-autosize":152}],158:[function(require,module,exports){
+},{"./Option":157,"./Value":159,"./utils/defaultArrowRenderer":162,"./utils/defaultClearRenderer":163,"./utils/defaultFilterOptions":164,"./utils/defaultMenuRenderer":165,"classnames":87,"prop-types":143,"react":170,"react-dom":152,"react-input-autosize":153}],159:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46659,7 +46876,7 @@ Value.propTypes = {
 };
 
 exports.default = Value;
-},{"classnames":87,"prop-types":142,"react":169}],159:[function(require,module,exports){
+},{"classnames":87,"prop-types":143,"react":170}],160:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46725,7 +46942,7 @@ exports.defaultMenuRenderer = _defaultMenuRenderer2.default;
 exports.defaultArrowRenderer = _defaultArrowRenderer2.default;
 exports.defaultClearRenderer = _defaultClearRenderer2.default;
 exports.defaultFilterOptions = _defaultFilterOptions2.default;
-},{"./Async":153,"./AsyncCreatable":154,"./Creatable":155,"./Option":156,"./Select":157,"./Value":158,"./utils/defaultArrowRenderer":161,"./utils/defaultClearRenderer":162,"./utils/defaultFilterOptions":163,"./utils/defaultMenuRenderer":164}],160:[function(require,module,exports){
+},{"./Async":154,"./AsyncCreatable":155,"./Creatable":156,"./Option":157,"./Select":158,"./Value":159,"./utils/defaultArrowRenderer":162,"./utils/defaultClearRenderer":163,"./utils/defaultFilterOptions":164,"./utils/defaultMenuRenderer":165}],161:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46744,7 +46961,7 @@ exports.default = function (event) {
 		window.location.href = event.target.href;
 	}
 };
-},{}],161:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46775,7 +46992,7 @@ arrowRenderer.propTypes = {
 };
 
 exports.default = arrowRenderer;
-},{"prop-types":142,"react":169}],162:[function(require,module,exports){
+},{"prop-types":143,"react":170}],163:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46796,7 +47013,7 @@ var clearRenderer = function clearRenderer() {
 };
 
 exports.default = clearRenderer;
-},{"react":169}],163:[function(require,module,exports){
+},{"react":170}],164:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46866,7 +47083,7 @@ var filterOptions = function filterOptions(options, filterValue, excludeOptions,
 };
 
 exports.default = filterOptions;
-},{"./stripDiacritics":165,"./trim":166}],164:[function(require,module,exports){
+},{"./stripDiacritics":166,"./trim":167}],165:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46963,7 +47180,7 @@ menuRenderer.propTypes = {
 };
 
 exports.default = menuRenderer;
-},{"classnames":87,"prop-types":142,"react":169}],165:[function(require,module,exports){
+},{"classnames":87,"prop-types":143,"react":170}],166:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46979,7 +47196,7 @@ var stripDiacritics = function stripDiacritics(str) {
 };
 
 exports.default = stripDiacritics;
-},{}],166:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -46990,7 +47207,7 @@ var trim = function trim(str) {
 };
 
 exports.default = trim;
-},{}],167:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 /** @license React v16.3.2
  * react.development.js
  *
@@ -48406,7 +48623,7 @@ module.exports = react;
   })();
 }
 
-},{"fbjs/lib/emptyFunction":125,"fbjs/lib/emptyObject":126,"fbjs/lib/invariant":130,"fbjs/lib/warning":134,"object-assign":138,"prop-types/checkPropTypes":139}],168:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/invariant":131,"fbjs/lib/warning":135,"object-assign":139,"prop-types/checkPropTypes":140}],169:[function(require,module,exports){
 /** @license React v16.3.2
  * react.production.min.js
  *
@@ -48430,7 +48647,7 @@ _calculateChangedBits:b,_defaultValue:a,_currentValue:a,_changedBits:0,Provider:
 (k=a.type.defaultProps);for(c in b)J.call(b,c)&&!K.hasOwnProperty(c)&&(d[c]=void 0===b[c]&&void 0!==k?k[c]:b[c])}c=arguments.length-2;if(1===c)d.children=e;else if(1<c){k=Array(c);for(var l=0;l<c;l++)k[l]=arguments[l+2];d.children=k}return{$$typeof:t,type:a.type,key:g,ref:h,props:d,_owner:f}},createFactory:function(a){var b=L.bind(null,a);b.type=a;return b},isValidElement:M,version:"16.3.2",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentOwner:I,assign:m}},X=Object.freeze({default:W}),
 Y=X&&W||X;module.exports=Y["default"]?Y["default"]:Y;
 
-},{"fbjs/lib/emptyFunction":125,"fbjs/lib/emptyObject":126,"fbjs/lib/invariant":130,"object-assign":138}],169:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":126,"fbjs/lib/emptyObject":127,"fbjs/lib/invariant":131,"object-assign":139}],170:[function(require,module,exports){
 'use strict';
 
 if ("production" === 'production') {
@@ -48439,7 +48656,419 @@ if ("production" === 'production') {
   module.exports = require('./cjs/react.development.js');
 }
 
-},{"./cjs/react.development.js":167,"./cjs/react.production.min.js":168}],170:[function(require,module,exports){
+},{"./cjs/react.development.js":168,"./cjs/react.production.min.js":169}],171:[function(require,module,exports){
+'use strict';
+
+(function () {
+  var out$ = typeof exports != 'undefined' && exports || typeof define != 'undefined' && {} || this || window;
+  if (typeof define !== 'undefined') define('save-svg-as-png', [], function () {
+    return out$;
+  });
+
+  var xmlns = 'http://www.w3.org/2000/xmlns/';
+  var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [<!ENTITY nbsp "&#160;">]>';
+  var urlRegex = /url\(["']?(.+?)["']?\)/;
+  var fontFormats = {
+    woff2: 'font/woff2',
+    woff: 'font/woff',
+    otf: 'application/x-font-opentype',
+    ttf: 'application/x-font-ttf',
+    eot: 'application/vnd.ms-fontobject',
+    sfnt: 'application/font-sfnt',
+    svg: 'image/svg+xml'
+  };
+
+  var isElement = function isElement(obj) {
+    return obj instanceof HTMLElement || obj instanceof SVGElement;
+  };
+  var requireDomNode = function requireDomNode(el) {
+    if (!isElement(el)) throw new Error('an HTMLElement or SVGElement is required; got ' + el);
+  };
+  var isExternal = function isExternal(url) {
+    return url && url.lastIndexOf('http', 0) === 0 && url.lastIndexOf(window.location.host) === -1;
+  };
+
+  var getFontMimeTypeFromUrl = function getFontMimeTypeFromUrl(fontUrl) {
+    var formats = Object.keys(fontFormats).filter(function (extension) {
+      return fontUrl.indexOf('.' + extension) > 0;
+    }).map(function (extension) {
+      return fontFormats[extension];
+    });
+    if (formats) return formats[0];
+    console.error('Unknown font format for ' + fontUrl + '. Fonts may not be working correctly.');
+    return 'application/octet-stream';
+  };
+
+  var arrayBufferToBase64 = function arrayBufferToBase64(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    for (var i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }return window.btoa(binary);
+  };
+
+  var getDimension = function getDimension(el, clone, dim) {
+    var v = el.viewBox && el.viewBox.baseVal && el.viewBox.baseVal[dim] || clone.getAttribute(dim) !== null && !clone.getAttribute(dim).match(/%$/) && parseInt(clone.getAttribute(dim)) || el.getBoundingClientRect()[dim] || parseInt(clone.style[dim]) || parseInt(window.getComputedStyle(el).getPropertyValue(dim));
+    return typeof v === 'undefined' || v === null || isNaN(parseFloat(v)) ? 0 : v;
+  };
+
+  var getDimensions = function getDimensions(el, clone, width, height) {
+    if (el.tagName === 'svg') return {
+      width: width || getDimension(el, clone, 'width'),
+      height: height || getDimension(el, clone, 'height')
+    };else if (el.getBBox) {
+      var _el$getBBox = el.getBBox(),
+          x = _el$getBBox.x,
+          y = _el$getBBox.y,
+          _width = _el$getBBox.width,
+          _height = _el$getBBox.height;
+
+      return {
+        width: x + _width,
+        height: y + _height
+      };
+    }
+  };
+
+  var reEncode = function reEncode(data) {
+    return decodeURIComponent(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+      var c = String.fromCharCode('0x' + p1);
+      return c === '%' ? '%25' : c;
+    }));
+  };
+
+  var uriToBlob = function uriToBlob(uri) {
+    var byteString = window.atob(uri.split(',')[1]);
+    var mimeString = uri.split(',')[0].split(':')[1].split(';')[0];
+    var buffer = new ArrayBuffer(byteString.length);
+    var intArray = new Uint8Array(buffer);
+    for (var i = 0; i < byteString.length; i++) {
+      intArray[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([buffer], { type: mimeString });
+  };
+
+  var query = function query(el, selector) {
+    if (!selector) return;
+    try {
+      return el.querySelector(selector) || el.parentNode && el.parentNode.querySelector(selector);
+    } catch (err) {
+      console.warn('Invalid CSS selector "' + selector + '"', err);
+    }
+  };
+
+  var detectCssFont = function detectCssFont(rule, href) {
+    // Match CSS font-face rules to external links.
+    // @font-face {
+    //   src: local('Abel'), url(https://fonts.gstatic.com/s/abel/v6/UzN-iejR1VoXU2Oc-7LsbvesZW2xOQ-xsNqO47m55DA.woff2);
+    // }
+    var match = rule.cssText.match(urlRegex);
+    var url = match && match[1] || '';
+    if (!url || url.match(/^data:/) || url === 'about:blank') return;
+    var fullUrl = url.startsWith('../') ? href + '/../' + url : url.startsWith('./') ? href + '/.' + url : url;
+    return {
+      text: rule.cssText,
+      format: getFontMimeTypeFromUrl(fullUrl),
+      url: fullUrl
+    };
+  };
+
+  var inlineImages = function inlineImages(el) {
+    return Promise.all(Array.from(el.querySelectorAll('image')).map(function (image) {
+      var href = image.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || image.getAttribute('href');
+      if (!href) return Promise.resolve(null);
+      if (isExternal(href)) {
+        href += (href.indexOf('?') === -1 ? '?' : '&') + 't=' + new Date().valueOf();
+      }
+      return new Promise(function (resolve, reject) {
+        var canvas = document.createElement('canvas');
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = href;
+        img.onerror = function () {
+          return reject(new Error('Could not load ' + href));
+        };
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          canvas.getContext('2d').drawImage(img, 0, 0);
+          image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', canvas.toDataURL('image/png'));
+          resolve(true);
+        };
+      });
+    }));
+  };
+
+  var cachedFonts = {};
+  var inlineFonts = function inlineFonts(fonts) {
+    return Promise.all(fonts.map(function (font) {
+      return new Promise(function (resolve, reject) {
+        if (cachedFonts[font.url]) return resolve(cachedFonts[font.url]);
+
+        var req = new XMLHttpRequest();
+        req.addEventListener('load', function () {
+          // TODO: it may also be worth it to wait until fonts are fully loaded before
+          // attempting to rasterize them. (e.g. use https://developer.mozilla.org/en-US/docs/Web/API/FontFaceSet)
+          var fontInBase64 = arrayBufferToBase64(req.response);
+          var fontUri = font.text.replace(urlRegex, 'url("data:' + font.format + ';base64,' + fontInBase64 + '")') + '\n';
+          cachedFonts[font.url] = fontUri;
+          resolve(fontUri);
+        });
+        req.addEventListener('error', function (e) {
+          console.warn('Failed to load font from: ' + font.url, e);
+          cachedFonts[font.url] = null;
+          resolve(null);
+        });
+        req.addEventListener('abort', function (e) {
+          console.warn('Aborted loading font from: ' + font.url, e);
+          resolve(null);
+        });
+        req.open('GET', font.url);
+        req.responseType = 'arraybuffer';
+        req.send();
+      });
+    })).then(function (fontCss) {
+      return fontCss.filter(function (x) {
+        return x;
+      }).join('');
+    });
+  };
+
+  var cachedRules = null;
+  var styleSheetRules = function styleSheetRules() {
+    if (cachedRules) return cachedRules;
+    return cachedRules = Array.from(document.styleSheets).map(function (sheet) {
+      try {
+        return { rules: sheet.cssRules, href: sheet.href };
+      } catch (e) {
+        console.warn('Stylesheet could not be loaded: ' + sheet.href, e);
+        return {};
+      }
+    });
+  };
+
+  var inlineCss = function inlineCss(el, options) {
+    var _ref = options || {},
+        selectorRemap = _ref.selectorRemap,
+        modifyStyle = _ref.modifyStyle,
+        modifyCss = _ref.modifyCss,
+        fonts = _ref.fonts;
+
+    var generateCss = modifyCss || function (selector, properties) {
+      var sel = selectorRemap ? selectorRemap(selector) : selector;
+      var props = modifyStyle ? modifyStyle(properties) : properties;
+      return sel + '{' + props + '}\n';
+    };
+    var css = [];
+    var detectFonts = typeof fonts === 'undefined';
+    var fontList = fonts || [];
+    styleSheetRules().forEach(function (_ref2) {
+      var rules = _ref2.rules,
+          href = _ref2.href;
+
+      if (!rules) return;
+      Array.from(rules).forEach(function (rule) {
+        if (typeof rule.style != 'undefined') {
+          if (query(el, rule.selectorText)) css.push(generateCss(rule.selectorText, rule.style.cssText));else if (detectFonts && rule.cssText.match(/^@font-face/)) {
+            var font = detectCssFont(rule, href);
+            if (font) fontList.push(font);
+          } else css.push(rule.cssText);
+        }
+      });
+    });
+
+    return inlineFonts(fontList).then(function (fontCss) {
+      return css.join('\n') + fontCss;
+    });
+  };
+
+  out$.prepareSvg = function (el, options, done) {
+    requireDomNode(el);
+
+    var _ref3 = options || {},
+        _ref3$left = _ref3.left,
+        left = _ref3$left === undefined ? 0 : _ref3$left,
+        _ref3$top = _ref3.top,
+        top = _ref3$top === undefined ? 0 : _ref3$top,
+        w = _ref3.width,
+        h = _ref3.height,
+        _ref3$scale = _ref3.scale,
+        scale = _ref3$scale === undefined ? 1 : _ref3$scale,
+        _ref3$responsive = _ref3.responsive,
+        responsive = _ref3$responsive === undefined ? false : _ref3$responsive;
+
+    return inlineImages(el).then(function () {
+      var clone = el.cloneNode(true);
+
+      var _ref4 = options || {},
+          _ref4$backgroundColor = _ref4.backgroundColor,
+          backgroundColor = _ref4$backgroundColor === undefined ? 'transparent' : _ref4$backgroundColor;
+
+      clone.style.backgroundColor = backgroundColor;
+
+      var _getDimensions = getDimensions(el, clone, w, h),
+          width = _getDimensions.width,
+          height = _getDimensions.height;
+
+      if (el.tagName !== 'svg') {
+        if (el.getBBox) {
+          clone.setAttribute('transform', clone.getAttribute('transform').replace(/translate\(.*?\)/, ''));
+          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.appendChild(clone);
+          clone = svg;
+        } else {
+          console.error('Attempted to render non-SVG element', el);
+          return;
+        }
+      }
+
+      clone.setAttribute('version', '1.1');
+      clone.setAttribute('viewBox', [left, top, width, height].join(' '));
+      if (!clone.getAttribute('xmlns')) clone.setAttributeNS(xmlns, 'xmlns', 'http://www.w3.org/2000/svg');
+      if (!clone.getAttribute('xmlns:xlink')) clone.setAttributeNS(xmlns, 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+      if (responsive) {
+        clone.removeAttribute('width');
+        clone.removeAttribute('height');
+        clone.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+      } else {
+        clone.setAttribute('width', width * scale);
+        clone.setAttribute('height', height * scale);
+      }
+
+      Array.from(clone.querySelectorAll('foreignObject > *')).forEach(function (foreignObject) {
+        if (!foreignObject.getAttribute('xmlns')) foreignObject.setAttributeNS(xmlns, 'xmlns', 'http://www.w3.org/1999/xhtml');
+      });
+
+      return inlineCss(el, options).then(function (css) {
+        var style = document.createElement('style');
+        style.setAttribute('type', 'text/css');
+        style.innerHTML = '<![CDATA[\n' + css + '\n]]>';
+
+        var defs = document.createElement('defs');
+        defs.appendChild(style);
+        clone.insertBefore(defs, clone.firstChild);
+
+        var outer = document.createElement('div');
+        outer.appendChild(clone);
+        var src = outer.innerHTML.replace(/NS\d+:href/gi, 'xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href');
+
+        if (typeof done === 'function') done(src, width, height);else return { src: src, width: width, height: height };
+      });
+    });
+  };
+
+  out$.svgAsDataUri = function (el, options, done) {
+    requireDomNode(el);
+    var result = out$.prepareSvg(el, options).then(function (_ref5) {
+      var src = _ref5.src;
+      return 'data:image/svg+xml;base64,' + window.btoa(reEncode(doctype + src));
+    });
+    if (typeof done === 'function') return result.then(done);
+    return result;
+  };
+
+  out$.svgAsPngUri = function (el, options, done) {
+    requireDomNode(el);
+
+    var _ref6 = options || {},
+        _ref6$encoderType = _ref6.encoderType,
+        encoderType = _ref6$encoderType === undefined ? 'image/png' : _ref6$encoderType,
+        _ref6$encoderOptions = _ref6.encoderOptions,
+        encoderOptions = _ref6$encoderOptions === undefined ? 0.8 : _ref6$encoderOptions,
+        canvg = _ref6.canvg;
+
+    var convertToPng = function convertToPng(_ref7) {
+      var src = _ref7.src,
+          width = _ref7.width,
+          height = _ref7.height;
+
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
+      canvas.style.width = canvas.width + 'px';
+      canvas.style.height = canvas.height + 'px';
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+      if (canvg) canvg(canvas, src);else context.drawImage(src, 0, 0);
+
+      var png = void 0;
+      try {
+        png = canvas.toDataURL(encoderType, encoderOptions);
+      } catch (e) {
+        if (typeof SecurityError !== 'undefined' && e instanceof SecurityError || e.name === 'SecurityError') {
+          console.error('Rendered SVG images cannot be downloaded in this browser.');
+          return;
+        } else throw e;
+      }
+      if (typeof done === 'function') done(png);
+      return Promise.resolve(png);
+    };
+
+    if (canvg) return out$.prepareSvg(el, options).then(convertToPng);else return out$.svgAsDataUri(el, options).then(function (uri) {
+      return new Promise(function (resolve, reject) {
+        var image = new Image();
+        image.onload = function () {
+          return resolve(convertToPng({
+            src: image,
+            width: image.width,
+            height: image.height
+          }));
+        };
+        image.onerror = function () {
+          reject('There was an error loading the data URI as an image on the following SVG\n' + window.atob(uri.slice(26)) + 'Open the following link to see browser\'s diagnosis\n' + uri);
+        };
+        image.src = uri;
+      });
+    });
+  };
+
+  out$.download = function (name, uri) {
+    if (navigator.msSaveOrOpenBlob) navigator.msSaveOrOpenBlob(uriToBlob(uri), name);else {
+      var saveLink = document.createElement('a');
+      if ('download' in saveLink) {
+        saveLink.download = name;
+        saveLink.style.display = 'none';
+        document.body.appendChild(saveLink);
+        try {
+          var blob = uriToBlob(uri);
+          var url = URL.createObjectURL(blob);
+          saveLink.href = url;
+          saveLink.onclick = function () {
+            return requestAnimationFrame(function () {
+              return URL.revokeObjectURL(url);
+            });
+          };
+        } catch (e) {
+          console.warn('This browser does not support object URLs. Falling back to string URL.');
+          saveLink.href = uri;
+        }
+        saveLink.click();
+        document.body.removeChild(saveLink);
+      } else {
+        window.open(uri, '_temp', 'menubar=no,toolbar=no,status=no');
+      }
+    }
+  };
+
+  out$.saveSvg = function (el, name, options) {
+    requireDomNode(el);
+    out$.svgAsDataUri(el, options || {}, function (uri) {
+      return out$.download(name, uri);
+    });
+  };
+
+  out$.saveSvgAsPng = function (el, name, options) {
+    requireDomNode(el);
+    out$.svgAsPngUri(el, options || {}, function (uri) {
+      return out$.download(name, uri);
+    });
+  };
+})();
+},{}],172:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -48743,7 +49372,7 @@ var App = function (_React$Component) {
 
 exports.default = App;
 
-},{"./TabPanes":181,"./Tabs":182,"./css/App.css":184,"./css/Buttons.css":185,"./util/shortUID":202,"@gamestdio/websocket":2,"immutability-helper":135,"react":169}],171:[function(require,module,exports){
+},{"./TabPanes":183,"./Tabs":184,"./css/App.css":186,"./css/Buttons.css":187,"./util/shortUID":204,"@gamestdio/websocket":2,"immutability-helper":136,"react":170}],173:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49115,7 +49744,7 @@ var Experiment = function (_React$Component) {
 
 exports.default = Experiment;
 
-},{"./ExportControls":172,"./MessageBox":173,"./ParameterBox":175,"./ParameterControls":176,"./ParameterPanes":177,"./Plot":178,"./Progress":179,"./RunControls":180,"./Tabs":182,"./css/Experiment.css":186,"classnames":87,"immutability-helper":135,"react":169}],172:[function(require,module,exports){
+},{"./ExportControls":174,"./MessageBox":175,"./ParameterBox":177,"./ParameterControls":178,"./ParameterPanes":179,"./Plot":180,"./Progress":181,"./RunControls":182,"./Tabs":184,"./css/Experiment.css":188,"classnames":87,"immutability-helper":136,"react":170}],174:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49247,7 +49876,7 @@ function downloadBytes(bytes, fileName) {
   link.click();
 }
 
-},{"./css/ExportControls.css":187,"moment":137,"react":169,"react-select":159}],173:[function(require,module,exports){
+},{"./css/ExportControls.css":189,"moment":138,"react":170,"react-select":160}],175:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49320,7 +49949,7 @@ var MessageBox = function (_React$Component) {
 
 exports.default = MessageBox;
 
-},{"./css/MessageBox.css":188,"classnames":87,"react":169}],174:[function(require,module,exports){
+},{"./css/MessageBox.css":190,"classnames":87,"react":170}],176:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49417,7 +50046,7 @@ var Parameter = function (_React$Component) {
 
 exports.default = Parameter;
 
-},{"./css/Parameter.css":189,"./util/generateId":201,"classnames":87,"react":169}],175:[function(require,module,exports){
+},{"./css/Parameter.css":191,"./util/generateId":203,"classnames":87,"react":170}],177:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49496,7 +50125,7 @@ var ParameterBox = function (_React$Component) {
 
 exports.default = ParameterBox;
 
-},{"./Parameter":174,"classnames":87,"react":169}],176:[function(require,module,exports){
+},{"./Parameter":176,"classnames":87,"react":170}],178:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49604,7 +50233,7 @@ var ParameterControls = function (_React$Component) {
 
 exports.default = ParameterControls;
 
-},{"./css/ParameterControls.css":190,"./css/Select.css":194,"react":169,"react-select":159}],177:[function(require,module,exports){
+},{"./css/ParameterControls.css":192,"./css/Select.css":196,"react":170,"react-select":160}],179:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49669,7 +50298,7 @@ var ParameterPanes = function (_React$Component) {
 
 exports.default = ParameterPanes;
 
-},{"./ParameterBox":175,"react":169}],178:[function(require,module,exports){
+},{"./ParameterBox":177,"react":170}],180:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49685,6 +50314,16 @@ var _react2 = _interopRequireDefault(_react);
 var _d = require('d3');
 
 var d3 = _interopRequireWildcard(_d);
+
+var _moment = require('moment');
+
+var _moment2 = _interopRequireDefault(_moment);
+
+var _saveSvgAsPng = require('save-svg-as-png');
+
+var _d3SaveSvg = require('d3-save-svg');
+
+var d3SaveSvg = _interopRequireWildcard(_d3SaveSvg);
 
 var _generateId = require('./util/generateId');
 
@@ -49723,6 +50362,7 @@ var Plot = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Plot.__proto__ || Object.getPrototypeOf(Plot)).call(this, props));
 
     _this.svgid = (0, _generateId2.default)();
+    _this.plotSaveFormats = ['PNG', 'SVG'];
 
     var activePlotIndex = undefined;
     if (props.experiment && props.experiment.plots && _this.props.defaultPlot) {
@@ -49737,6 +50377,7 @@ var Plot = function (_React$Component) {
 
     _this.handlePlotChange = _this.handlePlotChange.bind(_this);
     _this.handleFormatChange = _this.handleFormatChange.bind(_this);
+    _this.handlePlotSave = _this.handlePlotSave.bind(_this);
     _this.replot = _this.replot.bind(_this);
     return _this;
   }
@@ -49781,6 +50422,22 @@ var Plot = function (_React$Component) {
       });
     }
   }, {
+    key: 'handlePlotSave',
+    value: function handlePlotSave() {
+      var format = this.plotSaveFormats[this.state.activeFormatIndex];
+      var name = this.props.experiment.name + '_' + this.props.experiment.plots[this.state.activePlotIndex] + '_' + (0, _moment2.default)().format('YYYY-MM-DD_hh-mm-ss');
+      if (format === 'PNG') {
+        (0, _saveSvgAsPng.saveSvgAsPng)(document.querySelector('#' + this.svgid), name + '.png', {
+          scale: 2,
+          backgroundColor: 'white'
+        });
+      } else if (format === 'SVG') {
+        d3SaveSvg.save(d3.select('#' + this.svgid).node(), {
+          filename: name
+        });
+      }
+    }
+  }, {
     key: 'componentDidUpdate',
     value: function componentDidUpdate(prevProps) {
       if (this.props.plotMethod === 'direct') {
@@ -49794,7 +50451,6 @@ var Plot = function (_React$Component) {
     value: function render() {
       var experiment = this.props.experiment || {};
       var plotNames = experiment.plots || [];
-      var formats = ['PNG', 'SVG'];
 
       return _react2.default.createElement(
         'div',
@@ -49811,13 +50467,13 @@ var Plot = function (_React$Component) {
             'div',
             { className: 'plot-export-controls' },
             _react2.default.createElement(_Tabs2.default, {
-              tabNames: formats,
+              tabNames: this.plotSaveFormats,
               activeIndex: this.state.activeFormatIndex,
               onTabChange: this.handleFormatChange
             }),
             _react2.default.createElement(
               'div',
-              { className: 'button' },
+              { className: 'button', onClick: this.handlePlotSave },
               'Save'
             )
           )
@@ -49832,7 +50488,7 @@ var Plot = function (_React$Component) {
 
 exports.default = Plot;
 
-},{"./Tabs":182,"./css/Plot.css":191,"./css/d3plot.css":197,"./d3plot":198,"./util/decode":200,"./util/generateId":201,"d3":120,"react":169}],179:[function(require,module,exports){
+},{"./Tabs":184,"./css/Plot.css":193,"./css/d3plot.css":199,"./d3plot":200,"./util/decode":202,"./util/generateId":203,"d3":121,"d3-save-svg":109,"moment":138,"react":170,"save-svg-as-png":171}],181:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49883,7 +50539,7 @@ var ProgressBar = function (_React$Component) {
 
 exports.default = ProgressBar;
 
-},{"./css/Progress.css":192,"rc-progress":147,"react":169}],180:[function(require,module,exports){
+},{"./css/Progress.css":194,"rc-progress":148,"react":170}],182:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49967,7 +50623,7 @@ var RunControls = function (_React$Component) {
 
 exports.default = RunControls;
 
-},{"./css/RunControls.css":193,"classnames":87,"react":169}],181:[function(require,module,exports){
+},{"./css/RunControls.css":195,"classnames":87,"react":170}],183:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50059,7 +50715,7 @@ var TabPanes = function (_React$Component) {
 
 exports.default = TabPanes;
 
-},{"./Experiment":171,"./Temperature":183,"./css/TabPanes.css":195,"react":169}],182:[function(require,module,exports){
+},{"./Experiment":173,"./Temperature":185,"./css/TabPanes.css":197,"react":170}],184:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50139,7 +50795,7 @@ var Tabs = function (_React$Component) {
 
 exports.default = Tabs;
 
-},{"./css/Tabs.css":196,"classnames":87,"react":169}],183:[function(require,module,exports){
+},{"./css/Tabs.css":198,"classnames":87,"react":170}],185:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50332,35 +50988,35 @@ var Temperature = function (_React$Component) {
 
 exports.default = Temperature;
 
-},{"./MessageBox":173,"./ParameterBox":175,"./ParameterPanes":177,"./Plot":178,"./Tabs":182,"./css/Experiment.css":186,"classnames":87,"immutability-helper":135,"react":169}],184:[function(require,module,exports){
+},{"./MessageBox":175,"./ParameterBox":177,"./ParameterPanes":179,"./Plot":180,"./Tabs":184,"./css/Experiment.css":188,"classnames":87,"immutability-helper":136,"react":170}],186:[function(require,module,exports){
 var css = "html,\nbody {\n  padding: 0px;\n  margin: 0px;\n  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\n  font-size: 15px;\n  cursor: default;\n  user-select: none;\n}\n.app-container {\n  height: 100vh;\n  width: 100vw;\n  background-color: #ededed;\n  display: flex;\n  flex-direction: column;\n}\n.app-container>.tab-bar {\n  background-color: #617463;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\App.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":86}],185:[function(require,module,exports){
-var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":86}],186:[function(require,module,exports){
-var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\r\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\r\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],187:[function(require,module,exports){
-var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],188:[function(require,module,exports){
-var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-content {\n  flex-grow: 1;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 2fr 1fr;\n  grid-template-areas: \"plots plots\"\r\n    \"pars controls\";\n}\n.plots-container {\n  grid-area: plots;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-block {\n  grid-area: pars;\n  display: grid;\n  grid-template-columns: 2fr 1fr;\n  grid-template-rows: 3fr 2fr;\n  grid-template-areas: \"ownpars controls\"\r\n    \"sharedpars sharedpars\";\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.controls-block {\n  grid-area: controls;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  grid-area: ownpars;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  grid-area: sharedpars;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],189:[function(require,module,exports){
-var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 5px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],190:[function(require,module,exports){
-var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],191:[function(require,module,exports){
-var css = ".plot-container {\n  max-width: 50%;\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],192:[function(require,module,exports){
-var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter-controls {\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],193:[function(require,module,exports){
-var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".plot-container {\n  max-width: 50%;\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],194:[function(require,module,exports){
-var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".progress-container {\n  margin-top: 5px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],195:[function(require,module,exports){
-var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],196:[function(require,module,exports){
-var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 5px 10px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],197:[function(require,module,exports){
-var css = "rect {\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  vector-effect: non-scaling-stroke;\n}\ntext {\n  font-family: sans-serif;\n  fill: black;\n}\n.axis path,\n.axis line {\n  vector-effect: non-scaling-stroke;\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  fill: none;\n  stroke: black;\n}\n.axis .tick text {\n  font-size: 12px;\n}\n.focus text {\n  fill: white;\n  fill-opacity: 1;\n  whitespace: pre;\n}\nline.focus {\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\n.overlay {\n  fill: none;\n  pointer-events: all;\n}\nline.border {\n  stroke: black;\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\nrect.zoom {\n  stroke: steelblue;\n  fill-opacity: 0.5;\n}\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\d3plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":86}],198:[function(require,module,exports){
+var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 5px 10px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":86}],199:[function(require,module,exports){
+var css = "rect {\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  vector-effect: non-scaling-stroke;\n}\ntext {\n  font-family: sans-serif;\n  fill: black;\n}\n.axis path,\n.axis line {\n  vector-effect: non-scaling-stroke;\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  fill: none;\n  stroke: black;\n}\n.axis .tick text {\n  font-size: 12px;\n}\n.focus text {\n  fill: white;\n  fill-opacity: 1;\n  whitespace: pre;\n}\nline.focus {\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\n.overlay {\n  fill: none;\n  pointer-events: all;\n}\nline.border {\n  stroke: black;\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\nrect.zoom {\n  stroke: steelblue;\n  fill-opacity: 0.5;\n}\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\d3plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":86}],200:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50744,7 +51400,7 @@ function d3plot(svg, plotDef) {
   }
 }
 
-},{"d3":120,"d3-xyzoom":118}],199:[function(require,module,exports){
+},{"d3":121,"d3-xyzoom":119}],201:[function(require,module,exports){
 'use strict';
 
 var _reactDom = require('react-dom');
@@ -50763,7 +51419,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 _reactDom2.default.render(_react2.default.createElement(_App2.default, { server: 'ws://' + window.location.hostname + ':8765' }), document.getElementById('app'));
 
-},{"./App":170,"react":169,"react-dom":151}],200:[function(require,module,exports){
+},{"./App":172,"react":170,"react-dom":152}],202:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -50796,7 +51452,7 @@ function decode_plot_data(data) {
 exports.decode_plot_data = decode_plot_data;
 exports.decode_data = decode_data;
 
-},{}],201:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50815,7 +51471,7 @@ function resetIdCounter() {
   current = 0;
 }
 
-},{}],202:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -50832,4 +51488,4 @@ function shortUID() {
     return firstPart + secondPart;
 }
 
-},{}]},{},[199]);
+},{}]},{},[201]);
