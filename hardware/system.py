@@ -126,5 +126,8 @@ def calibrate(
     data = data * CONFIG['input_calibration']
     if decimation is not None:
         Bmax = CONFIG['DSP_CIC_N']*np.log2(decimation*CONFIG['DSP_CIC_M']) + CONFIG['DSP_CIC_B']
-        data = data * (2**(np.ceil(Bmax) - Bmax))
+        # FIXME: the 0.745 factor here is for systems which were calibrated before this correction was implemented,
+        # and should be eventually removed. Calibration was done at a decimation of 50.
+        # Bmax = 4*np.log2(50*2)+16, 1/(2**(np.ceil(Bmax) - Bmax)) = 0.745
+        data = 0.745 * data * (2**(np.ceil(Bmax) - Bmax))
     return data
