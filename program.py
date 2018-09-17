@@ -143,7 +143,6 @@ class Program:
                         scans_to_read = rotbuf_write_index - rotbuf_read_index
                     else:
                         scans_to_read = rotbuf_length - rotbuf_read_index
-                        data = np.mean(np.split(data, int(self.par['scans'])), axis=0)
                     self._acc_data += np.sum(
                         np.split(
                             system.read_dma(
