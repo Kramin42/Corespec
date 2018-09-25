@@ -97,7 +97,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.export_FT()
         peak_index = np.argmax(data['fft_mag'])
         peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
-        peak_freq = self.par('freq') + peak_freq_offset
+        peak_freq = self.par['freq'] + peak_freq_offset
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
