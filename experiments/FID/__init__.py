@@ -97,6 +97,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.export_FT()
         peak_index = np.argmax(data['fft_mag'])
         peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
+        avg_start = peak_index - int(len(data['freq'])/20)
+        avg_end = peak_index + int(len(data['freq'])/20) + 1
+        if avg_start>0 and avg_end<=len(data['freq']):
+            peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
         peak_freq = self.par['freq'] + peak_freq_offset
         return {'data': [{
             'name': 'Real',
