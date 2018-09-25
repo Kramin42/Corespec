@@ -28,6 +28,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': x,
             'y_real': y.real,
             'y_imag': y.imag,
+            'y_mag': np.abs(y),
             'y_unit': 'V',
             'x_unit': 's'}
 
@@ -47,6 +48,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'freq': freq,
             'fft_real': fft.real,
             'fft_imag': fft.imag,
+            'fft_mag': np.abs(fft),
             'fft_unit': 'V/kHz',
             'freq_unit': 'Hz'}
     
@@ -60,10 +62,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'type': 'scatter',
                     'x': data['x'],
                     'y': data['y_real']}, {
-                    'name': 'Imag',
+                    'name': 'Imag.',
                     'type': 'scatter',
                     'x': data['x'],
-                    'y': data['y_imag']}],
+                    'y': data['y_imag']}, {
+                    'name': 'Mag.',
+                    'type': 'scatter',
+                    'x': data['x'],
+                    'y': data['y_mag']}],
                 'layout': {
                     'title': 'Real/Imaginary data',
                     'xaxis': {'title': data['x_unit']},
@@ -94,10 +100,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'type': 'scatter',
             'x': data['freq'],
             'y': data['fft_real']}, {
-            'name': 'Imag',
+            'name': 'Imag.',
             'type': 'scatter',
             'x': data['freq'],
-            'y': data['fft_imag']}],
+            'y': data['fft_imag']}, {
+            'name': 'Mag.',
+            'type': 'scatter',
+            'x': data['freq'],
+            'y': data['fft_mag']}],
             'layout': {
                 'title': 'FFT',
                 'xaxis': {'title': data['freq_unit']},
