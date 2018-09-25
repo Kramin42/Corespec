@@ -95,6 +95,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_FT(self):
         data = self.export_FT()
+        peak_index = np.argmax(data['fft_mag'])
+        peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
+        peak_freq = self.par('freq') + peak_freq_offset
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
@@ -109,7 +112,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT',
+                'title': 'FFT (peak@{:0.4f}{})'.format(peak_freq, 'M'+data['freq_unit']),
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}
