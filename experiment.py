@@ -75,6 +75,20 @@ class BaseExperiment:
         with open(os.path.join(dir, 'config.yaml'), 'w') as f:
             yaml.dump({'experiment': self.name}, f, default_flow_style=False)
 
+    def get_export(self, name):
+        if name in self.exports:
+            result = self.exports[name]()
+            result.update(self.par)
+            return result
+        else:
+            raise Exception('No such export "%s" exists!' % name)
+
+    def get_plot(self, name):
+        if name in self.plots:
+            return self.plots[name]()
+        else:
+            raise Exception('No such plot "%s" exists!' % name)
+
     def get_metadata(self):
         merged_pars = {}
         for prog_name, prog in self.programs.items():
