@@ -97,7 +97,7 @@ class Program:
             deps = new_deps
         return deps
 
-    async def ensure_finished(self, progress_handler=None, warning_handler=None):
+    async def ensure_finished(self, progress_handler=None, message_handler=None):
         # progress_handler should return quickly:
         # no heavy processing or blocking IO
         prev_progress = -1
@@ -135,7 +135,7 @@ class Program:
                     int(self.config_get('output.rotbuf_write_index_offset')), 'uint32')
                 if not rotbuf_scandelayed and (rotbuf_write_index+1)%rotbuf_length == rotbuf_read_index:
                     rotbuf_scandelayed = True
-                    warning_handler("Warning: scans delayed by full memory buffer.")
+                    message_handler('Warning: scans delayed by full memory buffer.', type='warning')
                 if rotbuf_write_index!=rotbuf_read_index and not rotbuf_finished:
                     logger.debug('rotbuf_read_index: %i, rotbuf_write_index: %i, rotbuf_length: %i' % (rotbuf_read_index, rotbuf_write_index, rotbuf_length))
                     # calculate the length of continuous readable data
@@ -168,7 +168,7 @@ class Program:
 
             await asyncio.sleep(0.1)
 
-    async def run(self, progress_handler=None, warning_handler=None):
+    async def run(self, progress_handler=None, message_handler=None):
         system.stop()
         self._aborted = False
         self._data_ready = False
@@ -264,7 +264,7 @@ class Program:
 
         # wait until status finished
         logger.debug('run: waiting until finished')
-        await self.ensure_finished(progress_handler=progress_handler, warning_handler=warning_handler)
+        await self.ensure_finished(progress_handler=progress_handler, message_handler=message_handler)
         # read the data
         logger.debug('run: reading data')
         if self.config_get('output.type') == 'FIFO':
@@ -306,13 +306,13 @@ class Program:
                 self._data = self._data*self.config_get('output.scale_factor')
             self._data_ready = True
 
-        if warning_handler:
+        if message_handler:
             try:
                 adc_overflow_count = system.read_par(self.config_get('adc_overflow_count.offset'))
                 logger.debug('ADC overflow count: %i' % adc_overflow_count)
                 # TODO: test adc overflow count
                 if adc_overflow_count>0:
-                    warning_handler('ADC overflow detected! (count: %i)' % adc_overflow_count)
+                    message_handler('ADC overflow detected! (count: %i)' % adc_overflow_count, type='warning')
             except Exception as e: # errors here are not important
                 logger.debug('Error during warning check: %s' % str(e))
         logger.debug('run: finished')

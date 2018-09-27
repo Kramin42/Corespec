@@ -16,7 +16,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         del self.par_def['width_90']
 
     # must be async or otherwise return an awaitable
-    async def run(self, progress_handler=None, warning_handler=None):
+    async def run(self, progress_handler=None, message_handler=None):
         widths = np.linspace(self.par['start_width'], self.par['end_width'], self.par['steps'])
         count = len(widths)
         index = 0
@@ -30,7 +30,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             progress_handler(index, count)
             logger.debug('running width %s' % width)
             self.programs['FID'].set_par('width_90', width)
-            await self.programs['FID'].run(warning_handler=warning_handler)
+            await self.programs['FID'].run(message_handler=message_handler)
             run_data = self.programs['FID'].data.astype(np.float32).view(np.complex64)
             #self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
             if self.data is None:

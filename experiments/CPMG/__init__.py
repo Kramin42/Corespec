@@ -13,9 +13,13 @@ import numpy as np
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
-    async def run(self, progress_handler=None, warning_handler=None):
+    async def run(self, progress_handler=None, message_handler=None):
         await self.programs['CPMG'].run(progress_handler=progress_handler,
-                                        warning_handler=warning_handler)
+                                        message_handler=message_handler)
+        y = self.autophase(self.integrated_data())
+        if y.size > 100:
+            SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
+            message_handler('SNR estimate: %d' % SNR)
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
@@ -42,9 +46,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     def export_Echo_Integrals(self):
         y = self.autophase(self.integrated_data())
-        if y.size > 200:
-            SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[100:] * y.imag[100:])).item()
-            logger.info('SNR: %d' % SNR)
         y/=1000000 # μV -> V
         echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time']/1000000.0

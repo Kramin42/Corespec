@@ -13,9 +13,9 @@ import numpy as np
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
-    async def run(self, progress_handler=None, warning_handler=None):
+    async def run(self, progress_handler=None, message_handler=None):
         await self.programs['FID'].run(progress_handler=progress_handler,
-                                        warning_handler=warning_handler)
+                                       message_handler=message_handler)
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict

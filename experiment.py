@@ -51,7 +51,7 @@ class BaseExperiment:
     
     # must be overridden
     # progress_handler takes arguments (progress, limit)
-    async def run(self, progress_handler=None, warning_handler=None):
+    async def run(self, progress_handler=None, message_handler=None):
         pass
 
     # must be overridden, must return a numpy array
