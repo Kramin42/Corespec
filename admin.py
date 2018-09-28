@@ -12,24 +12,46 @@ logger.setLevel(logging.ERROR)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # autorun init.sh
-subprocess.call(['sh', os.path.join(dir_path, 'init.sh')])
+try:
+    subprocess.call(['sh', os.path.join(dir_path, 'init.sh')])
+except:
+    logger.warning('Could not run init.sh!')
 
-VERSION = '1.1.3'
+VERSION = '1.1.4'
+
+changelog_html = ''
+with open(os.path.join(dir_path, 'changelog.html')) as f:
+    changelog_html = f.read()
 
 class AdminHandler(web.RequestHandler):
     def get(self):
         self.write("""
             <html><head>
                 <title>Admin</title>
+                <style>
+                    h1 {{
+                        font-size: 1.5em;
+                    }}
+                    h2 {{
+                        font-size: 1.25em;
+                    }}
+                    h3 {{
+                        font-size: 1em;
+                    }}
+                </style>
             </head>
             <body>
-                <h3>Version {version}</h3>
+                <h1>Version {version}</h1>
                 <form action="/admin" method="post">
                     <button type="submit" name="action" value="update">Update & Restart</button>
                 </form>
+                <div>
+                    {changelog}
+                </div>
             </body></html>
             """.format(
-                version=VERSION
+                version=VERSION,
+                changelog=changelog_html
             )
         )
 
