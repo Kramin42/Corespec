@@ -79,7 +79,7 @@ async def export_csv(experiment_name, export_name):
                     row.append(v)
                 else:
                     row.append('')
-            elif type(v) is float:
+            elif type(v) is float or type(v) is int:
                 if rownum==0:
                     row.append(str(v))
                 else:
