@@ -17,7 +17,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
         y = self.autophase(self.integrated_data())
-        if y.size > 100:
+        if y.size >= 10:
             SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
             message_handler('SNR estimate: %d' % SNR)
 
