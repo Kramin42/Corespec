@@ -1,0 +1,26 @@
+# Pulse Calibration experiment configuration
+description:
+  An experiment for calibrating pulse power/width.
+programs:
+  - FID
+parameters:
+  start_amp:
+    dtype: float
+    unit: '%'
+    group: calibration
+  end_amp:
+    dtype: float
+    unit: '%'
+    group: calibration
+  steps:
+    dtype: int
+    group: calibration
+  int_width:
+    dtype: float
+    min: 0
+    unit: kHz
+    group: calibration
+defaults:
+  plots:
+    - FID
+    - Calibration

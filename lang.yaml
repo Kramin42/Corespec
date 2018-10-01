@@ -16,6 +16,10 @@ english:
       label: Min width
     end_width:
       label: Max width
+    start_amp:
+      label: Min power
+    end_amp:
+      label: Max power
     damp_time:
       label: Damping
     echo_time:
