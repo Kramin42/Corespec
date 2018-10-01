@@ -71,7 +71,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'x': data['x'],
                     'y': data['y']}],
                 'layout': {
-                    'title': 'Pulse Width Calibration',
+                    'title': 'Pulse Power Calibration',
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': 'FT Integral (%s)' % data['y_unit']}
                 }}
