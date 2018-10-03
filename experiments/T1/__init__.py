@@ -44,17 +44,18 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_T1(self):
         dwell_time = self.par['dwell_time']/1000000
-        fft_mag = np.abs(np.fft.fft(self.raw_data(), axis=1))
+        phase = np.angle(np.sum(self.raw_data()[0])) # get average phase of first acquisition
+        fft_mag = np.real(np.fft.fft(self.raw_data(), axis=1)*np.exp(1j * -phase))
         fft_mag *= dwell_time
         halfwidth = int(fft_mag.shape[1]*self.par['int_width']*dwell_time*500)+1
         y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)
         y /= (2*halfwidth+1)
         y *= self.par['int_width']/1000
-        x = np.linspace(self.par['start_inv_time'], self.par['end_inv_time'], self.par['steps'])
+        x = np.linspace(self.par['start_inv_time'], self.par['end_inv_time'], self.par['steps'])/1000000
         return {
             'x': x,
             'y': y,
-            'x_unit': 'μs',
+            'x_unit': 's',
             'y_unit': 'V'}
 
     def export_Raw(self):
