@@ -1,0 +1,9 @@
+# Inversion Recovery experiment configuration
+description:
+  An Inversion Recovery experiment.
+programs:
+  - InversionRecovery
+defaults:
+  plots:
+    - Raw
+    - FT
