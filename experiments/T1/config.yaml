@@ -2,7 +2,7 @@
 description:
   An experiment for calibrating pulse power/width.
 programs:
-  - FID
+  - InversionRecovery
 parameters:
   start_inv_time:
     dtype: float
