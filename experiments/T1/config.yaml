@@ -1,0 +1,26 @@
+# Pulse Calibration experiment configuration
+description:
+  An experiment for calibrating pulse power/width.
+programs:
+  - FID
+parameters:
+  start_inv_time:
+    dtype: float
+    unit: us
+    group: T1
+  end_inv_time:
+    dtype: float
+    unit: us
+    group: T1
+  steps:
+    dtype: int
+    group: T1
+  int_width:
+    dtype: float
+    min: 0
+    unit: kHz
+    group: T1
+defaults:
+  plots:
+    - FID
+    - T1

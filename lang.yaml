@@ -38,6 +38,12 @@ english:
       label: Scans
     acq_delay:
       label: Acq. delay
+    inversion_time:
+      label: Inv. time
+    start_inv_time:
+      label: Min Inv. time
+    end_inv_time:
+      label: Max Inv. time
     bandwidth:
       label: Bandwidth
     steps:
