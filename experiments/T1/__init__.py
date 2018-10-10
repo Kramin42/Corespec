@@ -3,7 +3,7 @@ from experiment import BaseExperiment # required
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 import numpy as np
 
@@ -32,22 +32,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['InversionRecovery'].set_par('inversion_time', inv_time)
             await self.programs['InversionRecovery'].run(message_handler=message_handler)
             run_data = self.programs['InversionRecovery'].data.astype(np.float32).view(np.complex64)
-            #self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
+            samples = int(self.par['samples'])
+            echo_count = int(self.par['echo_count'])
+            y = np.zeros(echo_count, dtype=np.complex64)
+            for i in range(echo_count):
+                y[i] = np.mean(run_data[i * samples:(i + 1) * samples])
             if self.data is None:
-                self.data = np.array([run_data])
+                self.data = np.array([y])
             else:
-                self.data = np.append(self.data, [run_data], axis=0)
+                self.data = np.append(self.data, [y], axis=0)
             index+=1
         progress_handler(index, count)
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_T1(self):
-        dwell_time = self.par['dwell_time']/1000000
+        dt = self.par['echo_time']/1000000
         phase = np.angle(np.sum(self.raw_data()[-1])) # get average phase of first acquisition
         fft_mag = np.fft.fft(self.raw_data(), axis=1)*np.exp(1j * -phase)
-        fft_mag *= dwell_time
-        halfwidth = int(fft_mag.shape[1]*self.par['int_width']*dwell_time*500)+1
+        fft_mag *= dt
+        halfwidth = int(fft_mag.shape[1]*self.par['int_width']*dt*500)+1
         y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)
         y /= (2*halfwidth+1)
         y *= self.par['int_width']/1000
@@ -82,9 +86,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'yaxis': {'title': 'FT Integral (%s)' % data['y_unit']}
                 }}
 
-    def plot_FID(self):
+    def plot_CPMG(self):
         y = self.autophase(self.raw_data()[-1,:])
-        x = np.linspace(0, self.par['dwell_time'] * len(y), len(y), endpoint=False)
+        x = np.linspace(0, self.par['echo_time'] * len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
         return {'data': [{
@@ -97,7 +101,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': x,
             'y': y.imag}],
             'layout': {
-                'title': 'FID',
+                'title': 'CPMG Echo Integrals',
                 'xaxis': {'title': 's'},
                 'yaxis': {'title': 'V'}
             }}
