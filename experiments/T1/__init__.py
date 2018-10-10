@@ -48,7 +48,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_T1(self):
-        y = np.mean(self.raw_data(), axis=1)
+        # TODO: dynamic apodization factor
+        apodization = np.exp(-np.log(10)*np.linspace(0, 1, len(self.raw_data()[0])))
+        apodization /= np.sum(apodization)
+        y = np.abs(np.sum(self.raw_data()*apodization, axis=1))
         x = self.inv_times / 1000000
         return {
             'x': x,
