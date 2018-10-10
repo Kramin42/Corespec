@@ -22,5 +22,5 @@ parameters:
     group: T1
 defaults:
   plots:
-    - FID
+    - CPMG
     - T1
