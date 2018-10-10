@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 import numpy as np
+from scipy.optimize import curve_fit
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
@@ -17,8 +18,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        inv_times = np.linspace(self.par['start_inv_time'], self.par['end_inv_time'], self.par['steps'])
-        count = len(inv_times)
+        self.inv_times = np.logspace(np.log10(self.par['start_inv_time']), np.log10(self.par['end_inv_time']), self.par['steps'])
+        count = len(self.inv_times)
         index = 0
         self.data = None
 
@@ -26,7 +27,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         #    logger.debug('calling progress handler with %s/%s' % (progress+index*count, limit*count))
         #    progress_handler(progress+index*count, limit*count)
 
-        for inv_time in inv_times:
+        for inv_time in self.inv_times:
             progress_handler(index, count)
             logger.debug('running inversion time %s' % inv_time)
             self.programs['InversionRecovery'].set_par('inversion_time', inv_time)
@@ -47,19 +48,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_T1(self):
-        dt = self.par['echo_time']/1000000
-        phase = np.angle(np.sum(self.raw_data()[-1])) # get average phase of first acquisition
-        fft_mag = np.fft.fft(self.raw_data(), axis=1)*np.exp(1j * -phase)
-        fft_mag *= dt
-        halfwidth = int(fft_mag.shape[1]*self.par['int_width']*dt*500)+1
-        y = np.sum(fft_mag[:,:halfwidth], axis=1) + np.sum(fft_mag[:,:-halfwidth:-1], axis=1)
-        y /= (2*halfwidth+1)
-        y *= self.par['int_width']/1000
-        x = np.linspace(self.par['start_inv_time'], self.par['end_inv_time'], self.par['steps'])/1000000
+        y = np.mean(self.raw_data(), axis=1)
+        x = self.inv_times / 1000000
         return {
             'x': x,
-            'y_real': y.real,
-            'y_imag': y.imag,
+            'y': y,
             'x_unit': 's',
             'y_unit': 'V'}
 
@@ -70,21 +63,39 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def plot_T1(self):
         data = self.export_T1()
-        # return object according to plotly schema
-        return {'data': [{
-                    'name': 'Real',
-                    'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_real']}, {
-                    'name': 'Imag',
-                    'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_imag']}],
-                'layout': {
-                    'title': 'T1',
-                    'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
-                    'yaxis': {'title': 'FT Integral (%s)' % data['y_unit']}
-                }}
+        result = {'data': [{
+            'name': 'Data',
+            'type': 'scatter',
+            'x': data['x'],
+            'y': data['y']
+        }],
+            'layout': {
+                'title': 'T1',
+                'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
+                'yaxis': {'title': 'FT Integral Mag. (%s)' % data['y_unit']}
+            }}
+        if len(data['y']) == len(data['x']) and len(data['y']) > 3:
+            def T1_fit_func(TI, A, B, T1):
+                return A * np.abs((1 + B) * np.exp(-TI / T1) - 1)
+
+            A_init = np.max(data['y'])
+            B_init = 1
+            T1_init = data['x'][np.argmin(data['y'])] / np.log(2)
+            logger.debug('initial conditions: %s' % str([A_init, B_init, T1_init]))
+            popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y']), p0=[A_init, B_init, T1_init])
+            logger.debug('popt: %s' % str(popt))
+            logger.debug('pcov: %s' % str(pcov))
+            # return object according to plotly schema
+            fit_x = np.linspace(data['x'][0], data['x'][-1], 1000)
+            fit_y = T1_fit_func(fit_x, *popt)
+            result['data'].append({
+                'name': 'Fit',
+                'type': 'scatter',
+                'x': fit_x,
+                'y': fit_y
+            })
+            result['layout']['title'] = 'T1: {:.3e} {}'.format(popt[2], data['x_unit'])
+        return result
 
     def plot_CPMG(self):
         y = self.autophase(self.raw_data()[-1,:])
