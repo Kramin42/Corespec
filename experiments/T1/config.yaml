@@ -7,7 +7,6 @@ parameters:
   start_inv_time:
     dtype: float
     unit: us
-    min: 25
     group: T1
   end_inv_time:
     dtype: float

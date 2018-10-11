@@ -86,7 +86,7 @@ parameters:
   inversion_time:
     offset: 0xe8
     dtype: uint32
-    min: 10
+    min: 25
     unit: us
     group: pulse
   echo_time:
