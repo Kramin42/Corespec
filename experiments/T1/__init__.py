@@ -3,7 +3,7 @@ from experiment import BaseExperiment # required
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 import numpy as np
 from scipy.optimize import curve_fit
@@ -48,14 +48,25 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_T1(self):
-        # TODO: dynamic apodization factor
-        apodization = np.exp(-np.log(10)*np.linspace(0, 1, len(self.raw_data()[0])))
+        # dynamic apodization factor
+        if len(self.raw_data()[-1]) >= 10:
+            apodization_factor = np.abs(np.sum(self.raw_data()[-1].real[:4]) / np.sum(self.raw_data()[-1].real[-4:]))
+            if apodization_factor < 1:
+                apodization_factor = 1
+            logger.debug('Apodisation factor: %s' % str(apodization_factor))
+            apodization = np.exp(-np.log(apodization_factor)*np.linspace(0, 1, len(self.raw_data()[-1])))
+        else:
+            apodization = np.ones(len(self.raw_data()[-1]))
         apodization /= np.sum(apodization)
-        y = np.abs(np.sum(self.raw_data()*apodization, axis=1))
-        x = self.inv_times / 1000000
+        y = np.sum(self.raw_data()*apodization, axis=1) / 1000000 # uV -> V
+        phase = np.angle(y[-1])
+        y *= np.exp(1j * -phase)
+        x = self.inv_times / 1000000 # us -> s
+        x = x[:len(y)]
         return {
             'x': x,
-            'y': y,
+            'y_real': y.real,
+            'y_imag': y.imag,
             'x_unit': 's',
             'y_unit': 'V'}
 
@@ -67,25 +78,30 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def plot_T1(self):
         data = self.export_T1()
         result = {'data': [{
-            'name': 'Data',
+            'name': 'Data (Real)',
             'type': 'scatter',
             'x': data['x'],
-            'y': data['y']
-        }],
+            'y': data['y_real']
+            },{
+            'name': 'Data (Imag)',
+            'type': 'scatter',
+            'x': data['x'],
+            'y': data['y_imag']
+            }],
             'layout': {
                 'title': 'T1',
                 'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
-                'yaxis': {'title': 'FT Integral Mag. (%s)' % data['y_unit']}
+                'yaxis': {'title': 'Signal Avg. (%s)' % data['y_unit']}
             }}
-        if len(data['y']) == len(data['x']) and len(data['y']) > 3:
+        if len(data['y_real']) == len(self.inv_times) and len(data['y_real']) > 3:
             def T1_fit_func(TI, A, B, T1):
-                return A * np.abs((1 + B) * np.exp(-TI / T1) - 1)
+                return A * (1 - (1 + B) * np.exp(-TI / T1))
 
-            A_init = np.max(data['y'])
+            A_init = np.max(data['y_real'])
             B_init = 1
-            T1_init = data['x'][np.argmin(data['y'])] / np.log(2)
+            T1_init = data['x'][np.argmin(np.abs(data['y_real']))] / np.log(2)
             logger.debug('initial conditions: %s' % str([A_init, B_init, T1_init]))
-            popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y']), p0=[A_init, B_init, T1_init])
+            popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y_real']), p0=[A_init, B_init, T1_init])
             logger.debug('popt: %s' % str(popt))
             logger.debug('pcov: %s' % str(pcov))
             # return object according to plotly schema

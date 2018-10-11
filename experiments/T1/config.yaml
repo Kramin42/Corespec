@@ -7,6 +7,7 @@ parameters:
   start_inv_time:
     dtype: float
     unit: us
+    min: 25
     group: T1
   end_inv_time:
     dtype: float
@@ -14,11 +15,6 @@ parameters:
     group: T1
   steps:
     dtype: int
-    group: T1
-  int_width:
-    dtype: float
-    min: 0
-    unit: kHz
     group: T1
 defaults:
   plots:
