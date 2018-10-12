@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.6] - 2018-10-12
+### Added
+- T1_FID experiment using inversion recovery with FID acquisition
+
 ## [1.1.5] - 2018-10-11
 ### Added
 - T1 experiment using inversion recovery with a CPMG train for acquisition
