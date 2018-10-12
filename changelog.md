@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.5] - 2018-10-11
+### Added
+- T1 experiment using inversion recovery with a CPMG train for acquisition
+- Power Calibration experiment
+
 ## [1.1.4] - 2018-09-28
 ### Added
 - FID Magnitude curve on time domain and frequency domain plots.
