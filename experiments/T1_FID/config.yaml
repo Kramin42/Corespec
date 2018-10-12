@@ -1,0 +1,26 @@
+# T1 FID experiment config
+description:
+  An experiment for measuring T1 with inversion recovery and a FID readout.
+programs:
+  - InversionRecoveryFID
+parameters:
+  start_inv_time:
+    dtype: float
+    unit: us
+    group: T1
+  end_inv_time:
+    dtype: float
+    unit: us
+    group: T1
+  steps:
+    dtype: int
+    group: T1
+  int_width:
+    dtype: float
+    min: 0
+    unit: kHz
+    group: T1
+defaults:
+  plots:
+    - FID
+    - T1

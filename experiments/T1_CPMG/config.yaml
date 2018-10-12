@@ -1,8 +1,8 @@
-# Pulse Calibration experiment configuration
+# T1 CPMG experiment config
 description:
-  An experiment for calibrating pulse power/width.
+  An experiment for measuring T1 with inversion recovery and a CPMG readout.
 programs:
-  - InversionRecovery
+  - InversionRecoveryCPMG
 parameters:
   start_inv_time:
     dtype: float

@@ -30,9 +30,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         for inv_time in self.inv_times:
             progress_handler(index, count)
             logger.debug('running inversion time %s' % inv_time)
-            self.programs['InversionRecovery'].set_par('inversion_time', inv_time)
-            await self.programs['InversionRecovery'].run(message_handler=message_handler)
-            run_data = self.programs['InversionRecovery'].data.astype(np.float32).view(np.complex64)
+            self.programs['InversionRecoveryCPMG'].set_par('inversion_time', inv_time)
+            await self.programs['InversionRecoveryCPMG'].run(message_handler=message_handler)
+            run_data = self.programs['InversionRecoveryCPMG'].data.astype(np.float32).view(np.complex64)
             samples = int(self.par['samples'])
             echo_count = int(self.par['echo_count'])
             y = np.zeros(echo_count, dtype=np.complex64)
@@ -78,42 +78,45 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def plot_T1(self):
         data = self.export_T1()
         result = {'data': [{
-            'name': 'Data (Real)',
-            'type': 'scatter',
-            'x': data['x'],
-            'y': data['y_real']
-            },{
-            'name': 'Data (Imag)',
-            'type': 'scatter',
-            'x': data['x'],
-            'y': data['y_imag']
-            }],
-            'layout': {
-                'title': 'T1',
-                'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
-                'yaxis': {'title': 'Signal Avg. (%s)' % data['y_unit']}
-            }}
+                    'name': 'Real',
+                    'type': 'scatter',
+                    'x': data['x'],
+                    'y': data['y_real']
+                },{
+                    'name': 'Imag',
+                    'type': 'scatter',
+                    'x': data['x'],
+                    'y': data['y_imag']
+                }],
+                'layout': {
+                    'title': 'T1',
+                    'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
+                    'yaxis': {'title': 'Signal Avg. (%s)' % data['y_unit']}
+                }}
         if len(data['y_real']) == len(self.inv_times) and len(data['y_real']) > 3:
             def T1_fit_func(TI, A, B, T1):
                 return A * (1 - (1 + B) * np.exp(-TI / T1))
 
-            A_init = np.max(data['y_real'])
+            A_init = np.max(np.abs(data['y_real']))
             B_init = 1
             T1_init = data['x'][np.argmin(np.abs(data['y_real']))] / np.log(2)
             logger.debug('initial conditions: %s' % str([A_init, B_init, T1_init]))
-            popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y_real']), p0=[A_init, B_init, T1_init])
-            logger.debug('popt: %s' % str(popt))
-            logger.debug('pcov: %s' % str(pcov))
-            # return object according to plotly schema
-            fit_x = np.linspace(data['x'][0], data['x'][-1], 1000)
-            fit_y = T1_fit_func(fit_x, *popt)
-            result['data'].append({
-                'name': 'Fit',
-                'type': 'scatter',
-                'x': fit_x,
-                'y': fit_y
-            })
-            result['layout']['title'] = 'T1: {:.3e} {}'.format(popt[2], data['x_unit'])
+            try:
+                popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y_real']), p0=[A_init, B_init, T1_init])
+                logger.debug('popt: %s' % str(popt))
+                logger.debug('pcov: %s' % str(pcov))
+                # return object according to plotly schema
+                fit_x = np.linspace(data['x'][0], data['x'][-1], 1000)
+                fit_y = T1_fit_func(fit_x, *popt)
+                result['data'].append({
+                    'name': 'Fit',
+                    'type': 'scatter',
+                    'x': fit_x,
+                    'y': fit_y
+                })
+                result['layout']['title'] = 'T1: {:.3e} {}'.format(popt[2], data['x_unit'])
+            except RuntimeError as e: # could not find acceptable fit
+                logger.debug(e)
         return result
 
     def plot_CPMG(self):
