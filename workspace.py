@@ -70,10 +70,12 @@ class Workspace:
     def load_default_pars(self):
         try:
             with open(os.path.join(self._par_dir, DEFAULT_PAR_FILE), 'r') as f:
-                return yaml.load(f.read())
+                default_pars = yaml.load(f.read())
+                if default_pars is not None:
+                    return default_pars
         except Exception as e:
             logger.exception(e)
-            return {}
+        return {}
 
     def new_data_dir(self, prefix):
         basedirname = prefix + '_' + datetime.now().strftime('%Y-%m-%d@%H-%M-%S')
