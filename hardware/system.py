@@ -105,7 +105,7 @@ def read_dma(
         mem = mmap(f.fileno(), DMA_SIZE, offset=DMA_OFFSET)
         logger.debug('reading from %i to %i' % (offset, offset+length))
         data = np.frombuffer(mem[offset:offset+length], dtype=dtype)
-    return data
+    return data.astype(np.float32)
 
 
 def read_fifo(

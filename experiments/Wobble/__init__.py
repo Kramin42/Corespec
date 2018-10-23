@@ -25,7 +25,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         center = self.par['freq']
         samples = int(self.par['samples'])
 
-        y = data.astype(np.float32)
+        y = data
         y = np.mean(y.reshape(-1, samples), axis=1)
         x = np.linspace(center-width/2, center+width/2, len(y))
         return {

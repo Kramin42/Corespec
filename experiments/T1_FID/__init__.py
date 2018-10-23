@@ -32,7 +32,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             logger.debug('running inversion time %s' % inv_time)
             self.programs['InversionRecoveryFID'].set_par('inversion_time', inv_time)
             await self.programs['InversionRecoveryFID'].run(message_handler=message_handler)
-            run_data = self.programs['InversionRecoveryFID'].data.astype(np.float32).view(np.complex64)
+            run_data = self.programs['InversionRecoveryFID'].data.view(np.complex64)
             if self.data is None:
                 self.data = np.array([run_data])
             else:

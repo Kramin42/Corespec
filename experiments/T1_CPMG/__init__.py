@@ -32,7 +32,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             logger.debug('running inversion time %s' % inv_time)
             self.programs['InversionRecoveryCPMG'].set_par('inversion_time', inv_time)
             await self.programs['InversionRecoveryCPMG'].run(message_handler=message_handler)
-            run_data = self.programs['InversionRecoveryCPMG'].data.astype(np.float32).view(np.complex64)
+            run_data = self.programs['InversionRecoveryCPMG'].data.view(np.complex64)
             samples = int(self.par['samples'])
             echo_count = int(self.par['echo_count'])
             y = np.zeros(echo_count, dtype=np.complex64)
