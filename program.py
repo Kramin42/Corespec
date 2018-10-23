@@ -118,7 +118,7 @@ class Program:
             rotbuf_counter = 0
             self._acc_data = np.zeros(
                 block_count*(block_length+block_skip),
-                dtype=self.config_get('output.dtype'))
+                dtype=np.float32)
             rotbuf_finished = False
         while self.status!=self.config_get('status.values.finished') or not rotbuf_finished:
             final_run_done = self.status==self.config_get('status.values.finished')

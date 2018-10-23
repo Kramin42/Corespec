@@ -117,7 +117,7 @@ def read_fifo(
     dtype = np.dtype(dtype)
     length *= dtype.itemsize
     data = np.frombuffer(mem_p.mmio.mem[offset:offset+length], dtype=dtype)
-    return data
+    return data.astype(np.float32)
 
 
 def calibrate(
