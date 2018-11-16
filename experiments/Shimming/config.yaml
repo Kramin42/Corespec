@@ -1,0 +1,9 @@
+# Shimming helper experiment configuration
+description:
+  A Shimming helper experiment.
+programs:
+  - FID
+defaults:
+  plots:
+    - Raw
+    - FT
