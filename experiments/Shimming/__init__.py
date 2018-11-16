@@ -110,7 +110,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             if x > height/2:
                 if left_hw_index==-1:
                     left5_hw_index = i
-                right_hw_index
+                right_hw_index = i
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
@@ -125,7 +125,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT (peak@{:0.4f}{}, height: {:0.4f}, 50% width: {:0.4f})'.format(peak_freq, 'M'+data['freq_unit'], height, half_width),
+                'title': 'FFT (peak@{:0.4f}{}, height: {:0.4f} uV, 50% width: {:0.4f} MHz)'.format(peak_freq, 'M'+data['freq_unit'], height*1000000, half_width/1000000),
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}
