@@ -21,6 +21,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
@@ -35,6 +36,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_FT(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
         fft = np.fft.fft(y)
         freq = np.fft.fftfreq(y.size, d=dwell_time)
@@ -102,10 +104,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         if avg_start>0 and avg_end<=len(data['freq']):
             peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
         peak_freq = self.par['freq'] + peak_freq_offset
-        height = data['fft_real'].max()
+        height = data['fft_mag'].max()
         left_hw_index = -1
         right_hw_index = -1
-        for i,x in enumerate(data['fft_real']):
+        for i,x in enumerate(data['fft_mag']):
             if x > height/2:
                 if left_hw_index==-1:
                     left_hw_index = i
@@ -138,3 +140,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def autophase(self, data):
         phase = np.angle(np.sum(data)) # get average phase
         return data * np.exp(1j * -phase) # rotate
+
+    def gaussian_apodize(self, data, lb):
+        t = np.linspace(0, 1, len(data))
+        return data * np.exp(-lb*lb*t*t)
