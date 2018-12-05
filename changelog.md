@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.8] - 2018-12-06
+### Added
+- Temperature control will disable heater and report an error when an invalid
+reading is detected
+
 ## [1.1.7] - 2018-10-23
 ### Bug Fixes
 - Fixed accumulation overflow error when running many scans.
