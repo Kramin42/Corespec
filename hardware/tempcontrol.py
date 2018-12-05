@@ -95,10 +95,11 @@ def handler_raw(cmd):
             data['name'] = 'amp-power'
             data['value'] = False
             logger.info('amp power off')
-    if cmd[0:CMD_SIZE] == b'$ERRTMPR' and not ERRTMPR_reported:
-        ERRTMPR_reported = True
-        data['name'] = 'error'
-        data['value'] = 'Invalid temperature reading, check cable'
+    if cmd[0:CMD_SIZE] == b'$ERR':
+        if cmd[CMD_SIZE:PACKET_SIZE]==b'TMPR' and not ERRTMPR_reported:
+            ERRTMPR_reported = True
+            data['name'] = 'error'
+            data['value'] = 'Invalid temperature reading, check cable'
     if handler is not None and data['name'] is not None:
         handler(data)
 
