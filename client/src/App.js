@@ -165,7 +165,9 @@ export default class App extends React.Component {
         this.setState(update(this.state, {
           temperature: {$set: newTemp}
         }));
-  	  } else {
+  	  } else if (data.data.name=='error') {
+        this.message(`${data.data.value}`, 'error');
+      } else {
   	    if (data.data.name === 'amp-power') {
           this.message('Amplifier powered');
   	    } else {
