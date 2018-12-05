@@ -2,8 +2,11 @@ import numpy as np
 from time import time
 
 
-def getT2Spectrum(_t, _Z, _E, T2s, N_alpha=16, alpha_bounds=(-4,4)):
-    alphas = np.logspace(alpha_bounds[0], alpha_bounds[1], N_alpha)
+def getT2Spectrum(_t, _Z, _E, T2s, fixed_alpha=None, N_alpha=16, alpha_bounds=(-4,4)):
+    if fixed_alpha is not None:
+        alphas = [fixed_alpha]
+    else:
+        alphas = np.logspace(alpha_bounds[0], alpha_bounds[1], N_alpha)
     residuals = np.zeros(N_alpha)
 
     t, Z, E, weights = compress(_t, _Z, _E, 100)
@@ -22,13 +25,15 @@ def getT2Spectrum(_t, _Z, _E, T2s, N_alpha=16, alpha_bounds=(-4,4)):
 
     t_1 = time()
 
-    # calculate curvature of residuals curve to find optimal alpha
-    h = np.log10(alphas[1] / alphas[0])
-    G_1 = np.gradient(np.log10(residuals), h)
-    G_2 = np.gradient(G_1, h)
-    k = G_2 / np.power(1 + G_1 * G_1, 3 / 2)
-
-    alpha_index = np.argmax(k)
+    if len(alphas) > 1:
+        # calculate curvature of residuals curve to find optimal alpha
+        h = np.log10(alphas[1] / alphas[0])
+        G_1 = np.gradient(np.log10(residuals), h)
+        G_2 = np.gradient(G_1, h)
+        k = G_2 / np.power(1 + G_1 * G_1, 3 / 2)
+        alpha_index = np.argmax(k)
+    else:
+        alpha_index = 0
     S = S_i[alpha_index]
 
     # fit is np.dot(K, S)
