@@ -89,7 +89,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': T2,
             'y': S,
             'x_unit': 's',
-            'y_unit': 'Incremental Volume (arb. units.)'
+            'y_unit': 'arb. units.'
         }
 
 
@@ -159,12 +159,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return {'data': [{
             'name': '',
             'type': 'scatter',
-            'x': data['x'],
+            'x': np.log10(data['x']),
             'y': data['y']}],
         'layout': {
             'title': 'T2 Spectrum',
-            'xaxis': {'title': data['x_unit']},
-            'yaxis': {'title': data['y_unit']}
+            'xaxis': {'title': 'log10(T2) (%s)' % data['x_unit']},
+            'yaxis': {'title': 'Incremental Volume (%s)' % data['y_unit']}
         }}
     
     def raw_data(self):
