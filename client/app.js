@@ -48660,6 +48660,8 @@ var App = function (_React$Component) {
           this.setState((0, _immutabilityHelper2.default)(this.state, {
             temperature: { $set: newTemp }
           }));
+        } else if (data.data.name == 'error') {
+          this.message('' + data.data.value, 'error');
         } else {
           if (data.data.name === 'amp-power') {
             this.message('Amplifier powered');

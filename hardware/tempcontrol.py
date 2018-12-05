@@ -47,11 +47,14 @@ temp_sum = 0
 temp_count = 0
 temp_time = 0
 
+ERRTMPR_reported = False
+
 def handler_raw(cmd):
-    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time
+    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, ERRTMPR_reported
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
     if cmd[0:CMD_SIZE]==b'$TMP':
+        ERRTMPR_reported = False
         if not mcs_ready:
             mcs_ready = True
             set_parameters(**parameters)  # set initial parameters
@@ -92,6 +95,10 @@ def handler_raw(cmd):
             data['name'] = 'amp-power'
             data['value'] = False
             logger.info('amp power off')
+    if cmd[0:CMD_SIZE] == b'$ERRTMPR' and not ERRTMPR_reported:
+        ERRTMPR_reported = True
+        data['name'] = 'error'
+        data['value'] = 'Invalid temperature reading, check cable'
     if handler is not None and data['name'] is not None:
         handler(data)
 
