@@ -1,4 +1,5 @@
 from experiment import BaseExperiment # required
+from libraries.invlaplace import getT2Spectrum
 
 # for debugging
 import logging
@@ -63,7 +64,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
         dwell_time = self.par['dwell_time']
-        dwell_time/=1000000 # μs -> s
+        dwell_time/=1000000  # μs -> s
         x = np.linspace(0, dwell_time*samples, samples, endpoint=False)
         y = np.zeros(samples, dtype=np.complex64)
         for i in range(len(data)):
@@ -76,6 +77,21 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_imag': y.imag,
             'x_unit': 's',
             'y_unit': 'V'}
+
+    def export_T2_Spectrum(self):
+        echo_count = int(self.par['echo_count'])
+        echo_time = self.par['echo_time'] / 1000000.0  # μs -> s
+        Y = self.autophase(self.integrated_data())
+        t = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
+        T2 = np.logspace(-5, 2, 200, endpoint=False)
+        S = getT2Spectrum(t, Y.real, Y.imag, T2)
+        return {
+            'x': T2,
+            'y': S,
+            'x_unit': 's',
+            'y_unit': 'Incremental Volume (arb. units.)'
+        }
+
 
     def export_default(self):
         return self.export_Raw()
@@ -137,6 +153,19 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
+
+    def plot_T2_Spectrum(self):
+        data = self.export_T2_Spectrum()
+        return {'data': [{
+            'name': '',
+            'type': 'scatter',
+            'x': data['x'],
+            'y': data['y']}],
+        'layout': {
+            'title': 'T2 Spectrum',
+            'xaxis': {'title': data['x_unit']},
+            'yaxis': {'title': data['y_unit']}
+        }}
     
     def raw_data(self):
         data = self.programs['CPMG'].data

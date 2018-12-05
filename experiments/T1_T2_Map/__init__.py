@@ -76,8 +76,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         T1_axis = self.inv_times / 1000000  # us -> s
         T2_axis = np.linspace(0, self.par['echo_time'] * data.shape[1], data.shape[1], endpoint=False) / 1000000
         return {
-            'inv_time': T1_axis,
-            'cpmg_time': T2_axis[:,np.newaxis],
+            'inv_time': T1_axis[:,np.newaxis],
+            'cpmg_time': T2_axis,
             'real': data.real,
             'imag': data.imag
         }
@@ -102,30 +102,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
                     'yaxis': {'title': 'Signal Avg. (%s)' % data['y_unit']}
                 }}
-        if len(data['y_real']) == len(self.inv_times) and len(data['y_real']) > 3:
-            def T1_fit_func(TI, A, B, T1):
-                return A * (1 - (1 + B) * np.exp(-TI / T1))
-
-            A_init = np.max(np.abs(data['y_real']))
-            B_init = 1
-            T1_init = data['x'][np.argmin(np.abs(data['y_real']))] / np.log(2)
-            logger.debug('initial conditions: %s' % str([A_init, B_init, T1_init]))
-            try:
-                popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y_real']), p0=[A_init, B_init, T1_init])
-                logger.debug('popt: %s' % str(popt))
-                logger.debug('pcov: %s' % str(pcov))
-                # return object according to plotly schema
-                fit_x = np.linspace(data['x'][0], data['x'][-1], 1000)
-                fit_y = T1_fit_func(fit_x, *popt)
-                result['data'].append({
-                    'name': 'Fit',
-                    'type': 'scatter',
-                    'x': fit_x,
-                    'y': fit_y
-                })
-                result['layout']['title'] = 'T1: {:.3e} {}'.format(popt[2], data['x_unit'])
-            except RuntimeError as e: # could not find acceptable fit
-                logger.debug(e)
         return result
 
     def plot_CPMG(self):
