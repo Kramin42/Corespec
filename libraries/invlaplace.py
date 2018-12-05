@@ -14,13 +14,13 @@ def getT2Spectrum(_t, _Z, _E, T2s, N_alpha=16, alpha_bounds=(-4,4)):
 
     S_i = []
 
-    t_0 = time.time()
+    t_0 = time()
     for i, alpha in enumerate(alphas):
         S = brd(Kw, Zw, alpha)
         residuals[i] = np.linalg.norm(np.dot(K, S) - Z)
         S_i.append(S)
 
-    t_1 = time.time()
+    t_1 = time()
 
     # calculate curvature of residuals curve to find optimal alpha
     h = np.log10(alphas[1] / alphas[0])
