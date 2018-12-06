@@ -7,14 +7,27 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)
 
 import numpy as np
+import asyncio
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
 # e.g. self.programs['CPMG'] to access the CPMG program
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
+    def override(self):
+        del self.par_def['or_mask']
+        del self.par_def['and_mask']
+
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
+        # turn ON flow
+        message_handler('Switching flow ON')
+        self.programs['TTLControl'].set_par('or_mask', 0x00000200)  # TTL_IO_1 is at 0x00000200
+        self.programs['TTLControl'].set_par('and_mask', ~0x00000000)  # leave all on
+        await self.programs['TTLControl'].run()
+        await asyncio.sleep(30)  # wait for flow to stabilise, in seconds
+        message_handler('Starting measurement')
+
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
         y = self.autophase(self.integrated_data())

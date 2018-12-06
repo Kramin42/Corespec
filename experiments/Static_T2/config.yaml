@@ -1,0 +1,10 @@
+# CPMG experiment configuration
+description:
+  A CPMG experiment.
+programs:
+  - CPMG
+  - TTLControl
+defaults:
+  plots:
+    - Echo_Integrals
+    - Echo_Envelope

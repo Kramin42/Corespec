@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)
 
 import numpy as np
-from scipy.optimize import curve_fit
+import asyncio
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
@@ -15,9 +15,19 @@ from scipy.optimize import curve_fit
 class Experiment(BaseExperiment): # must be named 'Experiment'
     def override(self):
         del self.par_def['inversion_time']
+        del self.par_def['or_mask']
+        del self.par_def['and_mask']
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
+        # turn OFF flow
+        message_handler('Switching flow OFF')
+        self.programs['TTLControl'].set_par('or_mask', 0x00000000)
+        self.programs['TTLControl'].set_par('and_mask', ~0x00000200)  # TTL_IO_1 is at 0x00000200
+        await self.programs['TTLControl'].run()
+        await asyncio.sleep(30)  # wait for flow to stabilise, in seconds
+        message_handler('Starting measurement')
+
         self.inv_times = np.logspace(np.log10(self.par['start_inv_time']), np.log10(self.par['end_inv_time']), self.par['steps'])
         count = len(self.inv_times)
         index = 0
@@ -71,8 +81,17 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_unit': 'V'}
 
     def export_Raw(self):
-        return self.export_T1()
-    
+        phase = np.angle(np.sum(self.raw_data()[-1, :]))
+        data = self.raw_data() * np.exp(1j * -phase)
+        T1_axis = self.inv_times / 1000000  # us -> s
+        T2_axis = np.linspace(0, self.par['echo_time'] * data.shape[1], data.shape[1], endpoint=False) / 1000000
+        return {
+            'inv_time': T1_axis[:,np.newaxis],
+            'cpmg_time': T2_axis,
+            'real': data.real,
+            'imag': data.imag
+        }
+
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_T1(self):
@@ -93,30 +112,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': 'Inversion Time (%s)' % data['x_unit']},
                     'yaxis': {'title': 'Signal Avg. (%s)' % data['y_unit']}
                 }}
-        if len(data['y_real']) == len(self.inv_times) and len(data['y_real']) > 3:
-            def T1_fit_func(TI, A, B, T1):
-                return A * (1 - (1 + B) * np.exp(-TI / T1))
-
-            A_init = np.max(np.abs(data['y_real']))
-            B_init = 1
-            T1_init = data['x'][np.argmin(np.abs(data['y_real']))] / np.log(2)
-            logger.debug('initial conditions: %s' % str([A_init, B_init, T1_init]))
-            try:
-                popt, pcov = curve_fit(T1_fit_func, np.array(data['x']), np.array(data['y_real']), p0=[A_init, B_init, T1_init])
-                logger.debug('popt: %s' % str(popt))
-                logger.debug('pcov: %s' % str(pcov))
-                # return object according to plotly schema
-                fit_x = np.linspace(data['x'][0], data['x'][-1], 1000)
-                fit_y = T1_fit_func(fit_x, *popt)
-                result['data'].append({
-                    'name': 'Fit',
-                    'type': 'scatter',
-                    'x': fit_x,
-                    'y': fit_y
-                })
-                result['layout']['title'] = 'T1: {:.3e} {}'.format(popt[2], data['x_unit'])
-            except RuntimeError as e: # could not find acceptable fit
-                logger.debug(e)
         return result
 
     def plot_CPMG(self):

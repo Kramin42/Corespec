@@ -1,8 +1,9 @@
-# CPMG experiment configuration
+# Flow CPMG experiment configuration
 description:
-  A CPMG experiment.
+  A Flow CPMG experiment.
 programs:
   - CPMG
+  - TTLControl
 defaults:
   plots:
     - Echo_Integrals
