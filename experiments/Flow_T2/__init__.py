@@ -22,8 +22,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     async def run(self, progress_handler=None, message_handler=None):
         # turn ON flow
         message_handler('Switching flow ON')
-        self.programs['TTLControl'].set_par('or_mask', 0x00000200)  # TTL_IO_1 is at 0x00000200
-        self.programs['TTLControl'].set_par('and_mask', ~0x00000000)  # leave all on
+        self.programs['TTLControl'].set_par('or_mask', 0x00000000)
+        self.programs['TTLControl'].set_par('and_mask', ~0x00000200)  # TTL_IO_1 is at 0x00000200, ON is logic LOW
         await self.programs['TTLControl'].run()
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting measurement')
