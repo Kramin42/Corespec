@@ -103,7 +103,7 @@ class Program:
         prev_progress = -1
         rotbuf_scandelayed = False
         rotbuf_finished = True # use this to prevent early ending when using the rotary buffer
-        rotbuf = 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
+        rotbuf = self.has_output and 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
         if rotbuf:
             rotbuf_read_index = system.read_par(
                 int(self.config_get('output.rotbuf_read_index_offset')), 'uint32')
@@ -225,9 +225,9 @@ class Program:
                         self.par[par_name],
                         self.config_get('derived_parameters.'+par_name+'.dtype'))
 
-        rotbuf = 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
+        rotbuf = self.has_output and 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
 
-        if self.config_get('output.type') == 'DMA':
+        if self.has_output and self.config_get('output.type') == 'DMA':
             # DMA rotating buffer
             if rotbuf:
                 block_count = int(self.config_get('output.block_count'))
@@ -267,12 +267,12 @@ class Program:
         await self.ensure_finished(progress_handler=progress_handler, message_handler=message_handler)
         # read the data
         logger.debug('run: reading data')
-        if self.config_get('output.type') == 'FIFO':
+        if self.has_output and self.config_get('output.type') == 'FIFO':
             self._data = system.read_fifo(
                 offset=int(self.config_get('output.offset')),
                 length=int(self.config_get('output.length')),
                 dtype=self.config_get('output.dtype'))
-        elif self.config_get('output.type') == 'DMA':
+        elif self.has_output and self.config_get('output.type') == 'DMA':
             cfg_output = self.config_get('output')
             if not rotbuf:
                 # block method for (e.g.) skipping ignore_sample data
@@ -300,7 +300,7 @@ class Program:
                         length=int(self.config_get('output.length')),
                         dtype=self.config_get('output.dtype'))
 
-        if not rotbuf:
+        if self.has_output and not rotbuf:
             self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
             if 'scale_factor' in self.config_get('output'):
                 self._data = self._data*self.config_get('output.scale_factor')
@@ -330,6 +330,8 @@ class Program:
 
     @property
     def data(self):
+        if not self.has_output:
+            raise Exception('This program has no output data!')
         if not self._data_ready:
             raise Exception('Data is not ready to be read!')
         return np.copy(self._data) # don't let them change our data!
@@ -345,6 +347,10 @@ class Program:
     @property
     def has_progress(self):
         return 'progress' in self._config
+
+    @property
+    def has_output(self):
+        return 'output' in self._config
 
 # safe evaluation for computed properties
 # supported operators
