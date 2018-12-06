@@ -4,6 +4,11 @@ description:
 programs:
   - CPMG
   - TTLControl
+parameters:
+  flow_delay:
+    dtype: int
+    unit: 's'
+    group: flow_control
 defaults:
   plots:
     - Echo_Integrals

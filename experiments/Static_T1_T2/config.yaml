@@ -16,6 +16,10 @@ parameters:
   steps:
     dtype: int
     group: T1
+  flow_delay:
+    dtype: int
+    unit: 's'
+    group: flow_control
 defaults:
   plots:
     - CPMG

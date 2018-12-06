@@ -25,7 +25,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.programs['TTLControl'].set_par('or_mask', 0x00000200)  # TTL_IO_1 is at 0x00000200
         self.programs['TTLControl'].set_par('and_mask', ~0x00000000)  # leave all on
         await self.programs['TTLControl'].run()
-        await asyncio.sleep(30)  # wait for flow to stabilise, in seconds
+        await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting measurement')
 
         await self.programs['CPMG'].run(progress_handler=progress_handler,

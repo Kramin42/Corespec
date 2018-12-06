@@ -25,7 +25,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.programs['TTLControl'].set_par('or_mask', 0x00000000)
         self.programs['TTLControl'].set_par('and_mask', ~0x00000200)  # TTL_IO_1 is at 0x00000200
         await self.programs['TTLControl'].run()
-        await asyncio.sleep(30)  # wait for flow to stabilise, in seconds
+        await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting measurement')
 
         self.inv_times = np.logspace(np.log10(self.par['start_inv_time']), np.log10(self.par['end_inv_time']), self.par['steps'])
