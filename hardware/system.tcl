@@ -1058,12 +1058,28 @@ proc create_hier_cell_ddc { parentCell nameHier } {
    CONFIG.TDATA_NUM_BYTES {4} \
  ] [get_bd_intf_pins /ddc/myip_shifter_x/m_axis_data]
 
+  set_property -dict [ list \
+   CONFIG.TDATA_NUM_BYTES {1} \
+ ] [get_bd_intf_pins /ddc/myip_shifter_x/s_axis_config]
+
+  set_property -dict [ list \
+   CONFIG.TDATA_NUM_BYTES {9} \
+ ] [get_bd_intf_pins /ddc/myip_shifter_x/s_axis_data]
+
   # Create instance: myip_shifter_y, and set properties
   set myip_shifter_y [ create_bd_cell -type ip -vlnv BSL.local:user:myip_shifter:1.12 myip_shifter_y ]
 
   set_property -dict [ list \
    CONFIG.TDATA_NUM_BYTES {4} \
  ] [get_bd_intf_pins /ddc/myip_shifter_y/m_axis_data]
+
+  set_property -dict [ list \
+   CONFIG.TDATA_NUM_BYTES {1} \
+ ] [get_bd_intf_pins /ddc/myip_shifter_y/s_axis_config]
+
+  set_property -dict [ list \
+   CONFIG.TDATA_NUM_BYTES {9} \
+ ] [get_bd_intf_pins /ddc/myip_shifter_y/s_axis_data]
 
   # Create instance: not_reset, and set properties
   set not_reset [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 not_reset ]
@@ -1932,6 +1948,7 @@ proc create_root_design { parentCell } {
   set IO [ create_bd_port -dir O -from 7 -to 0 -type data IO ]
   set LED [ create_bd_port -dir O -from 3 -to 0 LED ]
   set RXA [ create_bd_port -dir O -from 3 -to 0 -type data RXA ]
+  set SLOW_GPIO [ create_bd_port -dir O -from 0 -to 0 SLOW_GPIO ]
   set TEMP_ADC_DIN_CLK_CSN [ create_bd_port -dir O -from 2 -to 0 TEMP_ADC_DIN_CLK_CSN ]
   set TEMP_ADC_DOUT [ create_bd_port -dir I TEMP_ADC_DOUT ]
 
@@ -2103,7 +2120,7 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_EN_EMIO_CD_SDIO1 {1} \
    CONFIG.PCW_EN_EMIO_ENET0 {0} \
    CONFIG.PCW_EN_EMIO_ENET1 {0} \
-   CONFIG.PCW_EN_EMIO_GPIO {0} \
+   CONFIG.PCW_EN_EMIO_GPIO {1} \
    CONFIG.PCW_EN_EMIO_I2C0 {0} \
    CONFIG.PCW_EN_EMIO_I2C1 {0} \
    CONFIG.PCW_EN_EMIO_MODEM_UART0 {0} \
@@ -2189,9 +2206,9 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_GP1_NUM_READ_THREADS {4} \
    CONFIG.PCW_GP1_NUM_WRITE_THREADS {4} \
    CONFIG.PCW_GPIO_BASEADDR {0xE000A000} \
-   CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {0} \
-   CONFIG.PCW_GPIO_EMIO_GPIO_IO {<Select>} \
-   CONFIG.PCW_GPIO_EMIO_GPIO_WIDTH {64} \
+   CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} \
+   CONFIG.PCW_GPIO_EMIO_GPIO_IO {1} \
+   CONFIG.PCW_GPIO_EMIO_GPIO_WIDTH {1} \
    CONFIG.PCW_GPIO_HIGHADDR {0xE000AFFF} \
    CONFIG.PCW_GPIO_MIO_GPIO_ENABLE {1} \
    CONFIG.PCW_GPIO_MIO_GPIO_IO {MIO} \
@@ -2895,6 +2912,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net TTL_LED [get_bd_ports LED] [get_bd_pins TTL/LED]
   connect_bd_net -net TTL_RXA [get_bd_ports RXA] [get_bd_pins TTL/RXA]
   connect_bd_net -net UART_rxd_1 [get_bd_pins azynq_0/UART0_TX] [get_bd_pins microblaze_mcs_ppu/UART_rxd]
+  connect_bd_net -net azynq_0_GPIO_O [get_bd_ports SLOW_GPIO] [get_bd_pins azynq_0/GPIO_O]
   connect_bd_net -net clk_in1_n_1 [get_bd_ports FPGA_CLK_N] [get_bd_pins FPGA_CLKin/clk_in1_n]
   connect_bd_net -net clk_in1_p_1 [get_bd_ports FPGA_CLK_P] [get_bd_pins FPGA_CLKin/clk_in1_p]
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins FPGA_CLKin/clk_out1] [get_bd_pins azynq_0/M_AXI_GP0_ACLK] [get_bd_pins azynq_0/S_AXI_HP0_ACLK] [get_bd_pins microblaze_mcs_ppu/clk] [get_bd_pins microblaze_ppu/clk_in1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]

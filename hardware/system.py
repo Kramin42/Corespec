@@ -27,6 +27,7 @@ except IOError:
     shutil.copyfile(os.path.join(dir_path, 'default_config.yaml'), os.path.join(dir_path, 'config.yaml'))
 
 from pynq import Overlay
+from pynq import GPIO
 from elftools.elf.elffile import ELFFile
 
 # constants
@@ -41,6 +42,12 @@ mem_i = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_i
 mem_d = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_d
 mem_p = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_p
 mailbox = ol.microblaze_ppu.microblaze_core.mailbox
+
+flow_control_gpio = GPIO(GPIO.get_gpio_pin(0), 'out')
+
+def set_flow_enabled(b):
+    flow_control_gpio.write(0 if b else 1)  # 0 is the flowing state
+
 
 def stop() -> None:
     reset.write(0x0, 0)

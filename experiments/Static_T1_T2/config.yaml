@@ -3,7 +3,6 @@ description:
   An experiment for measuring T1-T2 Map with inversion recovery and a CPMG readout.
 programs:
   - InversionRecoveryCPMG
-  - TTLControl
 parameters:
   start_inv_time:
     dtype: float

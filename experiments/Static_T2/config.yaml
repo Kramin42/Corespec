@@ -3,7 +3,6 @@ description:
   A CPMG experiment.
 programs:
   - CPMG
-  - TTLControl
 parameters:
   flow_delay:
     dtype: int

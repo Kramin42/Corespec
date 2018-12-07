@@ -1,5 +1,6 @@
 from experiment import BaseExperiment # required
 from libraries.invlaplace import getT2Spectrum
+from hardware.system import set_flow_enabled
 
 # for debugging
 import logging
@@ -14,17 +15,10 @@ import asyncio
 # e.g. self.programs['CPMG'] to access the CPMG program
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
-    def override(self):
-        del self.par_def['or_mask']
-        del self.par_def['and_mask']
-
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        # turn ON flow
         message_handler('Switching flow ON')
-        self.programs['TTLControl'].set_par('or_mask', 0x00000000)
-        self.programs['TTLControl'].set_par('and_mask', ~0x00000200)  # TTL_IO_1 is at 0x00000200, ON is logic LOW
-        await self.programs['TTLControl'].run()
+        set_flow_enabled(True)
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting measurement')
 

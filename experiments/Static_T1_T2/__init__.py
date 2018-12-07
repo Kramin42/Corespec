@@ -1,4 +1,5 @@
 from experiment import BaseExperiment # required
+from hardware.system import set_flow_enabled
 
 # for debugging
 import logging
@@ -15,16 +16,11 @@ import asyncio
 class Experiment(BaseExperiment): # must be named 'Experiment'
     def override(self):
         del self.par_def['inversion_time']
-        del self.par_def['or_mask']
-        del self.par_def['and_mask']
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        # turn OFF flow
         message_handler('Switching flow OFF')
-        self.programs['TTLControl'].set_par('or_mask', 0x00000200)  # TTL_IO_1 is at 0x00000200, OFF is logic HIGH
-        self.programs['TTLControl'].set_par('and_mask', ~0x00000000)
-        await self.programs['TTLControl'].run()
+        set_flow_enabled(False)
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting measurement')
 
