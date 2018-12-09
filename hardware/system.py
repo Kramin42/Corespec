@@ -27,7 +27,6 @@ except IOError:
     shutil.copyfile(os.path.join(dir_path, 'default_config.yaml'), os.path.join(dir_path, 'config.yaml'))
 
 from pynq import Overlay
-from pynq.lib import AxiGPIO
 from elftools.elf.elffile import ELFFile
 
 # constants
@@ -43,10 +42,10 @@ mem_d = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_d
 mem_p = ol.microblaze_ppu.microblaze_0_local_memory.axi_bram_ctrl_p
 mailbox = ol.microblaze_ppu.microblaze_core.mailbox
 
-zynq_gpio = AxiGPIO(ol.zynq_gpio).channel1
+zynq_gpio = ol.zynq_gpio
 
 def set_flow_enabled(b):
-    zynq_gpio.write(0 if b else 1, 0x1)  # 0 is the flowing state
+    zynq_gpio.write(0x1, 0 if b else 1)  # 0 is the flowing state
 
 
 def stop() -> None:
