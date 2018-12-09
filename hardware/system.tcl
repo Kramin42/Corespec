@@ -1990,6 +1990,9 @@ proc create_root_design { parentCell } {
    CONFIG.SYNCHRONIZATION_STAGES {2} \
  ] $axi_interconnect_0
 
+  # Create instance: axi_interconnect_1, and set properties
+  set axi_interconnect_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_1 ]
+
   # Create instance: axi_protocol_converter_0, and set properties
   set axi_protocol_converter_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_converter_0 ]
 
@@ -2120,7 +2123,7 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_EN_EMIO_CD_SDIO1 {1} \
    CONFIG.PCW_EN_EMIO_ENET0 {0} \
    CONFIG.PCW_EN_EMIO_ENET1 {0} \
-   CONFIG.PCW_EN_EMIO_GPIO {1} \
+   CONFIG.PCW_EN_EMIO_GPIO {0} \
    CONFIG.PCW_EN_EMIO_I2C0 {0} \
    CONFIG.PCW_EN_EMIO_I2C1 {0} \
    CONFIG.PCW_EN_EMIO_MODEM_UART0 {0} \
@@ -2206,9 +2209,9 @@ proc create_root_design { parentCell } {
    CONFIG.PCW_GP1_NUM_READ_THREADS {4} \
    CONFIG.PCW_GP1_NUM_WRITE_THREADS {4} \
    CONFIG.PCW_GPIO_BASEADDR {0xE000A000} \
-   CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} \
-   CONFIG.PCW_GPIO_EMIO_GPIO_IO {1} \
-   CONFIG.PCW_GPIO_EMIO_GPIO_WIDTH {1} \
+   CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {0} \
+   CONFIG.PCW_GPIO_EMIO_GPIO_IO {<Select>} \
+   CONFIG.PCW_GPIO_EMIO_GPIO_WIDTH {64} \
    CONFIG.PCW_GPIO_HIGHADDR {0xE000AFFF} \
    CONFIG.PCW_GPIO_MIO_GPIO_ENABLE {1} \
    CONFIG.PCW_GPIO_MIO_GPIO_IO {MIO} \
@@ -2829,14 +2832,23 @@ proc create_root_design { parentCell } {
    CONFIG.CONST_WIDTH {1} \
  ] $xlconstant_1
 
+  # Create instance: zynq_gpio, and set properties
+  set zynq_gpio [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 zynq_gpio ]
+  set_property -dict [ list \
+   CONFIG.C_ALL_OUTPUTS {1} \
+   CONFIG.C_GPIO_WIDTH {1} \
+ ] $zynq_gpio
+
   # Create interface connections
   connect_bd_intf_net -intf_net ADC_LTC2207_M_AXIS [get_bd_intf_pins ADC_LTC2207/M_AXIS] [get_bd_intf_pins ddc/S_AXIS_DATA]
-  connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins azynq_0/M_AXI_GP0] [get_bd_intf_pins microblaze_ppu/S00_AXI]
+  connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins axi_interconnect_1/M00_AXI] [get_bd_intf_pins microblaze_ppu/S00_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M00_AXI [get_bd_intf_pins DDS_AD9951/S00_AXI] [get_bd_intf_pins axi_interconnect_0/M00_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M01_AXI [get_bd_intf_pins ADC_LTC2207/S_AXI] [get_bd_intf_pins axi_interconnect_0/M01_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M02_AXI [get_bd_intf_pins axi_interconnect_0/M02_AXI] [get_bd_intf_pins ddc/S_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M03_AXI [get_bd_intf_pins TTL/S_AXI] [get_bd_intf_pins axi_interconnect_0/M03_AXI]
+  connect_bd_intf_net -intf_net axi_interconnect_1_M01_AXI [get_bd_intf_pins axi_interconnect_1/M01_AXI] [get_bd_intf_pins zynq_gpio/S_AXI]
   connect_bd_intf_net -intf_net axi_protocol_converter_0_M_AXI [get_bd_intf_pins axi_protocol_converter_0/M_AXI] [get_bd_intf_pins azynq_0/S_AXI_HP0]
+  connect_bd_intf_net -intf_net azynq_0_M_AXI_GP0 [get_bd_intf_pins axi_interconnect_1/S00_AXI] [get_bd_intf_pins azynq_0/M_AXI_GP0]
   connect_bd_intf_net -intf_net ddc_M_AXIS [get_bd_intf_pins ddc/M_AXIS] [get_bd_intf_pins microblaze_ppu/S2_AXIS]
   connect_bd_intf_net -intf_net ddc_M_AXI_S2MM [get_bd_intf_pins axi_protocol_converter_0/S_AXI] [get_bd_intf_pins ddc/M_AXI_S2MM]
   connect_bd_intf_net -intf_net microblaze_ppu_M_AXI_out [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins microblaze_ppu/M_AXI_out]
@@ -2912,10 +2924,10 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net TTL_LED [get_bd_ports LED] [get_bd_pins TTL/LED]
   connect_bd_net -net TTL_RXA [get_bd_ports RXA] [get_bd_pins TTL/RXA]
   connect_bd_net -net UART_rxd_1 [get_bd_pins azynq_0/UART0_TX] [get_bd_pins microblaze_mcs_ppu/UART_rxd]
-  connect_bd_net -net azynq_0_GPIO_O [get_bd_ports SLOW_GPIO] [get_bd_pins azynq_0/GPIO_O]
+  connect_bd_net -net axi_gpio_0_gpio_io_o [get_bd_ports SLOW_GPIO] [get_bd_pins zynq_gpio/gpio_io_o]
   connect_bd_net -net clk_in1_n_1 [get_bd_ports FPGA_CLK_N] [get_bd_pins FPGA_CLKin/clk_in1_n]
   connect_bd_net -net clk_in1_p_1 [get_bd_ports FPGA_CLK_P] [get_bd_pins FPGA_CLKin/clk_in1_p]
-  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins FPGA_CLKin/clk_out1] [get_bd_pins azynq_0/M_AXI_GP0_ACLK] [get_bd_pins azynq_0/S_AXI_HP0_ACLK] [get_bd_pins microblaze_mcs_ppu/clk] [get_bd_pins microblaze_ppu/clk_in1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins FPGA_CLKin/clk_out1] [get_bd_pins axi_interconnect_1/ACLK] [get_bd_pins axi_interconnect_1/M00_ACLK] [get_bd_pins axi_interconnect_1/M01_ACLK] [get_bd_pins axi_interconnect_1/S00_ACLK] [get_bd_pins azynq_0/M_AXI_GP0_ACLK] [get_bd_pins azynq_0/S_AXI_HP0_ACLK] [get_bd_pins microblaze_mcs_ppu/clk] [get_bd_pins microblaze_ppu/clk_in1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins zynq_gpio/s_axi_aclk]
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_pins FPGA_CLKin/clk_out2]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins FPGA_CLKin/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
   connect_bd_net -net microblaze_mcs_ppu_AMPPWR [get_bd_ports AMPPWR] [get_bd_pins microblaze_mcs_ppu/AMPPWR]
@@ -2923,7 +2935,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net microblaze_mcs_ppu_SPI_DOUT_CLK_CSN [get_bd_ports TEMP_ADC_DIN_CLK_CSN] [get_bd_pins microblaze_mcs_ppu/SPI_DOUT_CLK_CSN]
   connect_bd_net -net microblaze_mcs_ppu_UART_txd [get_bd_pins azynq_0/UART0_RX] [get_bd_pins microblaze_mcs_ppu/UART_txd]
   connect_bd_net -net microblaze_ppu_Interrupt_1 [get_bd_pins azynq_0/IRQ_F2P] [get_bd_pins microblaze_ppu/Interrupt_1]
-  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins microblaze_ppu/ARESETN1] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
+  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins axi_interconnect_1/ARESETN] [get_bd_pins axi_interconnect_1/M00_ARESETN] [get_bd_pins axi_interconnect_1/M01_ARESETN] [get_bd_pins axi_interconnect_1/S00_ARESETN] [get_bd_pins microblaze_ppu/ARESETN1] [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins zynq_gpio/s_axi_aresetn]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins azynq_0/FCLK_RESET0_N] [get_bd_pins proc_sys_reset_0/ext_reset_in]
   set_property -dict [ list \
 HDL_ATTRIBUTE.MARK_DEBUG {true} \
@@ -2936,6 +2948,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   create_bd_addr_seg -range 0x00008000 -offset 0x40020000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_d/S_AXI/Mem0] SEG_axi_bram_ctrl_d_Mem0
   create_bd_addr_seg -range 0x00020000 -offset 0x40000000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_i/S_AXI/Mem0] SEG_axi_bram_ctrl_i_Mem0
   create_bd_addr_seg -range 0x00020000 -offset 0x40040000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_0_local_memory/axi_bram_ctrl_p/S_AXI/Mem0] SEG_axi_bram_ctrl_p_Mem0
+  create_bd_addr_seg -range 0x00010000 -offset 0x41200000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs zynq_gpio/S_AXI/Reg] SEG_axi_gpio_0_Reg
   create_bd_addr_seg -range 0x00010000 -offset 0x43800000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/mailbox/S1_AXI/Reg] SEG_mailbox_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x41000000 [get_bd_addr_spaces azynq_0/Data] [get_bd_addr_segs microblaze_ppu/pp_reset/S_AXI/Reg] SEG_pp_reset_Reg
   create_bd_addr_seg -range 0x10000000 -offset 0x30000000 [get_bd_addr_spaces ddc/dma_con/Data_S2MM] [get_bd_addr_segs azynq_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
