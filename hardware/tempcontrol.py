@@ -53,12 +53,12 @@ def handler_raw(cmd):
     global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, ERRTMPR_reported
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
-    if cmd[0:CMD_SIZE]==b'$TMP' or cmd[0:CMD_SIZE]==b'$ERR' :
+    if cmd[0:CMD_SIZE]==b'$TMP' or cmd[0:CMD_SIZE]==b'$ERR' and not mcs_ready:
+        mcs_ready = True
+        set_parameters(**parameters)  # set initial parameters
+        asyncio.ensure_future(amp_on_delayed())
+    if cmd[0:CMD_SIZE]==b'$TMP':
         ERRTMPR_reported = False
-        if not mcs_ready:
-            mcs_ready = True
-            set_parameters(**parameters)  # set initial parameters
-            asyncio.ensure_future(amp_on_delayed())
         temp_sum += unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
         temp_count += 1
         temp_time += TEMP_PERIOD
