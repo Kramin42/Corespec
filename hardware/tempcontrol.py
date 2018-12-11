@@ -53,7 +53,7 @@ def handler_raw(cmd):
     global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, ERRTMPR_reported
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
-    if cmd[0:CMD_SIZE]==b'$TMP':
+    if cmd[0:CMD_SIZE]==b'$TMP' or cmd[0:CMD_SIZE]==b'$ERR' :
         ERRTMPR_reported = False
         if not mcs_ready:
             mcs_ready = True
