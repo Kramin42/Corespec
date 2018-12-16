@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.9] - 2018-12-17
+### Added
+- Ability to change the WiFi password on the /admin page.
+
 ## [1.1.8] - 2018-12-06
 ### Added
 - Temperature control will disable heater and report an error when an invalid
