@@ -18,7 +18,7 @@ try:
 except:
     logger.warning('Could not run init.sh!')
 
-VERSION = '1.1.7'
+VERSION = '1.1.9'
 
 changelog_html = ''
 with open(os.path.join(dir_path, 'changelog.html')) as f:
@@ -69,8 +69,8 @@ class AdminHandler(web.RequestHandler):
     def post(self):
         logger.debug(self.request.body)
         if self.get_body_argument("action")=="update":
-            subprocess.call(['sh', os.path.join(dir_path, 'update.sh')])
             self.write('Updating & Restarting system.')
+            subprocess.call(['sh', os.path.join(dir_path, 'update.sh')])
         elif self.get_body_argument("action")=="change_wifi_pass":
             with open('/etc/create_ap.conf', mode='r') as f:
                 wifi_ap_conf = f.read()
