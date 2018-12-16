@@ -1,6 +1,7 @@
 
 
 import os
+import re
 import subprocess
 import logging
 import tornado.web as web
@@ -45,6 +46,16 @@ class AdminHandler(web.RequestHandler):
                 <form action="/admin" method="post">
                     <button type="submit" name="action" value="update">Update & Restart</button>
                 </form>
+
+                <form action="/admin" method="post">
+                    Current WiFi Password:<br>
+                    <input type="text" name="curr_wifi_pass"><br>
+                    New WiFi Password:<br>
+                    <input type="text" name="new_wifi_pass"><br>
+                    Confirm New WiFi Password:<br>
+                    <input type="text" name="new_wifi_pass_confirm"><br>
+                    <button type="submit" name="action" value="change_wifi_pass">Change WiFi Password</button>
+                </form>
                 <div>
                     {changelog}
                 </div>
@@ -59,5 +70,21 @@ class AdminHandler(web.RequestHandler):
         logger.debug(self.request.body)
         if self.get_body_argument("action")=="update":
             subprocess.call(['sh', os.path.join(dir_path, 'update.sh')])
+            self.write('Updating & Restarting system.')
+        elif self.get_body_argument("action")=="change_wifi_pass":
+            with open('/etc/create_ap.conf', mode='r') as f:
+                wifi_ap_conf = f.read()
+                curr_pass = re.search(r'PASSPHRASE=(\W*)$', wifi_ap_conf)
+            if curr_pass == self.get_body_argument("curr_wifi_pass"):
+                new_pass = self.get_body_argument("new_wifi_pass")
+                if new_pass == self.get_body_argument("new_wifi_pass_confirm"):
+                    wifi_ap_conf.replace('PASSPHRASE='+curr_pass, 'PASSPHRASE='+new_pass)
+                    with open('/etc/create_ap.conf', mode='w') as f:
+                        f.write(wifi_ap_conf)
+                    self.write('Restarting system to use new wifi password.')
+                else:
+                    self.write('Error: "New Wifi Password" was different from "Confirm New WiFi Password"!')
+            else:
+                self.write('Error: "Current Wifi Password" was incorrect!')
         else:
             self.get()
