@@ -8,6 +8,10 @@ parameters:
     dtype: int
     unit: 's'
     group: flow_control
+  flow_calibration:
+    dtype: float
+    unit: ''
+    group: calibration
 defaults:
   plots:
     - Echo_Integrals

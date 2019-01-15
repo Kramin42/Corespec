@@ -25,9 +25,27 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
         y = self.autophase(self.integrated_data())
-        if y.size >= 10:
-            SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
-            message_handler('SNR estimate: %d' % SNR)
+        y /= 1000000  # μV -> V
+        # if y.size >= 10:
+        #     SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
+        #     message_handler('SNR estimate: %d' % SNR)
+
+        # calculate flow rate
+        echo_count = int(self.par['echo_count'])
+        echo_time = self.par['echo_time'] / 1000000.0
+        t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
+        calibration = float(self.par['flow_calibration'])
+        fit_thresh = 0.25  # only fit points > this proportion of the max signal
+        skip_N = 2
+        fit_N = 3
+        sigmax = np.max(y.real)
+        while skip_N + fit_N < echo_count:
+            if y.real[skip_N + fit_N] < sigmax * fit_thresh:
+                break
+            fit_N += 1
+        P = np.polyfit(y.real[skip_N:fit_N + skip_N], y.real[skip_N:fit_N + skip_N], 1)
+        flow_rate = -P[0] / P[1] * calibration
+        message_handler('Flow Rate (m/s): %s' % flow_rate)
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
