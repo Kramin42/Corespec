@@ -43,7 +43,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             if y.real[skip_N + fit_N] < sigmax * fit_thresh:
                 break
             fit_N += 1
-        P = np.polyfit(y.real[skip_N:fit_N + skip_N], y.real[skip_N:fit_N + skip_N], 1)
+        P = np.polyfit(t[skip_N:fit_N + skip_N], y.real[skip_N:fit_N + skip_N], 1)
+        logger.debug(P)
         flow_rate = -P[0] / P[1] * calibration
         message_handler('Flow Rate (m/s): %s' % flow_rate)
 
