@@ -169,7 +169,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         oil_rel_proton_density = 1.2
         oil_water_T2_boundary = 0.5
         divider_index = 0
-        while data['T2'][divider_index] < oil_water_T2_boundary:
+        while T2[divider_index] < oil_water_T2_boundary:
             divider_index+=1
         amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
         amount_water = np.sum(S[divider_index:])
