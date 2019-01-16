@@ -5,11 +5,16 @@ from time import time
 def getT2Spectrum(_t, _Z, _E, T2s, fixed_alpha=None, N_alpha=16, alpha_bounds=(-4,4)):
     if fixed_alpha is not None:
         alphas = [fixed_alpha]
+        N_alpha = 1
     else:
         alphas = np.logspace(alpha_bounds[0], alpha_bounds[1], N_alpha)
     residuals = np.zeros(N_alpha)
 
     t, Z, E, weights = compress(_t, _Z, _E, 100)
+
+    norm_factor = np.max(Z)
+    Z = Z / norm_factor
+    E = E / norm_factor
 
     K = np.array([np.exp(-t / T2) for T2 in T2s]).transpose()
     Kw = (K.transpose() * weights).transpose()
@@ -37,7 +42,7 @@ def getT2Spectrum(_t, _Z, _E, T2s, fixed_alpha=None, N_alpha=16, alpha_bounds=(-
     S = S_i[alpha_index]
 
     # fit is np.dot(K, S)
-    return S
+    return S * norm_factor
 
 
 def compress(time, real, imag, num):

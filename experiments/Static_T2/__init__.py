@@ -163,13 +163,25 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_T2_Spectrum(self):
         data = self.export_T2_Spectrum()
+        S = data['y']
+        T2 = data['x']
+        # TODO: change these to input parameters or determine automatically
+        oil_rel_proton_density = 1.2
+        oil_water_T2_boundary = 0.5
+        divider_index = 0
+        while data['T2'][divider_index] < oil_water_T2_boundary:
+            divider_index+=1
+        amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
+        amount_water = np.sum(S[divider_index:])
+        percent_oil = 100 * (amount_oil) / (amount_water + amount_oil)
+        percent_water = 100 * (amount_water) / (amount_water + amount_oil)
         return {'data': [{
             'name': '',
             'type': 'scatter',
             'x': np.log10(data['x']),
             'y': data['y']}],
         'layout': {
-            'title': 'T2 Spectrum',
+            'title': 'T2 Spectrum (Oil: %.1f%%, Water: %.1f%%)' % (percent_oil, percent_water),
             'xaxis': {'title': 'log10(T2) (%s)' % data['x_unit']},
             'yaxis': {'title': 'Incremental Volume (%s)' % data['y_unit']}
         }}
