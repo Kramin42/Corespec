@@ -166,7 +166,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         S = data['y']
         T2 = data['x']
         # TODO: change these to input parameters or determine automatically
-        oil_rel_proton_density = 1.2
+        oil_rel_proton_density = float(self.par['oil_rel_H_density'])
         oil_water_T2_boundary = 0.5
         divider_index = 0
         while T2[divider_index] < oil_water_T2_boundary:

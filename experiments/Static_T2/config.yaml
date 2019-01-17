@@ -8,6 +8,10 @@ parameters:
     dtype: int
     unit: 's'
     group: flow_control
+  oil_rel_H_density:
+    dtype: float
+    unit: ''
+    group: calibration
 defaults:
   plots:
     - Echo_Integrals
