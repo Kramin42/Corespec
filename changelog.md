@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.8] - 2019-01-17
+### Added
+- Flow T2 Experiment now calculates flow rate using simple slope/intercept
+  method with a calibration parameter
+- Static T2 Experiment calculates proportion of water and oil volumes, with a
+  calibration parameter for the different proton density of oil
+
 ## [1.1.8] - 2018-12-06
 ### Added
 - Temperature control will disable heater and report an error when an invalid
