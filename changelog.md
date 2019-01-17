@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.8] - 2019-01-17
+## [1.1.9] - 2019-01-17
 ### Added
 - Flow T2 Experiment now calculates flow rate using simple slope/intercept
   method with a calibration parameter
