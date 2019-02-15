@@ -15,6 +15,15 @@ import asyncio
 # e.g. self.programs['CPMG'] to access the CPMG program
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
+    def override(self):
+        del self.par_def['echo_time']
+        del self.par_def['rep_time']
+        del self.par_def['echo_count']
+        del self.par_def['scans']
+        del self.par_def['echo_shift']
+        del self.par_def['samples']
+        del self.par_def['dwell_time']
+
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
         message_handler('Switching flow OFF')
@@ -23,7 +32,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         message_handler('Starting static measurement')
 
         # TODO: run FID first to set the frequency automatically
-
+        self.par['echo_time'] = self.par['static_echo_time']
+        self.par['rep_time'] = self.par['static_rep_time']
+        self.par['echo_count'] = self.par['static_echo_count']
+        self.par['scans'] = self.par['static_scans']
+        self.par['echo_shift'] = self.par['static_echo_shift']
+        self.par['samples'] = self.par['static_samples']
+        self.par['dwell_time'] = self.par['static_dwell_time']
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
         self.static_intdata = self.autophase(self.integrated_data())
@@ -48,6 +63,16 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting flow measurement')
 
+        self.par['echo_time'] = self.par['flow_echo_time']
+        self.par['rep_time'] = self.par['flow_rep_time']
+        self.par['echo_count'] = self.par['flow_echo_count']
+        self.par['scans'] = self.par['flow_scans']
+        self.par['echo_shift'] = self.par['flow_echo_shift']
+        self.par['samples'] = self.par['flow_samples']
+        self.par['dwell_time'] = self.par['flow_dwell_time']
+        await self.programs['CPMG'].run(progress_handler=progress_handler,
+                                        message_handler=message_handler)
+
         self.flow_intdata = self.autophase(self.integrated_data())
         self.flow_intdata /= 1000000  # μV -> V
 
@@ -71,7 +96,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         radius = tube_ID/2000 #  mm -> m
         seconds_per_day = 3600*24
         vol_flow = flow_rate*(np.pi*radius*radius)*seconds_per_day
-        message_handler('Total Flow Speed (m/s): %.3f, Vol. Flow: (m^3/day)' % (flow_rate, vol_flow))
+        message_handler('Total Flow Speed (m/s): %.3f, Vol. Flow (m^3/day): %.3f' % (flow_rate, vol_flow))
         message_handler('Oil Flow Rate (m^3/day): %.3f' % vol_flow*0.01*percent_oil)
         message_handler('Water Flow Rate (m^3/day): %.3f' % vol_flow * 0.01 * percent_water)
         message_handler('Gas Flow Rate (m^3/day): %.3f' % vol_flow * 0.01 * percent_gas)
@@ -147,7 +172,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y': S,
             'x_unit': 's',
             'y_unit': 'arb. units.',
-            'initial_amp_uV': np.mean(Y[0:1].real)
+            'initial_amp_uV': np.mean(Y[0:4].real)
         }
 
 
@@ -190,7 +215,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 #    'x': data['x'],
                 #    'y': data['y_mag']}],
                 'layout': {
-                    'title': 'Echo Integrals (IA: %.2f%% uV)' % (1000000*np.mean(data['y_real'][0:1])),
+                    'title': 'Echo Integrals (IA: %.2f uV)' % (1000000*np.mean(data['y_real'][0:4])),
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}

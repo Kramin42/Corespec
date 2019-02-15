@@ -28,6 +28,54 @@ parameters:
     dtype: float
     unit: mm
     group: calibration
+  static_echo_time:
+    dtype: uint32
+    unit: us
+    group: static
+  static_rep_time:
+    dtype: uint64
+    unit: s
+    group: static
+  static_echo_count:
+    dtype: uint32
+    group: static
+  static_scans:
+    dtype: uint32
+    group: static
+  static_echo_shift:
+    unit: us
+    group: static
+  static_samples:
+    dtype: uint32
+    group: static
+  static_dwell_time:
+    dtype: uint32
+    unit: us
+    group: static
+  flow_echo_time:
+    dtype: uint32
+    unit: us
+    group: flow
+  flow_rep_time:
+    dtype: uint64
+    unit: s
+    group: flow
+  flow_echo_count:
+    dtype: uint32
+    group: flow
+  flow_scans:
+    dtype: uint32
+    group: flow
+  flow_echo_shift:
+    unit: us
+    group: flow
+  flow_samples:
+    dtype: uint32
+    group: flow
+  flow_dwell_time:
+    dtype: uint32
+    unit: us
+    group: flow
 defaults:
   plots:
     - Echo_Integrals
