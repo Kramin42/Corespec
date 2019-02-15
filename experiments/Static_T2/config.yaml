@@ -14,7 +14,7 @@ parameters:
     group: calibration
   FWIA:
     dtype: float
-    unit: 'μV'
+    unit: 'uV'
     group: calibration
   oil_T2_cutoff:
     dtype: float
