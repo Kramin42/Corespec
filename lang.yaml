@@ -52,3 +52,43 @@ english:
       label: Power
     int_width:
       label: Int. window
+    static_echo_time:
+      label: Echo time
+    static_echo_shift:
+      label: Echo shift
+    static_rep_time:
+      label: Rep. time
+    static_echo_count:
+      label: Echo count
+    static_samples:
+      label: Samples
+    static_dwell_time:
+      label: Dwell time
+    static_scans:
+      label: Scans
+    flow_echo_time:
+      label: Echo time
+    flow_echo_shift:
+      label: Echo shift
+    flow_rep_time:
+      label: Rep. time
+    flow_echo_count:
+      label: Echo count
+    flow_samples:
+      label: Samples
+    flow_dwell_time:
+      label: Dwell time
+    flow_scans:
+      label: Scans
+    flow_delay:
+      label: Flow Delay
+    oil_HI:
+      label: Oil HI
+    FWIA:
+      label: FWIA
+    oil_T2_max:
+      label: Oil Max T2
+    flow_calibration:
+      label: Flow Speed Cal.
+    tube_ID:
+      label: Tube ID
