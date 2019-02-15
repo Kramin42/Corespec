@@ -174,8 +174,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y_unit': 'V'}
 
     def export_T2_Spectrum(self):
-        echo_count = int(self.par['echo_count'])
-        echo_time = self.par['echo_time'] / 1000000.0  # μs -> s
+        echo_count = int(self.par['static_echo_count'])
+        echo_time = self.par['static_echo_time'] / 1000000.0  # μs -> s
         if not hasattr(self, 'static_intdata') or self.static_intdata is None:
             raise Exception('Static T2 data not ready!')
         Y = self.static_intdata
