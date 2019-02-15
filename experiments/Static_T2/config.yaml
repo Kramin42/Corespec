@@ -8,7 +8,7 @@ parameters:
     dtype: int
     unit: 's'
     group: flow_control
-  oil_hydrogen_index:
+  oil_HI:
     dtype: float
     unit: ''
     group: calibration
@@ -16,7 +16,7 @@ parameters:
     dtype: float
     unit: 'uV'
     group: calibration
-  oil_T2_cutoff:
+  oil_T2_max:
     dtype: float
     unit: 's'
     group: calibration

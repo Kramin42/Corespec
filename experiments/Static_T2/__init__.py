@@ -97,7 +97,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y': S,
             'x_unit': 's',
             'y_unit': 'arb. units.',
-            'initial_amp_uV': 0.5*(Y[0].real+Y[1].real)
+            'initial_amp_uV': np.mean(Y[0:1].real)
         }
 
 
@@ -167,14 +167,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         S = data['y']
         T2 = data['x']
         # TODO: change these to input parameters or determine automatically
-        oil_rel_proton_density = float(self.par['oil_hydrogen_index'])
-        oil_water_T2_boundary = float(self.par['oil_T2_cutoff'])
+        oil_rel_proton_density = float(self.par['oil_HI'])
+        oil_water_T2_boundary = float(self.par['oil_T2_max'])
+        full_water_initial_amp = float(self.par['FWIA'])
         divider_index = 0
         while T2[divider_index] < oil_water_T2_boundary:
             divider_index+=1
         amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
         amount_water = np.sum(S[divider_index:])
-        percent_gas = 100*(float(self.par['FWIA']) - data['initial_amp_uV'])
+        percent_gas = 100*(full_water_initial_amp - data['initial_amp_uV'])/full_water_initial_amp
         percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
         percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
         return {'data': [{
