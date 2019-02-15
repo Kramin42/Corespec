@@ -89,6 +89,6 @@ english:
     oil_T2_max:
       label: Oil Max T2
     flow_calibration:
-      label: Flow Speed Cal.
+      label: Flow Vel Cal
     tube_ID:
       label: Tube ID

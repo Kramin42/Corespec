@@ -32,13 +32,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         message_handler('Starting static measurement')
 
         # TODO: run FID first to set the frequency automatically
-        self.programs['CPMG'].set_par('echo_time', self.par['static_echo_time'])
-        self.programs['CPMG'].set_par('rep_time', self.par['static_rep_time'])
-        self.programs['CPMG'].set_par('echo_count', self.par['static_echo_count'])
-        self.programs['CPMG'].set_par('scans', self.par['static_scans'])
-        self.programs['CPMG'].set_par('echo_shift', self.par['static_echo_shift'])
-        self.programs['CPMG'].set_par('samples', self.par['static_samples'])
-        self.programs['CPMG'].set_par('dwell_time', self.par['static_dwell_time'])
+        self.programs['CPMG'].set_par('echo_time', float(self.par['static_echo_time']))
+        self.programs['CPMG'].set_par('rep_time', float(self.par['static_rep_time']))
+        self.programs['CPMG'].set_par('echo_count', float(self.par['static_echo_count']))
+        self.programs['CPMG'].set_par('scans', float(self.par['static_scans']))
+        self.programs['CPMG'].set_par('echo_shift', float(self.par['static_echo_shift']))
+        self.programs['CPMG'].set_par('samples', float(self.par['static_samples']))
+        self.programs['CPMG'].set_par('dwell_time', float(self.par['static_dwell_time']))
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
         self.static_intdata = self.autophase(self.integrated_data())
@@ -63,13 +63,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting flow measurement')
 
-        self.programs['CPMG'].set_par('echo_time', self.par['flow_echo_time'])
-        self.programs['CPMG'].set_par('rep_time', self.par['flow_rep_time'])
-        self.programs['CPMG'].set_par('echo_count', self.par['flow_echo_count'])
-        self.programs['CPMG'].set_par('scans', self.par['flow_scans'])
-        self.programs['CPMG'].set_par('echo_shift', self.par['flow_echo_shift'])
-        self.programs['CPMG'].set_par('samples', self.par['flow_samples'])
-        self.programs['CPMG'].set_par('dwell_time', self.par['flow_dwell_time'])
+        self.programs['CPMG'].set_par('echo_time', float(self.par['flow_echo_time']))
+        self.programs['CPMG'].set_par('rep_time', float(self.par['flow_rep_time']))
+        self.programs['CPMG'].set_par('echo_count', float(self.par['flow_echo_count']))
+        self.programs['CPMG'].set_par('scans', float(self.par['flow_scans']))
+        self.programs['CPMG'].set_par('echo_shift', float(self.par['flow_echo_shift']))
+        self.programs['CPMG'].set_par('samples', float(self.par['flow_samples']))
+        self.programs['CPMG'].set_par('dwell_time', float(self.par['flow_dwell_time']))
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
 
