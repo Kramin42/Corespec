@@ -1,0 +1,34 @@
+# CPMG experiment configuration
+description:
+  A CPMG experiment.
+programs:
+  - CPMG
+parameters:
+  flow_delay:
+    dtype: int
+    unit: 's'
+    group: flow_control
+  oil_HI:
+    dtype: float
+    unit: ''
+    group: calibration
+  FWIA:
+    dtype: float
+    unit: 'uV'
+    group: calibration
+  oil_T2_max:
+    dtype: float
+    unit: 's'
+    group: calibration
+  flow_calibration:
+    dtype: float
+    unit: ''
+    group: calibration
+  tube_ID:
+    dtype: float
+    unit: mm
+    group: calibration
+defaults:
+  plots:
+    - Echo_Integrals
+    - Echo_Envelope

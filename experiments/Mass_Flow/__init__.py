@@ -17,18 +17,39 @@ import asyncio
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        message_handler('Switching flow ON')
-        set_flow_enabled(True)
+        message_handler('Switching flow OFF')
+        set_flow_enabled(False)
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
-        message_handler('Starting measurement')
+        message_handler('Starting static measurement')
+
+        # TODO: run FID first to set the frequency automatically
 
         await self.programs['CPMG'].run(progress_handler=progress_handler,
                                         message_handler=message_handler)
-        y = self.autophase(self.integrated_data())
-        y /= 1000000  # μV -> V
-        # if y.size >= 10:
-        #     SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
-        #     message_handler('SNR estimate: %d' % SNR)
+        self.static_intdata = self.autophase(self.integrated_data())
+        data = self.export_T2_Spectrum()
+        S = data['y']
+        T2 = data['x']
+        oil_rel_proton_density = float(self.par['oil_HI'])
+        oil_water_T2_boundary = float(self.par['oil_T2_max'])
+        full_water_initial_amp = float(self.par['FWIA'])
+        divider_index = 0
+        while T2[divider_index] < oil_water_T2_boundary:
+            divider_index+=1
+        amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
+        amount_water = np.sum(S[divider_index:])
+        percent_gas = 100*(full_water_initial_amp - data['initial_amp_uV'])/full_water_initial_amp
+        percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
+        percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
+        message_handler('Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%' % (percent_oil, percent_water, percent_gas))
+
+        message_handler('Switching flow ON')
+        set_flow_enabled(True)
+        await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
+        message_handler('Starting flow measurement')
+
+        self.flow_intdata = self.autophase(self.integrated_data())
+        self.flow_intdata /= 1000000  # μV -> V
 
         # calculate flow rate
         echo_count = int(self.par['echo_count'])
@@ -38,19 +59,23 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         fit_thresh = 0.25  # only fit points > this proportion of the max signal
         skip_N = 2
         fit_N = 3
-        sigmax = np.max(y.real)
+        sigmax = np.max(self.flow_intdata.real)
         while skip_N + fit_N < echo_count:
-            if y.real[skip_N + fit_N] < sigmax * fit_thresh:
+            if self.flow_intdata.real[skip_N + fit_N] < sigmax * fit_thresh:
                 break
             fit_N += 1
-        P = np.polyfit(t[skip_N:fit_N + skip_N], y.real[skip_N:fit_N + skip_N], 1)
+        P = np.polyfit(t[skip_N:fit_N + skip_N], self.flow_intdata.real[skip_N:fit_N + skip_N], 1)
         logger.debug(P)
         flow_rate = -P[0] / P[1] * calibration
         tube_ID = float(self.par['tube_ID'])
         radius = tube_ID/2000 #  mm -> m
         seconds_per_day = 3600*24
         vol_flow = flow_rate*(np.pi*radius*radius)*seconds_per_day
-        message_handler('Flow Speed (m/s): %.3f, Vol. Flow (m^3/day): %.3f' % (flow_rate, vol_flow))
+        message_handler('Total Flow Speed (m/s): %.3f, Vol. Flow: (m^3/day)' % (flow_rate, vol_flow))
+        message_handler('Oil Flow Rate (m^3/day): %.3f' % vol_flow*0.01*percent_oil)
+        message_handler('Water Flow Rate (m^3/day): %.3f' % vol_flow * 0.01 * percent_water)
+        message_handler('Gas Flow Rate (m^3/day): %.3f' % vol_flow * 0.01 * percent_gas)
+
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
@@ -111,7 +136,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_T2_Spectrum(self):
         echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time'] / 1000000.0  # μs -> s
-        Y = self.autophase(self.integrated_data())
+        if not hasattr(self, 'static_intdata') or self.static_intdata is None:
+            raise Exception('Static T2 data not ready!')
+        Y = self.static_intdata
         t = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
         T2 = np.logspace(-5, 2, 200, endpoint=False)
         S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=10)
@@ -119,7 +146,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': T2,
             'y': S,
             'x_unit': 's',
-            'y_unit': 'arb. units.'
+            'y_unit': 'arb. units.',
+            'initial_amp_uV': np.mean(Y[0:1].real)
         }
 
 
@@ -162,7 +190,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 #    'x': data['x'],
                 #    'y': data['y_mag']}],
                 'layout': {
-                    'title': 'Echo Integrals',
+                    'title': 'Echo Integrals (IA: %.2f%% uV)' % 1000000*np.mean(data['y_real'][0:1]),
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
@@ -186,13 +214,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_T2_Spectrum(self):
         data = self.export_T2_Spectrum()
+        S = data['y']
+        T2 = data['x']
+        oil_rel_proton_density = float(self.par['oil_HI'])
+        oil_water_T2_boundary = float(self.par['oil_T2_max'])
+        full_water_initial_amp = float(self.par['FWIA'])
+        divider_index = 0
+        while T2[divider_index] < oil_water_T2_boundary:
+            divider_index+=1
+        amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
+        amount_water = np.sum(S[divider_index:])
+        percent_gas = 100*(full_water_initial_amp - data['initial_amp_uV'])/full_water_initial_amp
+        percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
+        percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
         return {'data': [{
             'name': '',
             'type': 'scatter',
             'x': np.log10(data['x']),
             'y': data['y']}],
         'layout': {
-            'title': 'T2 Spectrum',
+            'title': 'T2 Spectrum (Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%)' % (percent_oil, percent_water, percent_gas),
             'xaxis': {'title': 'log10(T2) (%s)' % data['x_unit']},
             'yaxis': {'title': 'Incremental Volume (%s)' % data['y_unit']}
         }}
