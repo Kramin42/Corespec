@@ -46,7 +46,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         P = np.polyfit(t[skip_N:fit_N + skip_N], y.real[skip_N:fit_N + skip_N], 1)
         logger.debug(P)
         flow_rate = -P[0] / P[1] * calibration
-        message_handler('Flow Rate (m/s): %.3f' % flow_rate)
+        tube_ID = float(self.par['tube_ID'])
+        radius = tube_ID/2000 #  mm -> m
+        seconds_per_day = 3600*24
+        vol_flow = flow_rate*(np.pi*radius*radius)*seconds_per_day
+        message_handler('Flow Speed (m/s): %.3f, Vol. Flow (m^3/day)' % (flow_rate, vol_flow))
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict

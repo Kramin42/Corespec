@@ -12,7 +12,10 @@ parameters:
     dtype: float
     unit: ''
     group: calibration
-
+  tube_ID:
+    dtype: float
+    unit: mm
+    group: calibration
 defaults:
   plots:
     - Echo_Integrals
