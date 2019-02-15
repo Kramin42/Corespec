@@ -97,9 +97,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         seconds_per_day = 3600*24
         vol_flow = flow_rate*(np.pi*radius*radius)*seconds_per_day
         message_handler('Total Flow Speed (m/s): %.3f, Vol. Flow (m^3/day): %.3f' % (flow_rate, vol_flow))
-        message_handler('Oil Flow Rate (m^3/day): %.3f' % vol_flow*0.01*percent_oil)
-        message_handler('Water Flow Rate (m^3/day): %.3f' % vol_flow * 0.01 * percent_water)
-        message_handler('Gas Flow Rate (m^3/day): %.3f' % vol_flow * 0.01 * percent_gas)
+        message_handler('Oil Flow Rate (m^3/day): %.3f' % (vol_flow*0.01*percent_oil))
+        message_handler('Water Flow Rate (m^3/day): %.3f' % (vol_flow * 0.01 * percent_water))
+        message_handler('Gas Flow Rate (m^3/day): %.3f' % (vol_flow * 0.01 * percent_gas))
 
 
     # start a function name with "export_" for it to be listed as an export format
