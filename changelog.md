@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.10] - 2019-02-15
+### Added
+- Mass Flow experiment, runs Static T2 and Flow T2
+  and reports flow rates of oil, water, and gas components
+
 ## [1.1.9] - 2019-01-17
 ### Added
 - Flow T2 Experiment now calculates flow rate using simple slope/intercept
