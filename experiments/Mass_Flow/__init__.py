@@ -190,7 +190,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 #    'x': data['x'],
                 #    'y': data['y_mag']}],
                 'layout': {
-                    'title': 'Echo Integrals (IA: %.2f%% uV)' % 1000000*np.mean(data['y_real'][0:1]),
+                    'title': 'Echo Integrals (IA: %.2f%% uV)' % (1000000*np.mean(data['y_real'][0:1])),
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}

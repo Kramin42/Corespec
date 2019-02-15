@@ -140,7 +140,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 #    'x': data['x'],
                 #    'y': data['y_mag']}],
                 'layout': {
-                    'title': 'Echo Integrals (IA: %.2f%% uV)' % 1000000*np.mean(data['y_real'][0:1]),
+                    'title': 'Echo Integrals (IA: %.2f%% uV)' % (1000000*np.mean(data['y_real'][0:1])),
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
@@ -166,7 +166,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = self.export_T2_Spectrum()
         S = data['y']
         T2 = data['x']
-        # TODO: change these to input parameters or determine automatically
         oil_rel_proton_density = float(self.par['oil_HI'])
         oil_water_T2_boundary = float(self.par['oil_T2_max'])
         full_water_initial_amp = float(self.par['FWIA'])
