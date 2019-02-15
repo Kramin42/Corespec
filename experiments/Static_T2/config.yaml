@@ -8,9 +8,17 @@ parameters:
     dtype: int
     unit: 's'
     group: flow_control
-  oil_rel_H_density:
+  oil_hydrogen_index:
     dtype: float
     unit: ''
+    group: calibration
+  FWIA:
+    dtype: float
+    unit: 'μV'
+    group: calibration
+  oil_T2_cutoff:
+    dtype: float
+    unit: 's'
     group: calibration
 defaults:
   plots:

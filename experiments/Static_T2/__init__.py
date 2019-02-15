@@ -96,7 +96,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': T2,
             'y': S,
             'x_unit': 's',
-            'y_unit': 'arb. units.'
+            'y_unit': 'arb. units.',
+            'initial_amp_uV': 0.5*(Y[0].real+Y[1].real)
         }
 
 
@@ -166,22 +167,23 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         S = data['y']
         T2 = data['x']
         # TODO: change these to input parameters or determine automatically
-        oil_rel_proton_density = float(self.par['oil_rel_H_density'])
-        oil_water_T2_boundary = 0.5
+        oil_rel_proton_density = float(self.par['oil_hydrogen_index'])
+        oil_water_T2_boundary = float(self.par['oil_T2_cutoff'])
         divider_index = 0
         while T2[divider_index] < oil_water_T2_boundary:
             divider_index+=1
         amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
         amount_water = np.sum(S[divider_index:])
-        percent_oil = 100 * (amount_oil) / (amount_water + amount_oil)
-        percent_water = 100 * (amount_water) / (amount_water + amount_oil)
+        percent_gas = 100*(float(self.par['FWIA']) - data['initial_amp_uV'])
+        percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
+        percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
         return {'data': [{
             'name': '',
             'type': 'scatter',
             'x': np.log10(data['x']),
             'y': data['y']}],
         'layout': {
-            'title': 'T2 Spectrum (Oil: %.1f%%, Water: %.1f%%)' % (percent_oil, percent_water),
+            'title': 'T2 Spectrum (Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%)' % (percent_oil, percent_water, percent_gas),
             'xaxis': {'title': 'log10(T2) (%s)' % data['x_unit']},
             'yaxis': {'title': 'Incremental Volume (%s)' % data['y_unit']}
         }}
