@@ -52,6 +52,14 @@ english:
       label: Power
     int_width:
       label: Int. window
+    FID_rep_time:
+      label: Rep. time
+    FID_scans:
+      label: Scans
+    FID_samples:
+      label: Samples
+    FID_dwell_time:
+      label: Dwell time
     static_echo_time:
       label: Echo time
     static_echo_shift:

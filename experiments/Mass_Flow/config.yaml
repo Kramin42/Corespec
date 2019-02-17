@@ -3,7 +3,22 @@ description:
   A CPMG experiment.
 programs:
   - CPMG
+  - FID
 parameters:
+  FID_rep_time:
+    dtype: uint64
+    unit: s
+    group: 'find freq'
+  FID_scans:
+    dtype: uint32
+    group: 'find freq'
+  FID_samples:
+    dtype: uint32
+    group: 'find freq'
+  FID_dwell_time:
+    dtype: uint32
+    unit: us
+    group: 'find freq'
   static_echo_time:
     dtype: uint32
     unit: us

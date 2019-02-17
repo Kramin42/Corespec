@@ -5,7 +5,7 @@ from hardware.system import set_flow_enabled
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 import numpy as np
 import asyncio
@@ -31,8 +31,36 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting static measurement')
 
-        # TODO: run FID first to set the frequency automatically
+        # run FID first to set the frequency automatically
+        self.programs['FID'].set_par('rep_time', float(self.par['FID_rep_time']))
+        self.programs['FID'].set_par('scans', float(self.par['FID_scans']))
+        self.programs['FID'].set_par('samples', float(self.par['FID_samples']))
+        self.programs['FID'].set_par('dwell_time', float(self.par['FID_dwell_time']))
+        await self.programs['FID'].run(progress_handler=progress_handler,
+                                        message_handler=message_handler)
 
+        # determine location of peak
+        y = self.programs['FID'].data.view(np.complex64)
+        dwell_time = self.par['dwell_time']  # μs
+        fft = np.fft.fft(y)
+        freq = np.fft.fftfreq(y.size, d=dwell_time)
+        # sort the frequency axis
+        p = freq.argsort()
+        freq = freq[p]
+        fft = fft[p]
+        fft_mag = np.abs(fft)
+        peak_index = np.argmax(fft_mag)
+        peak_freq_offset = freq[peak_index]  # in MHz
+        avg_start = peak_index - int(len(freq) / 20)
+        avg_end = peak_index + int(len(freq) / 20) + 1
+        if avg_start > 0 and avg_end <= len(freq):
+            peak_freq_offset = np.average(freq[avg_start:avg_end],
+                                          weights=np.square(fft_mag[avg_start:avg_end]))  # in MHz
+        self.par['freq'] += peak_freq_offset
+        self.programs['CPMG'].set_par('freq', float(self.par['freq']))
+        logger.debug('Setting frequency to %s' % self.par['freq'])
+
+        # Run static T2 measurement
         self.par['echo_time'] = self.par['static_echo_time']
         self.par['rep_time'] = self.par['static_rep_time']
         self.par['echo_count'] = self.par['static_echo_count']
@@ -71,6 +99,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
         message_handler('Starting flow measurement')
 
+        # run flow T2 measurement
         self.par['echo_time'] = self.par['flow_echo_time']
         self.par['rep_time'] = self.par['flow_rep_time']
         self.par['echo_count'] = self.par['flow_echo_count']
