@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.11] - 2019-02-18
+### Added
+- Mass Flow experiment now has automatic find freq feature which is
+  able to fine tune the frequency to allow for temperature variation etc.
+
 ## [1.1.10] - 2019-02-15
 ### Added
 - Mass Flow experiment, runs Static T2 and Flow T2
