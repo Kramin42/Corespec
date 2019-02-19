@@ -32,6 +32,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         message_handler('Starting static measurement')
 
         # run FID first to set the frequency automatically
+        self.par['rep_time'] = self.par['FID_rep_time']
+        self.par['scans'] = self.par['FID_scans']
+        self.par['samples'] = self.par['FID_samples']
+        self.par['dwell_time'] = self.par['FID_dwell_time']
         self.programs['FID'].set_par('rep_time', float(self.par['FID_rep_time']))
         self.programs['FID'].set_par('scans', float(self.par['FID_scans']))
         self.programs['FID'].set_par('samples', float(self.par['FID_samples']))
