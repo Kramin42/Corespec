@@ -101,5 +101,5 @@ parameters:
     group: calibration
 defaults:
   plots:
-    - Echo_Integrals
-    - Echo_Envelope
+    - Components
+    - Flow

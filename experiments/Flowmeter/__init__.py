@@ -66,7 +66,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
             # determine location of peak
             y = self.programs['FID'].data.view(np.complex64)
-            dwell_time = self.par['dwell_time']  # μs
+            dwell_time = self.par['FID_dwell_time']  # μs
             fft = np.fft.fft(y)
             freq = np.fft.fftfreq(y.size, d=dwell_time)
             # sort the frequency axis
@@ -96,7 +96,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['CPMG'].set_par('dwell_time', float(self.par['static_dwell_time']))
             await self.programs['CPMG'].run(message_handler=message_handler)
 
-            self.static_intdata = self.autophase(self.integrated_data())
+            self.static_intdata = self.autophase(self.integrated_data(
+                int(self.par['static_samples']),
+                int(self.par['static_echo_count'])
+            ))
             data = self.export_T2_Spectrum()
             S = data['y']
             T2 = data['x']
@@ -138,7 +141,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.programs['CPMG'].set_par('dwell_time', float(self.par['flow_dwell_time']))
                 await self.programs['CPMG'].run(message_handler=message_handler)
 
-                self.flow_intdata = self.autophase(self.integrated_data())
+                self.flow_intdata = self.autophase(self.integrated_data(
+                    int(self.par['flow_samples']),
+                    int(self.par['flow_echo_count'])
+                ))
                 self.flow_intdata /= 1000000  # μV -> V
 
                 # calculate flow rate
@@ -237,10 +243,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = data.view(np.complex64)
         return data
 
-    def integrated_data(self):
+    def integrated_data(self, samples, echo_count):
         data = self.raw_data()
-        samples = int(self.par['samples'])
-        echo_count = int(self.par['echo_count'])
         y = np.zeros(echo_count, dtype=np.complex64)
         for i in range(echo_count):
             y[i] = np.mean(data[i * samples:(i + 1) * samples])
