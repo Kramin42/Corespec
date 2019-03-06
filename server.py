@@ -222,9 +222,11 @@ class Handler(web.StaticFileHandler):
         return url_path
 
 from admin import AdminHandler
+from flowmeter import FlowmeterHandler
 
 app = web.Application([
     ('/admin', AdminHandler),
+    ('/flowmeter/(.*)', FlowmeterHandler, {'path': os.path.join(dir_path, 'flowmeter-client')}),
     ('/(.*)', Handler, {'path': os.path.join(dir_path, 'client')})
 ])
 
