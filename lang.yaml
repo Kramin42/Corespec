@@ -89,7 +89,11 @@ english:
     flow_scans:
       label: Scans
     flow_delay:
-      label: Flow Delay
+      label: Valve Delay
+    flow_num:
+      label: Flow Num
+    flow_spacing:
+      label: Flow Spacing
     oil_HI:
       label: Oil HI
     FWIA:

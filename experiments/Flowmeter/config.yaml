@@ -1,0 +1,105 @@
+# CPMG experiment configuration
+description:
+  A CPMG experiment.
+programs:
+  - CPMG
+  - FID
+parameters:
+  FID_rep_time:
+    dtype: uint64
+    unit: s
+    group: 'find freq'
+  FID_scans:
+    dtype: uint32
+    group: 'find freq'
+  FID_samples:
+    dtype: uint32
+    group: 'find freq'
+  FID_dwell_time:
+    dtype: uint32
+    unit: us
+    group: 'find freq'
+  static_echo_time:
+    dtype: uint32
+    unit: us
+    group: static
+  static_rep_time:
+    dtype: uint64
+    unit: s
+    group: static
+  static_echo_count:
+    dtype: uint32
+    group: static
+  static_scans:
+    dtype: uint32
+    group: static
+  static_echo_shift:
+    unit: us
+    group: static
+  static_samples:
+    dtype: uint32
+    group: static
+  static_dwell_time:
+    dtype: uint32
+    unit: us
+    group: static
+  flow_echo_time:
+    dtype: uint32
+    unit: us
+    group: flow
+  flow_rep_time:
+    dtype: uint64
+    unit: s
+    group: flow
+  flow_echo_count:
+    dtype: uint32
+    group: flow
+  flow_scans:
+    dtype: uint32
+    group: flow
+  flow_echo_shift:
+    unit: us
+    group: flow
+  flow_samples:
+    dtype: uint32
+    group: flow
+  flow_dwell_time:
+    dtype: uint32
+    unit: us
+    group: flow
+  flow_delay:
+    dtype: int
+    unit: 's'
+    group: flow_control
+  flow_num:
+    dtype: int
+    unit: ''
+    group: flow_control
+  flow_spacing:
+    dtype: int
+    unit: 's'
+    group: flow_control
+  oil_HI:
+    dtype: float
+    unit: ''
+    group: calibration
+  FWIA:
+    dtype: float
+    unit: 'uV'
+    group: calibration
+  oil_T2_max:
+    dtype: float
+    unit: 's'
+    group: calibration
+  flow_calibration:
+    dtype: float
+    unit: ''
+    group: calibration
+  tube_ID:
+    dtype: float
+    unit: mm
+    group: calibration
+defaults:
+  plots:
+    - Echo_Integrals
+    - Echo_Envelope

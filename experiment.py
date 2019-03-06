@@ -48,6 +48,7 @@ class BaseExperiment:
                       for f in dir(self) if callable(getattr(self, f))
                       and f.startswith('plot_')}
         self.override()
+        self.aborted = False
     
     # must be overridden
     # progress_handler takes arguments (progress, limit)
@@ -65,6 +66,7 @@ class BaseExperiment:
 
     def abort(self):
         logger.debug('aborting experiment...')
+        self.aborted = True
         for prog_name, prog in self.programs.items():
             prog.abort()
 

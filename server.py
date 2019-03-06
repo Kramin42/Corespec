@@ -226,7 +226,7 @@ from flowmeter import FlowmeterHandler
 
 app = web.Application([
     ('/admin', AdminHandler),
-    ('/flowmeter/(.*)', FlowmeterHandler, {'path': os.path.join(dir_path, 'flowmeter-client')}),
+    ('/flowmeter/(.*)', FlowmeterHandler, {'path': os.path.join(dir_path, 'client')}),
     ('/(.*)', Handler, {'path': os.path.join(dir_path, 'client')})
 ])
 
