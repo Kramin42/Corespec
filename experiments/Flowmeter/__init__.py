@@ -84,6 +84,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                                               weights=np.square(fft_mag[avg_start:avg_end]))  # in MHz
             self.par['freq'] += peak_freq_offset
             self.programs['CPMG'].set_par('freq', float(self.par['freq']))
+            self.programs['FID'].set_par('freq', float(self.par['freq']))
             logger.debug('Setting frequency to %s' % self.par['freq'])
 
             # Run static T2 measurement
