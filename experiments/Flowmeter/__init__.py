@@ -95,6 +95,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['CPMG'].set_par('samples', float(self.par['static_samples']))
             self.programs['CPMG'].set_par('dwell_time', float(self.par['static_dwell_time']))
             await self.programs['CPMG'].run(message_handler=message_handler)
+            progress_handler(0, self.par['flow_num'])
 
             self.static_intdata = self.autophase(self.integrated_data(
                 int(self.par['static_samples']),
@@ -178,7 +179,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_water.append(vol_flow * 0.01 * percent_water)
                 self.flow_oil.append(vol_flow * 0.01 * percent_oil)
                 self.flow_gas.append(vol_flow * 0.01 * percent_gas)
-                progress_handler(i, self.par['flow_num'])
+                progress_handler(i+1, self.par['flow_num'])
 
     def export_Raw(self):
         try:
