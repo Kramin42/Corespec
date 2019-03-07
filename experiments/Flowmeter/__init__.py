@@ -117,9 +117,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
             amount_water = np.sum(S[divider_index:])
             initial_amp = np.mean(Y[0:4].real)
-            percent_gas = 100*(full_water_initial_amp - initial_amp)/full_water_initial_amp
-            percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
-            percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
+
+            percent_oil = 100 * (amount_oil) / (amount_water + amount_oil)
+            percent_water = 100 * (amount_water) / (amount_water + amount_oil)
+            full_initial_amp = 0.01*percent_water*full_water_initial_amp + 0.01*percent_oil*oil_rel_proton_density*full_water_initial_amp
+            percent_gas = 100 * (full_initial_amp - initial_amp) / full_initial_amp
+            percent_water -= 0.01 * percent_gas * percent_water
+            percent_oil -= 0.01 * percent_gas * percent_oil
+
             message_handler('Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%' % (percent_oil, percent_water, percent_gas))
             self.prop_water.append(percent_water)
             self.prop_oil.append(percent_oil)
