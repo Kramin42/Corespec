@@ -128,7 +128,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
             message_handler('Starting flow measurements')
 
-            for i in range(self.par['flow_num']):
+            for i in range(int(self.par['flow_num'])):
                 t_delta = self.par['flow_spacing'] - (time() - t_last)
                 if t_delta > 0:
                     await asyncio.sleep(t_delta)
