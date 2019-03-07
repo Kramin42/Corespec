@@ -135,6 +135,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     await asyncio.sleep(t_delta)
                 t_last = time()
 
+                # TODO: abort immediately during sleep
+                if self.aborted:
+                    break
+
                 # run flow T2 measurement
                 self.flow_t.append(time() - t_init)
                 self.programs['CPMG'].set_par('echo_time', float(self.par['flow_echo_time']))
