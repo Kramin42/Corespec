@@ -152,8 +152,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_intdata /= 1000000  # μV -> V
 
                 # calculate flow rate
-                echo_count = int(self.par['echo_count'])
-                echo_time = self.par['echo_time'] / 1000000.0
+                echo_count = int(self.par['flow_echo_count'])
+                echo_time = self.par['flow_echo_time'] / 1000000.0
                 t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
                 calibration = float(self.par['flow_calibration'])
                 fit_thresh = 0.25  # only fit points > this proportion of the max signal
