@@ -100,9 +100,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 int(self.par['static_samples']),
                 int(self.par['static_echo_count'])
             ))
-            data = self.export_T2_Spectrum()
-            S = data['y']
-            T2 = data['x']
+            echo_count = int(self.par['static_echo_count'])
+            echo_time = self.par['static_echo_time'] / 1000000.0  # μs -> s
+            Y = self.static_intdata
+            t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
+            T2 = np.logspace(-5, 2, 200, endpoint=False)
+            S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=10)
             oil_rel_proton_density = float(self.par['oil_HI'])
             oil_water_T2_boundary = float(self.par['oil_T2_max'])
             full_water_initial_amp = float(self.par['FWIA'])
@@ -111,7 +114,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 divider_index+=1
             amount_oil = np.sum(S[:divider_index]) / oil_rel_proton_density
             amount_water = np.sum(S[divider_index:])
-            percent_gas = 100*(full_water_initial_amp - data['initial_amp_uV'])/full_water_initial_amp
+            initial_amp = np.mean(Y[0:4].real)
+            percent_gas = 100*(full_water_initial_amp - initial_amp)/full_water_initial_amp
             percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
             percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
             message_handler('Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%' % (percent_oil, percent_water, percent_gas))
