@@ -119,9 +119,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             percent_oil = (100 - percent_gas) * (amount_oil) / (amount_water + amount_oil)
             percent_water = (100 - percent_gas) * (amount_water) / (amount_water + amount_oil)
             message_handler('Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%' % (percent_oil, percent_water, percent_gas))
-            self.prop_water.append(percent_water * 0.01)
-            self.prop_oil.append(percent_oil * 0.01)
-            self.prop_gas.append(percent_gas * 0.01)
+            self.prop_water.append(percent_water)
+            self.prop_oil.append(percent_oil)
+            self.prop_gas.append(percent_gas)
 
             message_handler('Switching flow ON')
             set_flow_enabled(True)
@@ -198,44 +198,46 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Components(self):
         data = self.export_Raw()
+        t_hrs = data['prop_t']/3600
         return {'data': [{
                     'name': 'Water',
                     'type': 'scatter',
-                    'x': data['prop_t'],
+                    'x': t_hrs,
                     'y': data['prop_water']}, {
                     'name': 'Oil',
                     'type': 'scatter',
-                    'x': data['prop_t'],
+                    'x': t_hrs,
                     'y': data['prop_oil']}, {
                     'name': 'Gas',
                     'type': 'scatter',
-                    'x': data['prop_t'],
+                    'x': t_hrs,
                     'y': data['prop_gas']}],
                 'layout': {
-                    'title': 'Fluid Components',
-                    'yaxis': {'title': 'Volume Proportion'},
-                    'xaxis': {'title': data['time_unit']}
+                    'title': 'Fluid Content',
+                    'yaxis': {'title': 'Volume Percent'},
+                    'xaxis': {'title': 'Time (hours)'}
                 }}
 
     def plot_Flow(self):
         data = self.export_Raw()
+        t_hrs = data['flow_t'] / 3600
         return {'data': [{
                     'name': 'Water',
                     'type': 'scatter',
-                    'x': data['flow_t'],
+                    'x': t_hrs,
                     'y': data['flow_water']}, {
                     'name': 'Oil',
                     'type': 'scatter',
-                    'x': data['flow_t'],
+                    'x': t_hrs,
                     'y': data['flow_oil']}, {
                     'name': 'Gas',
                     'type': 'scatter',
-                    'x': data['flow_t'],
+                    'x': t_hrs,
                     'y': data['flow_gas']}],
                 'layout': {
                     'title': 'Component Flow Rates',
                     'yaxis': {'title': 'Flow Rate (%s)' % data['flow_unit']},
-                    'xaxis': {'title': data['time_unit']}
+                    'xaxis': {'title': 'Time (hours)'}
                 }}
 
     def export_default(self):
