@@ -41,6 +41,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.flow_gas = []
         self.aborted = False
         while not self.aborted:
+            progress_handler(0, self.par['flow_num'] + 1)
             if len(self.flow_t) > FLOW_DATA_SIZE_LIMIT:
                 self.flow_t = self.flow_t[self.par['flow_num']:]
                 self.flow_water = self.flow_water[self.par['flow_num']:]
@@ -95,7 +96,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['CPMG'].set_par('samples', float(self.par['static_samples']))
             self.programs['CPMG'].set_par('dwell_time', float(self.par['static_dwell_time']))
             await self.programs['CPMG'].run(message_handler=message_handler)
-            progress_handler(0, self.par['flow_num'])
+            progress_handler(1, self.par['flow_num']+1)
 
             self.static_intdata = self.autophase(self.integrated_data(
                 int(self.par['static_samples']),
@@ -183,7 +184,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_water.append(vol_flow * 0.01 * percent_water)
                 self.flow_oil.append(vol_flow * 0.01 * percent_oil)
                 self.flow_gas.append(vol_flow * 0.01 * percent_gas)
-                progress_handler(i+1, self.par['flow_num'])
+                progress_handler(i+2, self.par['flow_num']+1)
 
     def export_Raw(self):
         try:
