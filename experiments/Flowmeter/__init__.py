@@ -40,13 +40,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.flow_oil = []
         self.flow_gas = []
         self.aborted = False
+        flow_num = int(self.par['flow_num'])
         while not self.aborted:
-            progress_handler(0, self.par['flow_num'] + 1)
+            progress_handler(0, flow_num + 1)
             if len(self.flow_t) > FLOW_DATA_SIZE_LIMIT:
-                self.flow_t = self.flow_t[self.par['flow_num']:]
-                self.flow_water = self.flow_water[self.par['flow_num']:]
-                self.flow_oil = self.flow_oil[self.par['flow_num']:]
-                self.flow_gas = self.flow_gas[self.par['flow_num']:]
+                self.flow_t = self.flow_t[flow_num:]
+                self.flow_water = self.flow_water[flow_num:]
+                self.flow_oil = self.flow_oil[flow_num:]
+                self.flow_gas = self.flow_gas[flow_num:]
 
                 self.prop_t = self.prop_t[1:]
                 self.prop_water = self.prop_water[1:]
@@ -97,7 +98,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['CPMG'].set_par('samples', float(self.par['static_samples']))
             self.programs['CPMG'].set_par('dwell_time', float(self.par['static_dwell_time']))
             await self.programs['CPMG'].run(message_handler=message_handler)
-            progress_handler(1, self.par['flow_num']+1)
+            progress_handler(1, flow_num+1)
 
             self.static_intdata = self.autophase(self.integrated_data(
                 int(self.par['static_samples']),
@@ -123,6 +124,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             percent_water = 100 * (amount_water) / (amount_water + amount_oil)
             full_initial_amp = 0.01*percent_water*full_water_initial_amp + 0.01*percent_oil*oil_rel_proton_density*full_water_initial_amp
             percent_gas = 100 * (full_initial_amp - initial_amp) / full_initial_amp
+            if percent_gas < 0:  # not possible, so assume that it is all water/oil
+                percent_gas = 0
             percent_water -= 0.01 * percent_gas * percent_water
             percent_oil -= 0.01 * percent_gas * percent_oil
 
@@ -136,7 +139,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
             message_handler('Starting flow measurements')
 
-            for i in range(int(self.par['flow_num'])):
+            for i in range(flow_num):
                 t_delta = self.par['flow_spacing'] - (time() - t_last)
                 if t_delta > 0:
                     await asyncio.sleep(t_delta)
@@ -190,7 +193,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_water.append(vol_flow * 0.01 * percent_water)
                 self.flow_oil.append(vol_flow * 0.01 * percent_oil)
                 self.flow_gas.append(vol_flow * 0.01 * percent_gas)
-                progress_handler(i+2, self.par['flow_num']+1)
+                progress_handler(i+2, flow_num+1)
 
     def export_Raw(self):
         try:
@@ -199,6 +202,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'prop_water': np.array(self.prop_water),
                 'prop_oil': np.array(self.prop_oil),
                 'prop_gas': np.array(self.prop_gas),
+                'prop_unit': '%',
                 'flow_t': np.array(self.flow_t),
                 'flow_water': np.array(self.flow_water),
                 'flow_oil': np.array(self.flow_oil),
@@ -208,48 +212,76 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         except AttributeError:
             raise Exception('No Data')
 
-    def plot_Components(self):
+    def export_Display_Measurements(self):
+        try:
+            return {
+                'prop_water': self.prop_water[-1],
+                'prop_oil': self.prop_oil[-1],
+                'prop_gas': self.prop_gas[-1],
+                'prop_unit': '%',
+                'flow_water': self.flow_water[-1],
+                'flow_oil': self.flow_oil[-1],
+                'flow_gas': self.flow_gas[-1],
+                'flow_unit': 'm^3/day'}
+        except AttributeError:
+            raise Exception('No Data')
+
+    def plot_Content(self):
         data = self.export_Raw()
-        t_hrs = data['prop_t']/3600
+        t = data['prop_t']
+        t_unit = 's'
+        if t[-1] > 300:
+            t /= 60
+            t_unit = 'min'
+            if t[-1] > 120:
+                t /= 60
+                t_unit = 'hours'
         return {'data': [{
                     'name': 'Water',
                     'type': 'scatter',
-                    'x': t_hrs,
+                    'x': t,
                     'y': data['prop_water']}, {
                     'name': 'Oil',
                     'type': 'scatter',
-                    'x': t_hrs,
+                    'x': t,
                     'y': data['prop_oil']}, {
                     'name': 'Gas',
                     'type': 'scatter',
-                    'x': t_hrs,
+                    'x': t,
                     'y': data['prop_gas']}],
                 'layout': {
-                    'title': 'Fluid Content',
-                    'yaxis': {'title': 'Volume Percent'},
-                    'xaxis': {'title': 'Time (hours)'}
+                    'title': 'Static Readings',
+                    'yaxis': {'title': 'Relative Content (%s)' % data['prop_unit']},
+                    'xaxis': {'title': 'Time (%s)' % t_unit}
                 }}
 
     def plot_Flow(self):
         data = self.export_Raw()
-        t_hrs = data['flow_t'] / 3600
+        t = data['flow_t']
+        t_unit = 's'
+        if t[-1] > 300:
+            t /= 60
+            t_unit = 'min'
+            if t[-1] > 120:
+                t /= 60
+                t_unit = 'hours'
         return {'data': [{
                     'name': 'Water',
                     'type': 'scatter',
-                    'x': t_hrs,
+                    'x': t,
                     'y': data['flow_water']}, {
                     'name': 'Oil',
                     'type': 'scatter',
-                    'x': t_hrs,
+                    'x': t,
                     'y': data['flow_oil']}, {
                     'name': 'Gas',
                     'type': 'scatter',
-                    'x': t_hrs,
+                    'x': t,
                     'y': data['flow_gas']}],
                 'layout': {
-                    'title': 'Component Flow Rates',
-                    'yaxis': {'title': 'Flow Rate (%s)' % data['flow_unit']},
-                    'xaxis': {'title': 'Time (hours)'}
+                    'title': 'Flow Readings',
+                    'yaxis': {'title': 'Flow Mass (%s)' % data['flow_unit']},
+                    'xaxis': {'title': 'Time (%s)' % t_unit}
                 }}
 
     def export_default(self):

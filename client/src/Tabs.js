@@ -30,7 +30,7 @@ export default class Tabs extends React.Component {
       );
     });
     return (
-      <div className="tab-bar">{buttons}</div>
+      <div className="tab-bar" style={this.props.hidden ? {display: 'none'} : {}}>{buttons}</div>
     );
   };
 }

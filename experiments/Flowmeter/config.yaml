@@ -101,5 +101,5 @@ parameters:
     group: calibration
 defaults:
   plots:
-    - Components
+    - Content
     - Flow

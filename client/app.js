@@ -48618,7 +48618,9 @@ var App = function (_React$Component) {
       }
 
       if (['message', 'warning', 'error'].includes(data.type)) {
-        this.message(data.message, data.type);
+        if (!data.silent) {
+          this.message(data.message, data.type);
+        }
       }
 
       if (data.type === 'progress') {
@@ -49740,10 +49742,10 @@ var Plot = function (_React$Component) {
     value: function replot(plotIndex) {
       var _this2 = this;
 
-      console.log(plotIndex);
       if (plotIndex === null || plotIndex === undefined) {
         plotIndex = this.state.activePlotIndex;
       }
+      console.log('replotting ' + plotIndex);
       if (this.props.plotMethod === 'query') {
         return this.props.deviceQuery('plot', {
           experiment_name: this.props.experiment.name,
@@ -49799,9 +49801,10 @@ var Plot = function (_React$Component) {
           _react2.default.createElement(_Tabs2.default, {
             tabNames: plotNames,
             activeIndex: this.state.activePlotIndex,
-            onTabChange: this.handlePlotChange
+            onTabChange: this.handlePlotChange,
+            hidden: this.props.hideTabs
           }),
-          _react2.default.createElement(
+          !this.props.hideTabs && _react2.default.createElement(
             'div',
             { className: 'plot-export-controls' },
             _react2.default.createElement(_Tabs2.default, {
@@ -50122,7 +50125,7 @@ var Tabs = function (_React$Component) {
       });
       return _react2.default.createElement(
         'div',
-        { className: 'tab-bar' },
+        { className: 'tab-bar', style: this.props.hidden ? { display: 'none' } : {} },
         buttons
       );
     }

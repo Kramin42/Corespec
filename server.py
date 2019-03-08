@@ -187,6 +187,7 @@ async def consumer(websocket, message):
                 'result': result
             }))
         except Exception as e:
+            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e), 'silent': True}))
             logger.exception(e)
     elif data['type'] == 'command':
         try:
@@ -197,7 +198,7 @@ async def consumer(websocket, message):
                 'ref': data['ref'],
             }))
         except Exception as e:
-            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e)}))
+            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e), 'silent': False}))
             logger.exception(e)
     logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
@@ -219,14 +220,14 @@ class Handler(web.StaticFileHandler):
     def parse_url_path(self, url_path):
         if not url_path:
             url_path = 'app.html'
+        if url_path == 'flowmeter':
+            url_path = 'flowmeter.html'
         return url_path
 
 from admin import AdminHandler
-from flowmeter import FlowmeterHandler
 
 app = web.Application([
     ('/admin', AdminHandler),
-    ('/flowmeter/(.*)', FlowmeterHandler, {'path': os.path.join(dir_path, 'client')}),
     ('/(.*)', Handler, {'path': os.path.join(dir_path, 'client')})
 ])
 

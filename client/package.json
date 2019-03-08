@@ -5,7 +5,8 @@
   "main": "app.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify -g browserify-css -t [ babelify --presets [ es2015 react ] ] src/index.js -o app.js"
+    "build": "browserify -g browserify-css -t [ babelify --presets [ es2015 react ] ] src/index.js -o app.js",
+    "build-flowmeter": "browserify -g browserify-css -t [ babelify --presets [ es2015 react ] ] src/flowmeter_index.js -o flowmeter.js"
   },
   "author": "Cameron Dykstra",
   "license": "ISC",

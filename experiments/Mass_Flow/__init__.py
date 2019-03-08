@@ -97,6 +97,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         percent_water = 100 * (amount_water) / (amount_water + amount_oil)
         full_initial_amp = 0.01 * percent_water * full_water_initial_amp + 0.01 * percent_oil * oil_rel_proton_density * full_water_initial_amp
         percent_gas = 100 * (full_initial_amp - data['initial_amp_uV']) / full_initial_amp
+        if percent_gas < 0:  # not possible, so assume that it is all water/oil
+            percent_gas = 0
         percent_water -= 0.01 * percent_gas * percent_water
         percent_oil -= 0.01 * percent_gas * percent_oil
         message_handler('Oil: %.1f%%, Water: %.1f%%, Gas: %.1f%%' % (percent_oil, percent_water, percent_gas))

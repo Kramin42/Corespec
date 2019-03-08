@@ -1,0 +1,87 @@
+.tab-content {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 3fr 1fr;
+  grid-template-areas:
+    "plots plots"
+    "pars controls";
+}
+
+.outputs-block {
+  grid-area: pars;
+  display: grid;
+  justify-items: center;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  background-color: white;
+  margin: 3px;
+  padding: 3px;
+  box-shadow: inset 0 0 3px #aaa;
+}
+
+.parameter {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  width: 250px;
+  margin-right: 20px;
+  margin-top: 5px;
+}
+
+.par-name {
+  margin-right: 5px;
+  font-size: 18px;
+}
+
+.par-unit {
+  width: 40px;
+  font-size: 18px;
+}
+
+.par-input {
+  width: 80px;
+  margin-right: 2px;
+  font-size: 18px;
+}
+
+.run-controls {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 2fr 2fr;
+}
+
+.run-controls>.button {
+  flex-grow: 1;
+  font-size: 20px;
+  margin: 2px;
+  display: flex;
+  justify-content: center; /* align horizontal */
+  align-items: center;
+}
+
+.run-controls>.abort:hover {
+  border-color: #c97064;
+}
+
+.run-controls>.abort:active {
+  box-shadow: inset 0px 1px 5px #c97064;
+}
+
+.run-indicator {
+  margin: 2px;
+  font-size: 20px;
+  display: flex;
+  justify-content: center; /* align horizontal */
+  align-items: center;
+}
+
+.run-indicator.running {
+  color: #62ab37;
+}
+
+.run-indicator.stopped {
+  color: #c97064;
+}

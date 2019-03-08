@@ -33,10 +33,10 @@ export default class Plot extends React.Component {
   }
 
   replot(plotIndex) {
-    console.log(plotIndex);
     if (plotIndex===null || plotIndex===undefined) {
       plotIndex = this.state.activePlotIndex;
     }
+    console.log(`replotting ${plotIndex}`);
     if (this.props.plotMethod==='query') {
       return this.props.deviceQuery('plot', {
         experiment_name: this.props.experiment.name,
@@ -88,15 +88,18 @@ export default class Plot extends React.Component {
             tabNames={plotNames}
             activeIndex={this.state.activePlotIndex}
             onTabChange={this.handlePlotChange}
+            hidden={this.props.hideTabs}
           />
-          <div className="plot-export-controls">
-            <Tabs
-              tabNames={formats}
-              activeIndex={this.state.activeFormatIndex}
-              onTabChange={this.handleFormatChange}
-            />
-            <div className="button">Save</div>
-          </div>
+          {!this.props.hideTabs &&
+            <div className="plot-export-controls">
+              <Tabs
+                tabNames={formats}
+                activeIndex={this.state.activeFormatIndex}
+                onTabChange={this.handleFormatChange}
+              />
+              <div className="button">Save</div>
+            </div>
+          }
         </div>
         <svg id={this.svgid} className="plot"></svg>
       </div>
