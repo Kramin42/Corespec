@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.12] - 2019-03-09
+### Added
+- Flowmeter experiment, and separate high-level UI at <domain>/flowmeter.
+  Parameters must be saved to a parameter set named 'flowmeter' from the
+  Flowmeter experiment for the high-level UI to run.
+
 ## [1.1.11] - 2019-02-18
 ### Added
 - Mass Flow experiment now has automatic find freq feature which is
