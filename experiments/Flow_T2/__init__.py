@@ -35,12 +35,19 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         echo_time = self.par['echo_time'] / 1000000.0
         t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
         calibration = float(self.par['flow_calibration'])
-        fit_thresh = 0.25  # only fit points > this proportion of the max signal
-        skip_N = 2
+        flow_crop = int(self.par['flow_crop'])
+        # only fit points between thresh_l and thresh_h (proportions relative to sigmax)
+        flow_thresh_l = float(self.par['flow_thresh_l'])
+        flow_thresh_h = float(self.par['flow_thresh_h'])
+        skip_N = flow_crop
         fit_N = 3
         sigmax = np.max(y.real)
         while skip_N + fit_N < echo_count:
-            if y.real[skip_N + fit_N] < sigmax * fit_thresh:
+            if y.real[skip_N] < sigmax * flow_thresh_h:
+                break
+            skip_N += 1
+        while skip_N + fit_N < echo_count:
+            if y.real[skip_N + fit_N] < sigmax * flow_thresh_l:
                 break
             fit_N += 1
         P = np.polyfit(t[skip_N:fit_N + skip_N], y.real[skip_N:fit_N + skip_N], 1)

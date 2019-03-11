@@ -16,6 +16,18 @@ parameters:
     dtype: float
     unit: mm
     group: calibration
+  flow_crop:
+    dtype: int
+    unit: ''
+    group: calibration
+  flow_thresh_h:
+    dtype: float
+    unit: ''
+    group: calibration
+  flow_thresh_l:
+    dtype: float
+    unit: ''
+    group: calibration
 defaults:
   plots:
     - Echo_Integrals
