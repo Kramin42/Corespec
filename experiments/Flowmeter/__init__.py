@@ -198,15 +198,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         try:
             return {
-                'prop_t': np.array(self.prop_t),
-                'prop_water': np.array(self.prop_water),
-                'prop_oil': np.array(self.prop_oil),
-                'prop_gas': np.array(self.prop_gas),
+                'prop_t': np.array(self.prop_t, dtype=np.float32),
+                'prop_water': np.array(self.prop_water, dtype=np.float32),
+                'prop_oil': np.array(self.prop_oil, dtype=np.float32),
+                'prop_gas': np.array(self.prop_gas, dtype=np.float32),
                 'prop_unit': '%',
-                'flow_t': np.array(self.flow_t),
-                'flow_water': np.array(self.flow_water),
-                'flow_oil': np.array(self.flow_oil),
-                'flow_gas': np.array(self.flow_gas),
+                'flow_t': np.array(self.flow_t, dtype=np.float32),
+                'flow_water': np.array(self.flow_water, dtype=np.float32),
+                'flow_oil': np.array(self.flow_oil, dtype=np.float32),
+                'flow_gas': np.array(self.flow_gas, dtype=np.float32),
                 'time_unit': 's',
                 'flow_unit': 'm^3/day'}
         except AttributeError:
