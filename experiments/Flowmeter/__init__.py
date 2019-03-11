@@ -126,6 +126,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             percent_gas = 100 * (full_initial_amp - initial_amp) / full_initial_amp
             if percent_gas < 0:  # not possible, so assume that it is all water/oil
                 percent_gas = 0
+            elif percent_gas > 100:  # also not possible
+                percent_gas = 100
             percent_water -= 0.01 * percent_gas * percent_water
             percent_oil -= 0.01 * percent_gas * percent_oil
 
