@@ -2,8 +2,8 @@
 
 ## [1.1.13] - 2019-03-12
 ### Added
-- Flowmeter and Flow_T2 experiments now take the parameters flow_crop,
-  flow_thresh_l, and flow_thresh_h to define the region of the CPMG curve
+- Flowmeter and Flow_T2 experiments now take the parameters flow\_crop,
+  flow\_thresh\_l, and flow\_thresh\_h to define the region of the CPMG curve
   to be linearly fit. Use 0, 0.0, and 1.0 respectively to fit the whole curve.
 
 
