@@ -9,7 +9,7 @@
 
 ## [1.1.12] - 2019-03-09
 ### Added
-- Flowmeter experiment, and separate high-level UI at <domain>/flowmeter.
+- Flowmeter experiment, and separate high-level UI at /flowmeter.
   Parameters must be saved to a parameter set named 'flowmeter' from the
   Flowmeter experiment for the high-level UI to run.
 
