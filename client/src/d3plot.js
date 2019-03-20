@@ -57,21 +57,27 @@ export function d3plot_contour(svg, plotDef) {
   //   })}
   // }
 
-  var contours = d3.contours().size([x.length, y.length])(z)
-  var colour = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
+  var contours = d3.contours().size([x.length, y.length])
+  var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
+  const path = d3.geoPath();
 
   var g = svg.append('g')
     .attr('transform', 'translate('+margin.left+','+margin.top+')')
 
-  g.append('g')
-      .attr('fill', 'none')
-      .attr('stroke', '#fff')
-      .attr('stroke-opacity', 0.5)
-    .selectAll('path')
-    .data(contours)
-    .join('path')
-      .attr('fill', d => colour(d.value))
-      .attr('d', d3.geoPath())
+  for (const threshold of color.ticks(20)) {
+    g.append('path')
+      .attr('d', path(contours.contour(z, threshold)))
+      .attr('fill', color(threshold))
+  }
+  // g.append('g')
+  //     .attr('fill', 'none')
+  //     .attr('stroke', '#fff')
+  //     .attr('stroke-opacity', 0.5)
+  //   .selectAll('path')
+  //   .data(contours)
+  //   .join('path')
+  //     .attr('fill', d => colour(d.value))
+  //     .attr('d', d3.geoPath())
 }
 
 export function d3plot(svg, plotDef) {

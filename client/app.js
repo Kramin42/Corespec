@@ -50432,16 +50432,47 @@ function d3plot_contour(svg, plotDef) {
   //   })}
   // }
 
-  var contours = d3.contours().size([x.length, y.length])(z);
-  var colour = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
+  var contours = d3.contours().size([x.length, y.length]);
+  var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
     return d3.interpolateRgb('#ffffff', '#000000');
   });
+  var path = d3.geoPath();
 
   var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-  g.append('g').attr('fill', 'none').attr('stroke', '#fff').attr('stroke-opacity', 0.5).selectAll('path').data(contours).join('path').attr('fill', function (d) {
-    return colour(d.value);
-  }).attr('d', d3.geoPath());
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = color.ticks(20)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var threshold = _step.value;
+
+      g.append('path').attr('d', path(contours.contour(z, threshold))).attr('fill', color(threshold));
+    }
+    // g.append('g')
+    //     .attr('fill', 'none')
+    //     .attr('stroke', '#fff')
+    //     .attr('stroke-opacity', 0.5)
+    //   .selectAll('path')
+    //   .data(contours)
+    //   .join('path')
+    //     .attr('fill', d => colour(d.value))
+    //     .attr('d', d3.geoPath())
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
 }
 
 function d3plot(svg, plotDef) {
