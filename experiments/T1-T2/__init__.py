@@ -142,7 +142,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
                 'yaxis': {'title': 'V'}
             }}
 
-    def plot_2d(self):
+    def plot_2D(self):
         data = self.export_2D()
         return {'data': [{
             'name': '',

@@ -7,6 +7,73 @@ d3.xyzoom = xyzoom;
 d3.xyzoomTransform = xyzoomTransform;
 d3.xyzoomIdentity = xyzoomIdentity;
 
+function zip(arrays) {
+  return arrays[0].map(function(_,i){
+      return arrays.map(function(array){return array[i]})
+  });
+}
+
+function xyzip(xs, ys) {
+  var zipped = []
+  for (var i=0; i<xs.length; i++) {
+    zipped[i] = {x: xs[i], y: ys[i]}
+  }
+  return zipped
+}
+
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  )
+}
+
+export function d3plot_contour(svg, plotDef) {
+  var MAX_DISPLAY_POINTS = 1000
+  var width = 600
+  var height = 400
+  var margin = {left: 60, right: 20, top: 30, bottom: 40}
+  var f_w = 60
+  var f_h = 13
+  var fontS = 12
+  var fontM = 14
+  var fontL = 16
+  var w = width-margin.left-margin.right
+  var h = height-margin.top-margin.bottom
+  svg.selectAll('*').remove()
+  svg.attr('viewBox', '0 0 '+width+' '+height)
+
+  var x = plotDef.data[0].x
+  var y = plotDef.data[0].y
+  var z = plotDef.data[0].z
+
+  // transform = ({type, value, coordinates}) => {
+  //   return {type, value, coordinates: coordinates.map(rings => {
+  //     return rings.map(points => {
+  //       return points.map(([x, y]) => ([
+  //         grid.x + grid.k * x,
+  //         grid.y + grid.k * y
+  //       ]))
+  //     })
+  //   })}
+  // }
+
+  var contours = d3.contours().size([x.length, y.length])(z)
+  var colour = d3.domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
+
+  var g = svg.append('g')
+    .attr('transform', 'translate('+margin.left+','+margin.top+')')
+
+  g.append('g')
+      .attr('fill', 'none')
+      .attr('stroke', '#fff')
+      .attr('stroke-opacity', 0.5)
+    .selectAll('path')
+    .data(contours)
+    .join('path')
+      .attr('fill', d => colour(d.value))
+      .attr('d', d3.geoPath())
+}
+
 export default function d3plot(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000
   var width = 600
@@ -85,49 +152,6 @@ export default function d3plot(svg, plotDef) {
   var g = svg.append('g')
     .attr('transform', 'translate('+margin.left+','+margin.top+')')
     .append('g')
-//    .on("mousedown", function() {
-//      var e = d3.event.currentTarget,
-//          origin = d3.mouse(e),
-//          rect = g.append("rect").attr("class", "zoom");
-//      d3.select("body").classed("noselect", true);
-//      origin[0] = Math.max(0, Math.min(w, origin[0]));
-//      origin[1] = Math.max(0, Math.min(h, origin[1]));
-//      d3.select(window)
-//          .on("mousemove.zoomRect", function() {
-//            var m = d3.mouse(e);
-//            m[0] = Math.max(0, Math.min(w, m[0]));
-//            m[1] = Math.max(0, Math.min(h, m[1]));
-//            rect.attr("x", Math.min(origin[0], m[0]))
-//                .attr("y", Math.min(origin[1], m[1]))
-//                .attr("width", Math.abs(m[0] - origin[0]))
-//                .attr("height", Math.abs(m[1] - origin[1]));
-//          })
-//          .on("mouseup.zoomRect", function() {
-//            d3.select(window).on("mousemove.zoomRect", null).on("mouseup.zoomRect", null);
-//            d3.select("body").classed("noselect", false);
-//            var m = d3.mouse(e);
-//            m[0] = Math.max(0, Math.min(w, m[0]));
-//            m[1] = Math.max(0, Math.min(h, m[1]));
-//            if (m[0] !== origin[0] && m[1] !== origin[1]) {
-//              //zoom.x(scale_x.domain([origin[0], m[0]].map(scale_x.invert).sort()))
-//              //    .y(scale_y.domain([origin[1], m[1]].map(scale_y.invert).sort()));
-//              var left = Math.min(m[0],origin[0])
-//              var right = Math.max(m[0],origin[0])
-//              var bottom = Math.max(m[1],origin[1])
-//              var top = Math.min(m[1],origin[1])
-//              console.log([left,right,top,bottom])
-//              var old_t = d3.xyzoomTransform(g.node())
-//              var new_t = d3.xyzoomIdentity
-//                .scale(old_t.kx*w/(right-left),old_t.ky*h/(bottom-top))
-//                .translate((old_t.x-left)/old_t.kx, (old_t.y-top)/old_t.ky)
-//              console.log(new_t)
-//              zoom.transform(g, new_t)
-//              //g.call(zoom.transform, new_t)
-//            }
-//            rect.remove();
-//          }, true);
-//      d3.event.stopPropagation();
-//    });
 
   //title
   if (plotDef.layout.title) {
@@ -147,14 +171,6 @@ export default function d3plot(svg, plotDef) {
     .attr('height', h)
     .attr('fill', 'white')
     .attr('stroke', 'black')
-//  g.append('line')
-//    .attr('class', 'border')
-//    .attr('x1', 0).attr('y1', 0)
-//    .attr('x2', w).attr('y2', 0)
-//  g.append('line')
-//    .attr('class', 'border')
-//    .attr('x1', w).attr('y1', 0)
-//    .attr('x2', w).attr('y2', h)
 
   // plot area clip
   var clipID = uuidv4()
@@ -210,21 +226,16 @@ export default function d3plot(svg, plotDef) {
 
   //legends
   var legends = []
-  //var prevLegendBBox = null
   for (var i=0; i<data.length; i++) {
     if (dataLabels[i]) {
       var offsetY = fontS/2 + i*1.5*fontS
       var offsetX = -fontS/2
-      //if (prevLegendBBox) {
-        //offsetY = prevLegendBBox.y + prevLegendBBox.height + fontS
-      //}
       var legend = g.append('g')
         .attr('class', 'legend')
       var txt = legend.append('text')
         .text(dataLabels[i])
         .attr('font-size', fontS)
         .attr('dy', '0.85em')
-      //  .call(wrap, margin.right-2)
       var txtlen = txt.node().getComputedTextLength()
       txt.attr('x', w+offsetX-txtlen).attr('y', offsetY)
       legend.append('rect')
@@ -232,7 +243,6 @@ export default function d3plot(svg, plotDef) {
         .attr('width', fontS).attr('height', fontS)
         .attr('fill', plotColors[i%numPlotColors])
       legends.push(legend)
-      //prevLegendBBox = legend.node().getBBox()
     }
   }
 
@@ -294,7 +304,6 @@ export default function d3plot(svg, plotDef) {
     .attr('width', w)
     .attr('height', h)
     .call(zoom)
-    //.on('mouseover', () => {g.selectAll('.focus').style('display', null)})
     .on('mouseout', () => {g.selectAll('.focus').style('display', 'none')})
     .on('mousemove', update_hover)
 
@@ -304,7 +313,6 @@ export default function d3plot(svg, plotDef) {
     .attr('height', margin.bottom)
     .attr('transform', 'translate('+0+','+h+')')
     .call(zoom_x)
-    //.on('mouseover', () => {g.selectAll('.focus').style('display', null)})
     .on('mouseout', () => {g.selectAll('.focus').style('display', 'none')})
     .on('mousemove', update_hover)
 
@@ -361,13 +369,11 @@ export default function d3plot(svg, plotDef) {
           var p_min = cut_data[i].slice(j, j+decimation).reduce(y_minimiser)
           dec_data.push(p_min)
           dec_data.push(p_max)
-          //dec_data.push(cut_data[i][j])
         }
         cut_data[i] = dec_data
       }
 
       plotPaths[i].datum(cut_data[i])
-      //plotPaths[i].datum(simplify(data[i], 0.1))
     }
     line.x(d => scale_x(d.x).toFixed(2))
         .y(d => scale_y(d.y).toFixed(2))
@@ -404,8 +410,6 @@ export default function d3plot(svg, plotDef) {
       }
       lineFoci[i].select('rect').attr('x', f_x).attr('y', f_y)
       lineFoci[i].select('text').attr('x', f_x).attr('y', f_y).text(focusFormat(p.y))
-      //var txtlen = lineFoci[i].select('text').node().getComputedTextLength()
-      //lineFoci[i].select('rect').attr('width', txtlen+fontS/2)
       prev_f_y = f_y
       g.selectAll('.focus').style('display', null)
     }
@@ -430,7 +434,7 @@ export default function d3plot(svg, plotDef) {
               lineHeight = 1.1, // ems
               x = text.attr("x"),
               y = text.attr("y"),
-              dy = 0, //parseFloat(text.attr("dy")),
+              dy = 0,
               tspan = text.text(null)
                           .append("tspan")
                           .attr("x", x)
@@ -451,28 +455,5 @@ export default function d3plot(svg, plotDef) {
               }
           }
       });
-  }
-
-  function zip(arrays) {
-    return arrays[0].map(function(_,i){
-        return arrays.map(function(array){return array[i]})
-    });
-  }
-
-  function xyzip(xs, ys) {
-//    return xs.map(function(_,i){
-//      return {x: xs[i], y: ys[i]}
-//    })
-    var zipped = []
-    for (var i=0; i<xs.length; i++) {
-      zipped[i] = {x: xs[i], y: ys[i]}
-    }
-    return zipped
-  }
-
-  function uuidv4() {
-    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-    )
   }
 }

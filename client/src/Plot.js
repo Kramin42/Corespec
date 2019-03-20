@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 
 import generateId from './util/generateId';
 import {decode_plot_data} from './util/decode'
-import d3plot from './d3plot';
+import {d3plot, d3plot_contour} from './d3plot';
 import './css/d3plot.css';
 
 import './css/Plot.css';
@@ -44,7 +44,11 @@ export default class Plot extends React.Component {
       })
       .then(result => {
         result.data = decode_plot_data(result.data);
-        d3plot(d3.select('#'+this.svgid), result);
+        if (result.data[0].type === 'contour') {
+          d3plot_contour(d3.select('#'+this.svgid), result);
+        } else {
+          d3plot(d3.select('#'+this.svgid), result);
+        }
       })
       .catch(err => {
         console.log(err);
