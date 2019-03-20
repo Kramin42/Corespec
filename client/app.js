@@ -50436,7 +50436,17 @@ function d3plot_contour(svg, plotDef) {
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
     return d3.interpolateRgb('#ffffff', '#000000');
   });
-  var path = d3.geoPath();
+
+  var base_scale_x = d3.scaleLinear().domain([d3.min(x), d3.max(x)]).range([0, w]);
+  var base_scale_y = d3.scaleLinear().domain([d3.min(y), d3.max(y)]).range([h, 0]);
+  var scale_x = base_scale_x.copy();
+  var scale_y = base_scale_y.copy();
+
+  var path = d3.geoPath().x(function (d) {
+    return scale_x(d.x);
+  }).y(function (d) {
+    return scale_y(d.y);
+  });
 
   var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
