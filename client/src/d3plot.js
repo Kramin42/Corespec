@@ -74,7 +74,7 @@ export function d3plot_contour(svg, plotDef) {
       .attr('d', d3.geoPath())
 }
 
-export default function d3plot(svg, plotDef) {
+export function d3plot(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000
   var width = 600
   var height = 400

@@ -50363,7 +50363,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.d3plot_contour = d3plot_contour;
-exports.default = d3plot;
+exports.d3plot = d3plot;
 
 var _d = require('d3');
 
