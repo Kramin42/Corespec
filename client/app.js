@@ -50442,7 +50442,7 @@ function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy();
   var scale_y = base_scale_y.copy();
 
-  var path = d3.geoPath().x(function (d) {
+  var path = d3.line().x(function (d) {
     return scale_x(d.x);
   }).y(function (d) {
     return scale_y(d.y);

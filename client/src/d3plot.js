@@ -69,7 +69,7 @@ export function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy()
   var scale_y = base_scale_y.copy()
 
-  var path = d3.geoPath()
+  var path = d3.line()
     .x(d => scale_x(d.x))
     .y(d => scale_y(d.y))
 
