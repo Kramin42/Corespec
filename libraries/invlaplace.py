@@ -56,10 +56,10 @@ def getT1T2Spectrum(_t_inv, _t_cpmg, _Z, _E, T1, T2, alpha=1, cpmg_pts=100):
     t = np.zeros((1, cpmg_pts))
 
     for i in range(_t_inv.shape[0]):
-        t, Z[i], E[i], weights = compress(_t_cpmg[0, :], _Z[i], _E[i], cpmg_pts)
+        t, Z[i], E[i], weights = compress(_t_cpmg, _Z[i], _E[i], cpmg_pts)
     t = t.transpose()
 
-    tau1 = _t_inv
+    tau1 = _t_inv[:, np.newaxis]
     tau2 = t[:, np.newaxis]
     K1 = 1 - 2 * np.exp(-tau1 / T1)
     K2 = np.exp(-tau2 / T2)

@@ -91,8 +91,9 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         N = 100  # TODO: parameterise
         T1 = np.logspace(-5, 2, N, endpoint=False)[np.newaxis, :]
         T2 = np.logspace(-5, 2, N, endpoint=False)[np.newaxis, :]
-
-        S, res = getT1T2Spectrum(data['inv_time'], data['cpmg_time'], data['real'], data['imag'], T1, T2, alpha=1, cpmg_pts=100)
+        t_inv = data['inv_time'][:, 0]
+        t_cpmg = data['cpmg_time']
+        S, res = getT1T2Spectrum(t_inv, t_cpmg, data['real'], data['imag'], T1, T2, alpha=1, cpmg_pts=100)
 
         return {
             'T1': T1,
