@@ -50433,7 +50433,7 @@ function d3plot_contour(svg, plotDef) {
   // }
 
   var contours = d3.contours().size([x.length, y.length])(z);
-  var colour = d3.domain(d3.extent(z)).interpolate(function (d) {
+  var colour = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
     return d3.interpolateRgb('#ffffff', '#000000');
   });
 
@@ -50759,6 +50759,7 @@ function decode_plot_data(data) {
   for (var i = 0; i < data.length; i++) {
     data[i].x = decode_data(data[i].x);
     data[i].y = decode_data(data[i].y);
+    if (data[i].z) data[i].z = decode_data(data[i].z);
   }
   return data;
 }

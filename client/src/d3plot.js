@@ -58,7 +58,7 @@ export function d3plot_contour(svg, plotDef) {
   // }
 
   var contours = d3.contours().size([x.length, y.length])(z)
-  var colour = d3.domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
+  var colour = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
 
   var g = svg.append('g')
     .attr('transform', 'translate('+margin.left+','+margin.top+')')

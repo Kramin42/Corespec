@@ -18,6 +18,7 @@ function decode_plot_data(data) {
   for (let i=0; i<data.length; i++) {
     data[i].x = decode_data(data[i].x)
     data[i].y = decode_data(data[i].y)
+    if (data[i].z) data[i].z = decode_data(data[i].z)
   }
   return data
 }
