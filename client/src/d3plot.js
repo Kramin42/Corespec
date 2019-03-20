@@ -57,7 +57,8 @@ export function d3plot_contour(svg, plotDef) {
   //   })}
   // }
 
-  var contours = d3.contours().size([x.length, y.length])
+  var contours = d3.contours().size([x.length, y.length])(z)
+  console.log(contours)
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
 
   var base_scale_x = d3.scaleLinear()
@@ -69,16 +70,14 @@ export function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy()
   var scale_y = base_scale_y.copy()
 
-  var path = d3.line()
-    .x(d => scale_x(d.x))
-    .y(d => scale_y(d.y))
+  var path = d3.geoPath()
 
   var g = svg.append('g')
     .attr('transform', 'translate('+margin.left+','+margin.top+')')
 
-  for (const threshold of color.ticks(20)) {
+  for (const contour of contours) {
     g.append('path')
-      .attr('d', path(contours.contour(z, threshold)))
+      .attr('d', path(contour))
       .attr('fill', color(threshold))
   }
   // g.append('g')

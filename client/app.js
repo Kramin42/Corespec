@@ -50432,7 +50432,8 @@ function d3plot_contour(svg, plotDef) {
   //   })}
   // }
 
-  var contours = d3.contours().size([x.length, y.length]);
+  var contours = d3.contours().size([x.length, y.length])(z);
+  console.log(contours);
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
     return d3.interpolateRgb('#ffffff', '#000000');
   });
@@ -50442,11 +50443,7 @@ function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy();
   var scale_y = base_scale_y.copy();
 
-  var path = d3.line().x(function (d) {
-    return scale_x(d.x);
-  }).y(function (d) {
-    return scale_y(d.y);
-  });
+  var path = d3.geoPath();
 
   var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -50455,10 +50452,10 @@ function d3plot_contour(svg, plotDef) {
   var _iteratorError = undefined;
 
   try {
-    for (var _iterator = color.ticks(20)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var threshold = _step.value;
+    for (var _iterator = contours[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var contour = _step.value;
 
-      g.append('path').attr('d', path(contours.contour(z, threshold))).attr('fill', color(threshold));
+      g.append('path').attr('d', path(contour)).attr('fill', color(threshold));
     }
     // g.append('g')
     //     .attr('fill', 'none')
