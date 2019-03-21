@@ -72,7 +72,9 @@ export function d3plot_contour(svg, plotDef) {
 
   var path = d3.geoPath().projection(
     d3.geoTransform({
-      point: (x, y) => this.stream.point(scale_x(x), scale_y(y))
+      point: function(x, y) {
+        return this.stream.point(scale_x(x), scale_y(y))
+      }
     })
   )
 

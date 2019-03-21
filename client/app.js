@@ -50403,8 +50403,6 @@ function uuidv4() {
 }
 
 function d3plot_contour(svg, plotDef) {
-  var _this = this;
-
   var MAX_DISPLAY_POINTS = 1000;
   var width = 600;
   var height = 400;
@@ -50447,7 +50445,7 @@ function d3plot_contour(svg, plotDef) {
 
   var path = d3.geoPath().projection(d3.geoTransform({
     point: function point(x, y) {
-      return _this.stream.point(scale_x(x), scale_y(y));
+      return this.stream.point(scale_x(x), scale_y(y));
     }
   }));
 
