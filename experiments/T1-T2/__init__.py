@@ -155,8 +155,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             'z': data['S']}],
             'layout': {
                 'title': 'T1-T2 map',
-                'xaxis': {'title': 'T2'},
-                'yaxis': {'title': 'T1'}
+                'xaxis': {'title': 'T2 (s)'},
+                'yaxis': {'title': 'T1 (s)'}
             }}
 
     def raw_data(self):
