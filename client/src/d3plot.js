@@ -46,9 +46,9 @@ export function d3plot_contour(svg, plotDef) {
   var y = plotDef.data[0].y
   var z = plotDef.data[0].z
 
-  var contours = d3.contours().size([x.length, y.length])(z)
+  var contours = d3.contours().size([x.length, y.length]).thresholds(20)(z)
   console.log(contours)
-  var color = d3.scaleLog().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
+  var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
 
   var scale_x = d3.scaleLinear()
     .domain([0,x.length])

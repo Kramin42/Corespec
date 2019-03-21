@@ -50423,9 +50423,9 @@ function d3plot_contour(svg, plotDef) {
   var y = plotDef.data[0].y;
   var z = plotDef.data[0].z;
 
-  var contours = d3.contours().size([x.length, y.length])(z);
+  var contours = d3.contours().size([x.length, y.length]).thresholds(20)(z);
   console.log(contours);
-  var color = d3.scaleLog().domain(d3.extent(z)).interpolate(function (d) {
+  var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
     return d3.interpolateRgb('#ffffff', '#000000');
   });
 
