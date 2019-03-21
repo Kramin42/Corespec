@@ -88,7 +88,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
 
     def export_2D(self):
         data = self.export_Raw()
-        if data.shape()[0] < int(self.par['steps']):
+        if data['real'].shape()[0] < int(self.par['steps']):
             raise Exception('2D data not ready!')
         N = 20  # TODO: parameterise
         T1 = np.logspace(-4, 1, N, endpoint=False)[np.newaxis, :]
