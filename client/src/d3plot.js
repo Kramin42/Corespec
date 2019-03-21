@@ -57,12 +57,12 @@ export function d3plot_contour(svg, plotDef) {
     .domain([0,y.length])
     .range([h,0]);
 
-  var SITickFormatX = d3.format('.4~s')
-  var SITickFormatY = d3.format('.3~s')
-  var SIFocusFormat = d3.format('.5~s')
-  var tickFormatX = (val) => {return SITickFormatX(val).replace(/µ/,'\u03bc')}
-  var tickFormatY = (val) => {return SITickFormatY(val).replace(/µ/,'\u03bc')}
-  var focusFormat = (val) => {return SIFocusFormat(val).replace(/µ/,'\u03bc')}
+  //var SITickFormatX = d3.format('.4~s')
+  //var SITickFormatY = d3.format('.3~s')
+  //var SIFocusFormat = d3.format('.5~s')
+  //var tickFormatX = (val) => {return SITickFormatX(val).replace(/µ/,'\u03bc')}
+  //var tickFormatY = (val) => {return SITickFormatY(val).replace(/µ/,'\u03bc')}
+  //var focusFormat = (val) => {return SIFocusFormat(val).replace(/µ/,'\u03bc')}
 
   var axis_scale_x = d3.scaleLog()
     .domain([d3.min(x), d3.max(x)])
@@ -73,11 +73,13 @@ export function d3plot_contour(svg, plotDef) {
   var axis_x = d3.axisBottom()
     .scale(axis_scale_x)
     .ticks()
-    .tickFormat(5, tickFormatX)
+    .tickFormat('.4~s')
+    .nice()
   var axis_y = d3.axisLeft()
     .scale(axis_scale_y)
     .ticks()
-    .tickFormat(5, tickFormatY)
+    .tickFormat('.3~s')
+    .nice()
 
   var path = d3.geoPath().projection(
     d3.geoTransform({
