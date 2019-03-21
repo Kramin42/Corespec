@@ -62,10 +62,10 @@ export function d3plot_contour(svg, plotDef) {
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
 
   var base_scale_x = d3.scaleLinear()
-    .domain([d3.min(x),d3.max(x)])
+    .domain([0,x.length])
     .range([0,w]);
   var base_scale_y = d3.scaleLinear()
-    .domain([d3.min(y),d3.max(y)])
+    .domain([0,y.length])
     .range([h,0]);
   var scale_x = base_scale_x.copy()
   var scale_y = base_scale_y.copy()
