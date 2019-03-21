@@ -72,12 +72,12 @@ export function d3plot_contour(svg, plotDef) {
     .range([h,0]);
   var axis_x = d3.axisBottom()
     .scale(axis_scale_x)
-    .ticks(8)
-    .tickFormat(tickFormatX)
+    .ticks()
+    .tickFormat(5, tickFormatX)
   var axis_y = d3.axisLeft()
     .scale(axis_scale_y)
-    .ticks(8)
-    .tickFormat(tickFormatY)
+    .ticks()
+    .tickFormat(5, tickFormatY)
 
   var path = d3.geoPath().projection(
     d3.geoTransform({
