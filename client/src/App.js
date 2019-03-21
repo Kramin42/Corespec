@@ -127,7 +127,9 @@ export default class App extends React.Component {
     }
 
     if (['message', 'warning', 'error'].includes(data.type)) {
-      this.message(data.message, data.type);
+      if (!data.silent) {
+        this.message(data.message, data.type);
+      }
     }
 
     if (data.type === 'progress') {

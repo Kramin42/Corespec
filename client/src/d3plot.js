@@ -46,17 +46,6 @@ export function d3plot_contour(svg, plotDef) {
   var y = plotDef.data[0].y
   var z = plotDef.data[0].z
 
-  // transform = ({type, value, coordinates}) => {
-  //   return {type, value, coordinates: coordinates.map(rings => {
-  //     return rings.map(points => {
-  //       return points.map(([x, y]) => ([
-  //         grid.x + grid.k * x,
-  //         grid.y + grid.k * y
-  //       ]))
-  //     })
-  //   })}
-  // }
-
   var contours = d3.contours().size([x.length, y.length])(z)
   console.log(contours)
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
@@ -70,6 +59,22 @@ export function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy()
   var scale_y = base_scale_y.copy()
 
+  var SITickFormatX = d3.format('.4~s')
+  var SITickFormatY = d3.format('.3~s')
+  var SIFocusFormat = d3.format('.5~s')
+  var tickFormatX = (val) => {return SITickFormatX(val).replace(/µ/,'\u03bc')}
+  var tickFormatY = (val) => {return SITickFormatY(val).replace(/µ/,'\u03bc')}
+  var focusFormat = (val) => {return SIFocusFormat(val).replace(/µ/,'\u03bc')}
+
+  var axis_x = d3.axisBottom()
+    .scale(scale_x)
+    .ticks(10)
+    .tickFormat(tickFormatX)
+  var axis_y = d3.axisLeft()
+    .scale(scale_y)
+    .ticks(10)
+    .tickFormat(tickFormatY)
+
   var path = d3.geoPath().projection(
     d3.geoTransform({
       point: function(x, y) {
@@ -81,10 +86,65 @@ export function d3plot_contour(svg, plotDef) {
   var g = svg.append('g')
     .attr('transform', 'translate('+margin.left+','+margin.top+')')
 
+  //title
+  if (plotDef.layout.title) {
+    svg.append('text')
+      .attr('class', 'title')
+      .attr('font-size', fontL)
+      .attr('fill', '#333')
+      .attr('x', width/2)
+      .attr('y', margin.top/2 + fontL/2)
+      .style('text-anchor', 'middle')
+      .text(plotDef.layout.title)
+  }
+
+  //white fill and border
+  g.append('rect')
+    .attr('width', w)
+    .attr('height', h)
+    .attr('fill', 'white')
+    .attr('stroke', 'black')
+
+  // plot area clip
+  var clipID = uuidv4()
+  g.append('clipPath')
+    .attr('id', clipID)
+    .append('rect')
+    .attr('width', w)
+    .attr('height', h)
+
   for (const contour of contours) {
     g.append('path')
       .attr('d', path(contour))
       .attr('fill', color(contour.value))
+      .attr('clip-path', 'url(#'+clipID+')')
+  }
+
+  // axes
+  var axis_x_g = g.append('g')
+    .attr("class", "x axis")
+    .attr("transform", "translate(-0.5," + (h-0.5) + ")")
+    .call(axis_x)
+  if (plotDef.layout.xaxis) {
+    axis_x_g.append('text')
+      .attr('font-size', fontM)
+      .attr('dx', w/2)
+      .attr('dy', margin.bottom-fontM/4)
+      .style('text-anchor', 'middle')
+      .text(plotDef.layout.xaxis.title)
+  }
+  var axis_y_g = g.append('g')
+    .attr("class", "y axis")
+    .attr("transform", "translate(-0.5," + (-0.5) + ")")
+    .call(axis_y)
+  if (plotDef.layout.yaxis) {
+  axis_y_g.append('text')
+    .attr('font-size', fontM)
+    .attr('transform', 'rotate(-90)')
+    .attr('dx', -h/2)
+    .attr('dy', -margin.left+fontM)
+    .style('text-anchor', 'middle')
+    .text(plotDef.layout.yaxis.title)
   }
   // g.append('g')
   //     .attr('fill', 'none')

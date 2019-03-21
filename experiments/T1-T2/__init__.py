@@ -160,6 +160,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             }}
 
     def raw_data(self):
+        if self.data is None:
+            raise Exception('Data not ready!')
         return self.data
 
     def autophase(self, data):

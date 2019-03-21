@@ -187,6 +187,7 @@ async def consumer(websocket, message):
                 'result': result
             }))
         except Exception as e:
+            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e), 'silent': True}))
             logger.exception(e)
     elif data['type'] == 'command':
         try:
@@ -197,7 +198,7 @@ async def consumer(websocket, message):
                 'ref': data['ref'],
             }))
         except Exception as e:
-            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e)}))
+            await websocket.send(json.dumps({'type': 'error', 'ref': data['ref'], 'message': str(e), 'silent': False}))
             logger.exception(e)
     logger.debug('handled request in %s seconds' % (time.time() - t_i))
 
