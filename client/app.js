@@ -50403,6 +50403,8 @@ function uuidv4() {
 }
 
 function d3plot_contour(svg, plotDef) {
+  var _this = this;
+
   var MAX_DISPLAY_POINTS = 1000;
   var width = 600;
   var height = 400;
@@ -50443,7 +50445,11 @@ function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy();
   var scale_y = base_scale_y.copy();
 
-  var path = d3.geoPath();
+  var path = d3.geoPath().projection(d3.geoTransform({
+    point: function point(x, y) {
+      return _this.stream.point(scale_x(x), scale_y(y));
+    }
+  }));
 
   var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
@@ -50455,7 +50461,7 @@ function d3plot_contour(svg, plotDef) {
     for (var _iterator = contours[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var contour = _step.value;
 
-      g.append('path').attr('d', path(contour)).attr('fill', color(threshold));
+      g.append('path').attr('d', path(contour)).attr('fill', color(contour.value));
     }
     // g.append('g')
     //     .attr('fill', 'none')

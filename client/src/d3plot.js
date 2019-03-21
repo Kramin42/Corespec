@@ -70,7 +70,11 @@ export function d3plot_contour(svg, plotDef) {
   var scale_x = base_scale_x.copy()
   var scale_y = base_scale_y.copy()
 
-  var path = d3.geoPath()
+  var path = d3.geoPath().projection(
+    d3.geoTransform({
+      point: (x, y) => this.stream.point(scale_x(x), scale_y(y))
+    })
+  )
 
   var g = svg.append('g')
     .attr('transform', 'translate('+margin.left+','+margin.top+')')
@@ -78,7 +82,7 @@ export function d3plot_contour(svg, plotDef) {
   for (const contour of contours) {
     g.append('path')
       .attr('d', path(contour))
-      .attr('fill', color(threshold))
+      .attr('fill', color(contour.value))
   }
   // g.append('g')
   //     .attr('fill', 'none')
