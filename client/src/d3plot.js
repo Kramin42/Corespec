@@ -74,12 +74,10 @@ export function d3plot_contour(svg, plotDef) {
     .scale(axis_scale_x)
     .ticks()
     .tickFormat('.4~s')
-    .nice()
   var axis_y = d3.axisLeft()
     .scale(axis_scale_y)
     .ticks()
     .tickFormat('.3~s')
-    .nice()
 
   var path = d3.geoPath().projection(
     d3.geoTransform({
