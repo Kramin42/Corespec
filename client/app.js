@@ -50427,7 +50427,7 @@ function d3plot_contour(svg, plotDef) {
   console.log(contours);
   //var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
-    return d3.interpolateSinebow(t);
+    return d3.interpolateSinebow;
   });
 
   var scale_x = d3.scaleLinear().domain([0, x.length]).range([0, w]);
