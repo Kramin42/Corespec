@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.10] - 2019-03-21
+### Added
+- T1-T2 Experiment with 2D inversion laplace.
+### Removed
+- Pulse Calibration, Power Calibration is more useful
+
 ## [1.1.9] - 2018-12-17
 ### Added
 - Ability to change the WiFi password on the /admin page.
