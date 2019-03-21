@@ -50425,14 +50425,12 @@ function d3plot_contour(svg, plotDef) {
 
   var contours = d3.contours().size([x.length, y.length])(z);
   console.log(contours);
-  var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
+  var color = d3.scaleLog().domain(d3.extent(z)).interpolate(function (d) {
     return d3.interpolateRgb('#ffffff', '#000000');
   });
 
-  var base_scale_x = d3.scaleLinear().domain([0, x.length]).range([0, w]);
-  var base_scale_y = d3.scaleLinear().domain([0, y.length]).range([h, 0]);
-  var scale_x = base_scale_x.copy();
-  var scale_y = base_scale_y.copy();
+  var scale_x = d3.scaleLinear().domain([0, x.length]).range([0, w]);
+  var scale_y = d3.scaleLinear().domain([0, y.length]).range([h, 0]);
 
   var SITickFormatX = d3.format('.4~s');
   var SITickFormatY = d3.format('.3~s');
@@ -50447,8 +50445,10 @@ function d3plot_contour(svg, plotDef) {
     return SIFocusFormat(val).replace(/µ/, '\u03BC');
   };
 
-  var axis_x = d3.axisBottom().scale(scale_x).ticks(10).tickFormat(tickFormatX);
-  var axis_y = d3.axisLeft().scale(scale_y).ticks(10).tickFormat(tickFormatY);
+  var axis_scale_x = d3.scaleLog().domain([d3.min(x), d3.max(x)]).range([0, w]);
+  var axis_scale_y = d3.scaleLog().domain([d3.min(y), d3.max(y)]).range([h, 0]);
+  var axis_x = d3.axisBottom().scale(axis_scale_x).ticks(10).tickFormat(tickFormatX);
+  var axis_y = d3.axisLeft().scale(axis_scale_y).ticks(10).tickFormat(tickFormatY);
 
   var path = d3.geoPath().projection(d3.geoTransform({
     point: function point(x, y) {

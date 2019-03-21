@@ -90,7 +90,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         data = self.export_Raw()
         if data['real'].shape[0] < int(self.par['steps']):
             raise Exception('2D data not ready!')
-        N = 20  # TODO: parameterise
+        N = 50  # TODO: parameterise
         T1 = np.logspace(-4, 1, N, endpoint=False)[np.newaxis, :]
         T2 = np.logspace(-4, 1, N, endpoint=False)[np.newaxis, :]
         t_inv = data['inv_time'][:, 0]
