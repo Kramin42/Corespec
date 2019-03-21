@@ -64,7 +64,7 @@ def getT1T2Spectrum(_t_inv, _t_cpmg, _Z, _E, T1, T2, alpha=1, cpmg_pts=100):
     K1 = 1 - 2 * np.exp(-tau1 / T1)
     K2 = np.exp(-tau2 / T2)
 
-    S, res = flint(K1, K2, Z, alpha, fast=False)
+    S, res = flint(K1, K2, Z, alpha, fast=True)
 
     return S
 

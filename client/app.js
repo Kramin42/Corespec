@@ -50447,8 +50447,8 @@ function d3plot_contour(svg, plotDef) {
 
   var axis_scale_x = d3.scaleLog().domain([d3.min(x), d3.max(x)]).range([0, w]);
   var axis_scale_y = d3.scaleLog().domain([d3.min(y), d3.max(y)]).range([h, 0]);
-  var axis_x = d3.axisBottom().scale(axis_scale_x).ticks(3).tickFormat(tickFormatX);
-  var axis_y = d3.axisLeft().scale(axis_scale_y).ticks(3).tickFormat(tickFormatY);
+  var axis_x = d3.axisBottom().scale(axis_scale_x).ticks(20).tickFormat(tickFormatX);
+  var axis_y = d3.axisLeft().scale(axis_scale_y).ticks(20).tickFormat(tickFormatY);
 
   var path = d3.geoPath().projection(d3.geoTransform({
     point: function point(x, y) {
