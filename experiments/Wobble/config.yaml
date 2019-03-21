@@ -3,3 +3,5 @@ description:
   A Wobble experiment.
 programs:
   - Wobble
+defaults:
+  order: 2

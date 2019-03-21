@@ -19,3 +19,4 @@ defaults:
   plots:
     - CPMG
     - T1
+  order: 9

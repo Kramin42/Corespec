@@ -24,3 +24,4 @@ defaults:
   plots:
     - FID
     - Calibration
+  order: 4

@@ -7,3 +7,4 @@ defaults:
   plots:
     - Raw
     - FT
+  order: 3

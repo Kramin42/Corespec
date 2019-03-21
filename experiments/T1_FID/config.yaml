@@ -24,3 +24,4 @@ defaults:
   plots:
     - FID
     - T1
+  order: 7

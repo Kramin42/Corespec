@@ -91,8 +91,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         if data['real'].shape[0] < int(self.par['steps']):
             raise Exception('2D data not ready!')
         N = 50  # TODO: parameterise
-        T1 = np.logspace(-5, 2, N, endpoint=False)[np.newaxis, :]
-        T2 = np.logspace(-5, 2, N, endpoint=False)[np.newaxis, :]
+        T1 = np.logspace(-4, 1, N, endpoint=False)[np.newaxis, :]
+        T2 = np.logspace(-4, 1, N, endpoint=False)[np.newaxis, :]
         t_inv = data['inv_time'][:, 0]
         t_cpmg = data['cpmg_time']
         S = getT1T2Spectrum(t_inv, t_cpmg, data['real'], data['imag'], T1, T2, alpha=1, cpmg_pts=50)

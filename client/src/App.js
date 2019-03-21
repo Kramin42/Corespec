@@ -200,15 +200,21 @@ export default class App extends React.Component {
           },
           P: {group: 'advanced'},
           I: {group: 'advanced'}
-        }
+        },
+        'defaults': {'order': 0}
       }
     ];
 
     const allTabs = fixedTabs.concat(this.state.experiments).map((exp, i) => {
       exp.canrun = !this.state.runningExperiment;
       exp.running = this.state.runningExperimentIndex == i;
+      if (exp.defaults!==undefined && exp.defaults.order!==undefined) {
+        exp.order = exp.defaults.order;
+      } else {
+        exp.order = 1000;
+      }
       return exp;
-    });
+    }).sort((a, b) => a.order>b.order ? 1 : (a.order<b.order ? -1 : 0));
 
     return (
       <div className="app-container">

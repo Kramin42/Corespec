@@ -83,7 +83,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         echo_time = self.par['echo_time'] / 1000000.0  # μs -> s
         Y = self.autophase(self.integrated_data())
         t = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
-        T2 = np.logspace(-5, 2, 200, endpoint=False)  # TODO: add parameters for T2 range/points
+        T2 = np.logspace(-4, 1, 200, endpoint=False)  # TODO: add parameters for T2 range/points
         S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=10)  # TODO: determine alpha automatically
         return {
             'x': T2,

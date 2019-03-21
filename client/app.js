@@ -48699,13 +48699,21 @@ var App = function (_React$Component) {
           },
           P: { group: 'advanced' },
           I: { group: 'advanced' }
-        }
+        },
+        'defaults': { 'order': 0 }
       }];
 
       var allTabs = fixedTabs.concat(this.state.experiments).map(function (exp, i) {
         exp.canrun = !_this5.state.runningExperiment;
         exp.running = _this5.state.runningExperimentIndex == i;
+        if (exp.defaults !== undefined && exp.defaults.order !== undefined) {
+          exp.order = exp.defaults.order;
+        } else {
+          exp.order = 1000;
+        }
         return exp;
+      }).sort(function (a, b) {
+        return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
       });
 
       return _react2.default.createElement(
