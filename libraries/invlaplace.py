@@ -171,6 +171,6 @@ def flint(K1, K2, Z, alpha, S=None, fast=False):
             res_diff_ratio = np.abs(residual - lastres)/residual
             lastres = residual
             #print(i, tt, trat, L, residual, res_diff_ratio)
-            if res_diff_ratio < 1e-5 or (fast and res_diff_ratio < 1e-1):
+            if res_diff_ratio < 1e-4 or (fast and res_diff_ratio < 1e-2):
                 return S, np.array(residuals)
     raise Exception('Max iterations reached')
