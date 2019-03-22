@@ -84,7 +84,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         Y = self.autophase(self.integrated_data())
         t = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
         T2 = np.logspace(-4, 1, 200+1, endpoint=True)  # TODO: add parameters for T2 range/points
-        S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=10)  # TODO: determine alpha automatically
+        S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=1)  # TODO: determine alpha automatically
         return {
             'x': T2,
             'y': S,
