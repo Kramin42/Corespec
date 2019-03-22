@@ -57,7 +57,8 @@ async def list_parameter_sets(experiment_name):
     return workspace.list_par_sets(experiment_name)
 
 async def export(experiment_name, export_name):
-    return encode_data(experiments[experiment_name].exports[export_name]())
+    # TODO: change back to exports[export_name]
+    return encode_data(experiments[experiment_name].exports['default']())
 
 async def plot(experiment_name, plot_name):
     return encode_data(experiments[experiment_name].get_plot(plot_name))
