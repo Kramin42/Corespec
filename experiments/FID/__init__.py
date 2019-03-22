@@ -51,6 +51,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'fft_mag': np.abs(fft),
             'fft_unit': 'V/kHz',
             'freq_unit': 'Hz'}
+
+    def export_default(self):
+        return self.export_Raw()
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

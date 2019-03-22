@@ -49184,7 +49184,7 @@ var ExportControls = function (_React$Component) {
       } else if (this.state.format.value === 'MATLAB') {
         this.props.deviceQuery('export_matlab', {
           experiment_name: this.props.experimentName,
-          export_name: 'Raw'
+          export_name: 'default'
         }).then(function (data) {
           var bytes = Uint8Array.from(atob(data), function (c) {
             return c.charCodeAt(0);
