@@ -104,7 +104,12 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         }
 
     def export_default(self):
-        return self.export_Raw()
+        export = self.export_Raw()
+        export_spectrum = self.export_2D()
+        export['spectrum_T1'] = export_spectrum['T1']
+        export['spectrum_T2'] = export_spectrum['T2']
+        export['spectrum'] = export_spectrum['S'].reshape((export_spectrum['T1'].size, export_spectrum['T2'].size))
+        return export
 
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
