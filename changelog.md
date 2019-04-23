@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.11] - 2019-04-23
+### Added
+- Different export options for experiments, e.g. Raw and Echo Integrals for CPMG.
+- Faster plotting in CPMG experiment with large echo counts, by decimating plot data.
+
 ## [1.1.10] - 2019-03-21
 ### Added
 - T1-T2 Experiment with 2D inversion laplace.

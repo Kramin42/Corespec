@@ -32,7 +32,7 @@ export default class ExportControls extends React.Component {
         export_name: this.state.export_name.value || 'Raw'
       })
       .then(data => {
-        downloadString(data, 'text/csv', `${this.props.experimentName}_${moment().format('YYYY-MM-DD_hh-mm-ss')}.csv`);
+        downloadString(data, 'text/csv', `${this.props.experimentName}_${this.state.export_name.value}_${moment().format('YYYY-MM-DD_hh-mm-ss')}.csv`);
       });
     }
     else if (this.state.format.value==='MATLAB') {
@@ -42,7 +42,7 @@ export default class ExportControls extends React.Component {
       })
       .then(data => {
         let bytes = Uint8Array.from(atob(data), c => c.charCodeAt(0));
-    		downloadBytes(bytes, `${this.props.experimentName}_${moment().format('YYYY-MM-DD_hh-mm-ss')}.mat`);
+    		downloadBytes(bytes, `${this.props.experimentName}_${this.state.export_name.value}_${moment().format('YYYY-MM-DD_hh-mm-ss')}.mat`);
       });
     }
   }
