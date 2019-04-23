@@ -94,14 +94,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'initial_amp_uV': np.mean(Y[0:4].real)
         }
 
-    def export_default(self):
-        export = self.export_Raw()
-        export_spectrum = self.export_T2_Spectrum()
-        export['spectrum_T2'] = export_spectrum['x']
-        export['spectrum'] = export_spectrum['y']
-        export['spectrum_T2_unit'] = export_spectrum['x_unit']
-        export['spectrum_unit'] = export_spectrum['y_unit']
-        return export
+    # def export_default(self):
+    #     export = self.export_Raw()
+    #     export_spectrum = self.export_T2_Spectrum()
+    #     export['spectrum_T2'] = export_spectrum['x']
+    #     export['spectrum'] = export_spectrum['y']
+    #     export['spectrum_T2_unit'] = export_spectrum['x_unit']
+    #     export['spectrum_unit'] = export_spectrum['y_unit']
+    #     return export
 
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

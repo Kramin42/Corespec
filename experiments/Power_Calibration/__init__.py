@@ -60,8 +60,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         return self.export_Calibration()
 
-    def export_default(self):
-        return self.export_Raw()
+    # def export_default(self):
+    #     return self.export_Raw()
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

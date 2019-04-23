@@ -55845,7 +55845,8 @@ var Experiment = function (_React$Component) {
           }),
           _react2.default.createElement(_ExportControls2.default, {
             experimentName: experiment.name,
-            deviceQuery: this.props.deviceQuery
+            deviceQuery: this.props.deviceQuery,
+            exports: experiment.exports
           }),
           _react2.default.createElement(_MessageBox2.default, { messages: this.props.messages })
         )
@@ -55897,8 +55898,12 @@ var ExportControls = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (ExportControls.__proto__ || Object.getPrototypeOf(ExportControls)).call(this, props));
 
-    _this.state = { format: null };
+    _this.state = {
+      format: null,
+      export_name: null
+    };
     _this.handleFormatChange = _this.handleFormatChange.bind(_this);
+    _this.handleExportNameChange = _this.handleExportNameChange.bind(_this);
     _this.handleExport = _this.handleExport.bind(_this);
     return _this;
   }
@@ -55909,6 +55914,11 @@ var ExportControls = function (_React$Component) {
       this.setState({ format: value });
     }
   }, {
+    key: 'handleExportNameChange',
+    value: function handleExportNameChange(value) {
+      this.setState({ export_name: value });
+    }
+  }, {
     key: 'handleExport',
     value: function handleExport() {
       var _this2 = this;
@@ -55916,14 +55926,14 @@ var ExportControls = function (_React$Component) {
       if (this.state.format.value === 'CSV') {
         this.props.deviceQuery('export_csv', {
           experiment_name: this.props.experimentName,
-          export_name: 'Raw'
+          export_name: this.state.export_name || 'default'
         }).then(function (data) {
           downloadString(data, 'text/csv', _this2.props.experimentName + '_' + (0, _moment2.default)().format('YYYY-MM-DD_hh-mm-ss') + '.csv');
         });
       } else if (this.state.format.value === 'MATLAB') {
         this.props.deviceQuery('export_matlab', {
           experiment_name: this.props.experimentName,
-          export_name: 'default'
+          export_name: this.state.export_name || 'default'
         }).then(function (data) {
           var bytes = Uint8Array.from(atob(data), function (c) {
             return c.charCodeAt(0);
@@ -55939,9 +55949,23 @@ var ExportControls = function (_React$Component) {
       var formatOptions = formatList.map(function (name) {
         return { value: name, label: name };
       });
+
+      var exportOptions = this.props.exports.map(function (name) {
+        return { value: name, label: name.replace(/[_]/g, ' ') };
+      });
+
       return _react2.default.createElement(
         'div',
         { className: 'export-controls' },
+        _react2.default.createElement(_reactSelect2.default, {
+          name: 'export-select',
+          options: exportOptions,
+          searchable: false,
+          clearable: false,
+          placeholder: 'Export...',
+          value: this.state.export_name,
+          onChange: this.handleExportNameChange
+        }),
         _react2.default.createElement(_reactSelect2.default, {
           name: 'format-select',
           options: formatOptions,

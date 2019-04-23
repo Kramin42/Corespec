@@ -33,8 +33,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y': y,
             'x_unit': 'MHz'}
 
-    def export_default(self):
-        return self.export_Raw()
+    # def export_default(self):
+    #     return self.export_Raw()
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict

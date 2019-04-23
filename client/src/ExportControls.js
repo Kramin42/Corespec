@@ -8,8 +8,12 @@ import './css/ExportControls.css'
 export default class ExportControls extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {format: null};
+    this.state = {
+      format: null,
+      export_name: null
+    };
     this.handleFormatChange = this.handleFormatChange.bind(this);
+    this.handleExportNameChange = this.handleExportNameChange.bind(this);
     this.handleExport = this.handleExport.bind(this);
   }
 
@@ -17,11 +21,15 @@ export default class ExportControls extends React.Component {
     this.setState({format: value});
   }
 
+  handleExportNameChange(value) {
+    this.setState({export_name: value});
+  }
+
   handleExport() {
     if (this.state.format.value==='CSV') {
       this.props.deviceQuery('export_csv', {
         experiment_name: this.props.experimentName,
-        export_name: 'Raw'
+        export_name: this.state.export_name || 'Raw'
       })
       .then(data => {
         downloadString(data, 'text/csv', `${this.props.experimentName}_${moment().format('YYYY-MM-DD_hh-mm-ss')}.csv`);
@@ -30,7 +38,7 @@ export default class ExportControls extends React.Component {
     else if (this.state.format.value==='MATLAB') {
       this.props.deviceQuery('export_matlab', {
         experiment_name: this.props.experimentName,
-        export_name: 'default'
+        export_name: this.state.export_name || 'Raw'
       })
       .then(data => {
         let bytes = Uint8Array.from(atob(data), c => c.charCodeAt(0));
@@ -44,8 +52,22 @@ export default class ExportControls extends React.Component {
     const formatOptions = formatList.map(name => {
       return {value: name, label: name};
     });
+
+    const exportOptions = this.props.exports.map(name => {
+      return {value: name, label: name.replace(/[_]/g, ' ')};
+    });
+
     return (
       <div className="export-controls">
+        <Select
+          name="export-select"
+          options={exportOptions}
+          searchable={false}
+          clearable={false}
+          placeholder="Export..."
+          value={this.state.export_name}
+          onChange={this.handleExportNameChange}
+        />
         <Select
           name="format-select"
           options={formatOptions}
