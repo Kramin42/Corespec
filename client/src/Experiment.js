@@ -156,9 +156,12 @@ export default class Experiment extends React.Component {
   }
 
   replot() {
+    this.replotting = true;
     return Promise.all(this.plotrefs.map(p => {
       return p.current.replot();
-    }));
+    })).then(() => {
+      this.replotting = false;
+    });
   }
 
   componentDidMount() {
@@ -166,12 +169,9 @@ export default class Experiment extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.experiment.progress.value > prevProps.experiment.progress.value &&
-        (!this.replotting || this.props.experiment.progress.finished)) {
-      this.replotting = true;
-      this.replot().then(() => {
-        this.replotting = false;
-      });
+    if (this.props.experiment.progress.value != prevProps.experiment.progress.value &&
+        !this.replotting && !this.props.experiment.progress.finished) {
+      this.replot();
     }
   }
 
