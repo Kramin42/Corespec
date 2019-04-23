@@ -55926,14 +55926,14 @@ var ExportControls = function (_React$Component) {
       if (this.state.format.value === 'CSV') {
         this.props.deviceQuery('export_csv', {
           experiment_name: this.props.experimentName,
-          export_name: this.state.export_name || 'default'
+          export_name: this.state.export_name.value || 'Raw'
         }).then(function (data) {
           downloadString(data, 'text/csv', _this2.props.experimentName + '_' + (0, _moment2.default)().format('YYYY-MM-DD_hh-mm-ss') + '.csv');
         });
       } else if (this.state.format.value === 'MATLAB') {
         this.props.deviceQuery('export_matlab', {
           experiment_name: this.props.experimentName,
-          export_name: this.state.export_name || 'default'
+          export_name: this.state.export_name.value || 'Raw'
         }).then(function (data) {
           var bytes = Uint8Array.from(atob(data), function (c) {
             return c.charCodeAt(0);

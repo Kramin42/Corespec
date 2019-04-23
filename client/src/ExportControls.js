@@ -29,7 +29,7 @@ export default class ExportControls extends React.Component {
     if (this.state.format.value==='CSV') {
       this.props.deviceQuery('export_csv', {
         experiment_name: this.props.experimentName,
-        export_name: this.state.export_name || 'Raw'
+        export_name: this.state.export_name.value || 'Raw'
       })
       .then(data => {
         downloadString(data, 'text/csv', `${this.props.experimentName}_${moment().format('YYYY-MM-DD_hh-mm-ss')}.csv`);
@@ -38,7 +38,7 @@ export default class ExportControls extends React.Component {
     else if (this.state.format.value==='MATLAB') {
       this.props.deviceQuery('export_matlab', {
         experiment_name: this.props.experimentName,
-        export_name: this.state.export_name || 'Raw'
+        export_name: this.state.export_name.value || 'Raw'
       })
       .then(data => {
         let bytes = Uint8Array.from(atob(data), c => c.charCodeAt(0));
