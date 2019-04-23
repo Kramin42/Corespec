@@ -45,11 +45,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'unit': 'V',
             'time_unit': 's'}
     
-    def export_Echo_Integrals(self):
-        y = self.autophase(self.integrated_data())
+    def export_Echo_Integrals(self, decimation=1):
+        y = self.autophase(self.integrated_data(decimation=decimation))
         y/=1000000 # μV -> V
-        echo_count = int(self.par['echo_count'])
-        echo_time = self.par['echo_time']/1000000.0
+        echo_count = int(self.par['echo_count']/decimation)
+        echo_time = decimation*self.par['echo_time']/1000000.0
         x = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
         return {
             'x': x,
@@ -123,7 +123,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 }}
     
     def plot_Echo_Integrals(self):
-        data = self.export_Echo_Integrals()
+        # with very large data, decimate before sending plots
+        if self.par['echo_count'] > 10000:
+            data = self.export_Echo_Integrals(decimation=int(self.par['echo_count']/10000))
+        else:
+            data = self.export_Echo_Integrals()
         return {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
@@ -179,13 +183,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         data = data.view(np.complex64)
         return data
 
-    def integrated_data(self):
+    def integrated_data(self, decimation=1):
         data = self.raw_data()
         samples = int(self.par['samples'])
-        echo_count = int(self.par['echo_count'])
+        echo_count = int(self.par['echo_count']/decimation)
         y = np.zeros(echo_count, dtype=np.complex64)
         for i in range(echo_count):
-            y[i] = np.mean(data[i * samples:(i + 1) * samples])
+            y[i] = np.mean(data[i * decimation * samples:(i*decimation + 1) * samples])
         return y
 
     def autophase(self, data):
