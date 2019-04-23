@@ -66,10 +66,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         dwell_time = self.par['dwell_time']
         dwell_time/=1000000 # μs -> s
         x = np.linspace(0, dwell_time*samples, samples, endpoint=False)
-        y = np.zeros(samples, dtype=np.complex64)
-        for i in range(len(data)):
-            y[i%samples] += data[i]
-        y /= echo_count
+        # y = np.zeros(samples, dtype=np.complex64)
+        y = data.reshape((echo_count, samples)).mean(axis=0)
+        # for i in range(len(data)):
+        #     y[i%samples] += data[i]
+        # y /= echo_count
         y /= 1000000  # μV -> V
         return {
             'x': x,
