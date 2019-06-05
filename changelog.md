@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.12] - 2019-06-05
+### Added
+- Spin Echo experiment.
+
 ## [1.1.11] - 2019-04-23
 ### Added
 - Different export options for experiments, e.g. Raw and Echo Integrals for CPMG.

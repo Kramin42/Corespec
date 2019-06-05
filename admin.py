@@ -18,7 +18,7 @@ try:
 except:
     logger.warning('Could not run init.sh!')
 
-VERSION = '1.1.11'
+VERSION = '1.1.12'
 
 changelog_html = ''
 with open(os.path.join(dir_path, 'changelog.html')) as f:
