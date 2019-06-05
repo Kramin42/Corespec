@@ -1,7 +1,7 @@
-# CPMG program configuration
+# SpinEcho program configuration
 description:
-  A CPMG experiment.
-executable: CPMG_DMA.elf
+  A SpinEcho experiment.
+executable: SpinEcho_DMA.elf
 action:
   offset: 0x0
   values:
