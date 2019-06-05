@@ -1,0 +1,10 @@
+# Spin Echo experiment configuration
+description:
+  A Spin Echo experiment.
+programs:
+  - SpinEcho
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 5
