@@ -124,7 +124,7 @@ derived_parameters:
     offset: 0xb0
     dtype: uint32
     value: ${{echo_time} - ({width_90} + {width_180})/2 - 1000}
-    min: 1000
+    min: 12000
   T2:
     offset: 0xb4
     dtype: uint32
