@@ -21,7 +21,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
         y = self.autophase(self.raw_data())
-        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
+        x = np.linspace(-0.5*self.par['dwell_time']*len(y), 0.5*self.par['dwell_time']*len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
         return {
@@ -34,14 +34,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
 
     def export_FT(self):
-        y = self.autophase(self.raw_data())
+        y = np.fft.ifftshift(self.autophase(self.raw_data()))
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
-        fft = np.fft.fft(y)
-        freq = np.fft.fftfreq(y.size, d=dwell_time)
+        fft = np.fft.fftshift(np.fft.fft(y))
+        freq = np.fft.fftshift(np.fft.fftfreq(y.size, d=dwell_time))
         # sort the frequency axis
-        p = freq.argsort()
-        freq = freq[p]
-        fft = fft[p]
+        #p = freq.argsort()
+        #freq = freq[p]
+        #fft = fft[p]
         fft /= 1000000  # μV->V
         fft *= dwell_time*1000  # V->V/kHz
         return {
