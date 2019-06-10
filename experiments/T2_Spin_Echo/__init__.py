@@ -34,6 +34,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             progress_handler(index, count)
             logger.debug('running echo time %s' % echo_time)
             self.programs['SpinEcho'].set_par('echo_time', echo_time)
+            self.programs['SpinEcho'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
             await self.programs['SpinEcho'].run(message_handler=message_handler)
             run_data = self.programs['SpinEcho'].data.view(np.complex64)
             if index==0:
