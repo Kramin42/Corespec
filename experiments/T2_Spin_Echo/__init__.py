@@ -53,8 +53,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         sample_shift = self.par['sample_shift']/1000000
         samples = int(self.par['samples'])
         fft = np.fft.fft(self.raw_data(), axis=1)
-        freq = np.fft.fftfreq(samples, d=dwell_time)[:, np.newaxis]
-        fft *= np.exp(1j*2*np.pi*-(-0.5*dwell_time*len(fft)+sample_shift)*freq)
+        freq = np.fft.fftfreq(samples, d=dwell_time)[np.newaxis, :]
+        fft *= np.exp(1j*2*np.pi*-(-0.5*dwell_time*samples+sample_shift)*freq)
         fft *= dwell_time
         halfwidth = int(fft.shape[1]*self.par['int_width']*dwell_time*500)+1
         y = np.sum(fft[:,:halfwidth], axis=1) + np.sum(fft[:,:-halfwidth:-1], axis=1)
