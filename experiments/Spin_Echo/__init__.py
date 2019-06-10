@@ -131,5 +131,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return data
 
     def autophase(self, data):
-        phase = get_autophase(data)
+        dwelltime = float(self.par['dwell_time'])
+        phase = get_autophase(data, t0=-0.5*dwelltime*len(data), dwelltime=dwelltime)
         return data * np.exp(1j * phase)  # rotate

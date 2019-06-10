@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize as opt
 
-def get_autophase(y):
+def get_autophase(y, t0=0, dwelltime=1):
     # returns phase to be applied
     PADTO = 10000
     if len(y) < PADTO:
@@ -9,6 +9,9 @@ def get_autophase(y):
     else:
         y_pad = y
     fft_y = np.fft.fftshift(np.fft.fft(y_pad))
+    if t0 != 0:
+        fft_f = np.fft.fftshift(np.fft.fftfreq(len(fft_y), dwelltime))
+        fft_y *= np.exp(1j * 2 * np.pi * -t0 * fft_f)  # correct for time shift
 
     def minf(phi):
         fft_y_phased = fft_y * np.exp(1j * phi[0])
