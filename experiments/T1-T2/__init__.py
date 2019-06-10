@@ -1,5 +1,6 @@
 from experiment import BaseExperiment  # required
 from libraries.invlaplace import getT1T2Spectrum
+from libraries.autophase import get_autophase
 
 # for debugging
 import logging
@@ -173,5 +174,5 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         return self.data
 
     def autophase(self, data):
-        phase = np.angle(np.sum(data))  # get average phase
-        return data * np.exp(1j * -phase)  # rotate
+        phase = get_autophase(data)
+        return data * np.exp(1j * phase)  # rotate
