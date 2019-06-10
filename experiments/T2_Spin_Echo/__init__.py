@@ -51,8 +51,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_T2(self):
         dwell_time = self.par['dwell_time']/1000000
         sample_shift = self.par['sample_shift']/1000000
+        samples = int(*self.par['samples'])
         fft = np.fft.fft(self.raw_data(), axis=1)
-        freq = np.fft.fftfreq(self.par['samples'], d=dwell_time)[:, np.newaxis]
+        freq = np.fft.fftfreq(samples, d=dwell_time)[:, np.newaxis]
         fft *= np.exp(1j*2*np.pi*-(-0.5*dwell_time*len(fft)+sample_shift)*freq)
         fft *= dwell_time
         halfwidth = int(fft.shape[1]*self.par['int_width']*dwell_time*500)+1
