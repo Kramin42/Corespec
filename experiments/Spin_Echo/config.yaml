@@ -3,6 +3,11 @@ description:
   A Spin Echo experiment.
 programs:
   - SpinEcho
+parameters:
+  sample_shift:
+    dtype: float
+    unit: us
+    group: acquisition
 defaults:
   plots:
     - Raw

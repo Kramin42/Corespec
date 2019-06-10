@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.12b] - 2019-06-10
+### Added
+- More accurate autophase for all experiments, will accurately phase off-centre frequency components.
+
 ## [1.1.12] - 2019-06-05
 ### Added
 - Spin Echo experiment.

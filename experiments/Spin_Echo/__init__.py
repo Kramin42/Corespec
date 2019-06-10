@@ -15,6 +15,7 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
+        self.programs['SpinEcho'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
         await self.programs['SpinEcho'].run(progress_handler=progress_handler,
                                        message_handler=message_handler)
     
@@ -22,7 +23,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
         y = self.autophase(self.raw_data())
-        x = np.linspace(-0.5*self.par['dwell_time']*len(y), 0.5*self.par['dwell_time']*len(y), len(y), endpoint=False)
+        x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
         return {
@@ -35,10 +36,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
 
     def export_FT(self):
-        y = np.fft.ifftshift(self.autophase(self.raw_data()))
+        y = self.autophase(self.raw_data())
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
+        sample_shift = self.par['sample_shift']*0.000001  # μs->s
         fft = np.fft.fftshift(np.fft.fft(y))
         freq = np.fft.fftshift(np.fft.fftfreq(y.size, d=dwell_time))
+        fft *= np.exp(1j*(-0.5*dwell_time*len(y)+sample_shift)*freq)
         # sort the frequency axis
         #p = freq.argsort()
         #freq = freq[p]
@@ -82,7 +85,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Phase(self):
         y = self.autophase(self.raw_data())
-        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
+        x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         x /= 1000000  # μs->s
         
         # return object according to plotly schema
@@ -131,6 +134,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return data
 
     def autophase(self, data):
-        dwelltime = float(self.par['dwell_time'])
-        phase = get_autophase(data, t0=-0.5*dwelltime*len(data), dwelltime=dwelltime)
+        dwell_time = self.par['dwell_time']
+        sample_shift = self.par['sample_shift']
+        phase = get_autophase(data, t0=-0.5*dwell_time*len(data)+sample_shift, dwelltime=dwell_time)
         return data * np.exp(1j * phase)  # rotate
