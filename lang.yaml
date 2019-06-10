@@ -53,4 +53,4 @@ english:
     int_width:
       label: Int. window
     sample_shift:
-      label: Sample Shift
+      label: Sample shift

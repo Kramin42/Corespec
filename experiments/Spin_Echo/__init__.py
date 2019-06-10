@@ -41,7 +41,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         sample_shift = self.par['sample_shift']*0.000001  # μs->s
         fft = np.fft.fftshift(np.fft.fft(y))
         freq = np.fft.fftshift(np.fft.fftfreq(y.size, d=dwell_time))
-        fft *= np.exp(1j*(-0.5*dwell_time*len(y)+sample_shift)*freq)
+        fft *= np.exp(1j*-(-0.5*dwell_time*len(y)+sample_shift)*freq)
         # sort the frequency axis
         #p = freq.argsort()
         #freq = freq[p]
@@ -134,7 +134,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return data
 
     def autophase(self, data):
-        dwell_time = self.par['dwell_time']
-        sample_shift = self.par['sample_shift']
+        dwell_time = self.par['dwell_time']*0.000001
+        sample_shift = self.par['sample_shift']*0.000001
         phase = get_autophase(data, t0=-0.5*dwell_time*len(data)+sample_shift, dwelltime=dwell_time)
         return data * np.exp(1j * phase)  # rotate
