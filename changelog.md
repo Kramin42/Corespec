@@ -3,6 +3,7 @@
 ## [1.1.12b] - 2019-06-10
 ### Added
 - More accurate autophase for all experiments, will accurately phase off-centre frequency components.
+- Added acquisition shift parameter to Spin Echo experiment, for asymmetrical sampling.
 
 ## [1.1.12] - 2019-06-05
 ### Added
