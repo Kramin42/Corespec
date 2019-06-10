@@ -15,7 +15,8 @@ def get_autophase(y, t0=0, dwelltime=1):
 
     def minf(phi):
         fft_y_phased = fft_y * np.exp(1j * phi[0])
-        return (fft_y_phased.imag ** 2).sum() - (fft_y_phased.real ** 2).sum()
+        thresh = (fft_y_phased.real ** 2).max() / 100
+        return np.clip(fft_y_phased.imag ** 2, thresh, None).sum() - np.clip(fft_y_phased.real ** 2, thresh, None).sum()
 
     res = opt.minimize(minf, np.array([0]), method='nelder-mead')
 
