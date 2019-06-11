@@ -22,7 +22,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         #self.echo_times = np.logspace(np.log10(self.par['start_echo_time']), np.log10(self.par['end_echo_time']), self.par['steps'], endpoint=True)
         self.echo_times = np.linspace(self.par['start_echo_time'], self.par['end_echo_time'], self.par['steps'], endpoint=True)
         # keep total experiment time constant as we increase echo time
-        self.end_times = self.par['rep_time'] + (self.echo_times[-1] - self.echo_times)*2
+        self.end_times = self.par['rep_time'] + 0.000001*(self.echo_times[-1] - self.echo_times)*2
 
         count = len(self.echo_times)
         index = 0
