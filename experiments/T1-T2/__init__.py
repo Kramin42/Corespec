@@ -174,5 +174,5 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         return self.data
 
     def autophase(self, data):
-        phase = get_autophase(data)
+        phase = -np.angle(np.sum(data))  # use simple method for CPMG
         return data * np.exp(1j * phase)  # rotate
