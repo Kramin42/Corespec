@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.14] - 2019-06-11
+### Added
+- T2 Spin Echo Experiment: Runs Spin Echo experiments for a range of echo times.
+
 ## [1.1.13] - 2019-06-10
 ### Added
 - More accurate autophase for all experiments, will accurately phase off-centre frequency components.
