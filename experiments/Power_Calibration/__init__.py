@@ -101,7 +101,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        return self.data
+        return self.data.copy()
 
     def autophase(self, data):
         phase = get_autophase(data)
