@@ -21,6 +21,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     async def run(self, progress_handler=None, message_handler=None):
         #self.echo_times = np.logspace(np.log10(self.par['start_echo_time']), np.log10(self.par['end_echo_time']), self.par['steps'], endpoint=True)
         self.echo_times = np.linspace(self.par['start_echo_time'], self.par['end_echo_time'], self.par['steps'], endpoint=True)
+        # keep total experiment time constant as we increase echo time
+        self.end_times = self.par['rep_time'] + (self.echo_times[-1] - self.echo_times)*2
+
         count = len(self.echo_times)
         index = 0
         self.data = None
@@ -30,10 +33,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         #    logger.debug('calling progress handler with %s/%s' % (progress+index*count, limit*count))
         #    progress_handler(progress+index*count, limit*count)
 
-        for echo_time in self.echo_times:
+        for echo_time, end_time in zip(self.echo_times, self.end_times):
             progress_handler(index, count)
             logger.debug('running echo time %s' % echo_time)
             self.programs['SpinEcho'].set_par('echo_time', echo_time)
+            self.programs['SpinEcho'].set_par('rep_time', end_time)
             self.programs['SpinEcho'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
             await self.programs['SpinEcho'].run(message_handler=message_handler)
             run_data = self.programs['SpinEcho'].data.view(np.complex64)
