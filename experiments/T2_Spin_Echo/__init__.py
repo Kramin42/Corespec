@@ -77,7 +77,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         data = self.raw_data()
         T2_axis = self.echo_times / 1000000  # us -> s
-        samples = int(*self.par['samples'])
+        samples = int(self.par['samples'])
         dwell_time = self.par['dwell_time'] / 1000000
         sample_shift = self.par['sample_shift'] / 1000000
         time_axis = np.linspace(-0.5*dwell_time*samples+sample_shift, 0.5*dwell_time*samples+sample_shift, samples, endpoint=False)
