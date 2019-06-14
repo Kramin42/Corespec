@@ -1,0 +1,10 @@
+# Linearly varying echo spacing CPMG experiment configuration
+description:
+  A CPMG experiment with linearly varying echo spacing.
+programs:
+  - LinVarCPMG
+defaults:
+  plots:
+    - Echo_Integrals
+    - Echo_Envelope
+  order: 7
