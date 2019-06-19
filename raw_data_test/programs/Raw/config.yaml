@@ -1,0 +1,34 @@
+---
+description:
+  Reads raw voltage without decimation
+executable: RAW_DMA.elf
+action:
+  offset: 0x0
+  values:
+    stop: 0
+    run: 1
+status:
+  offset: 0x4
+  values:
+    uninitialised: 1
+    running: 2
+    capture: 3
+    finished: 10
+output:
+  type: DMA
+  dtype: int16
+  offset: 0x0
+  block_count: 1
+  block_length: ${2*{samples}}
+  block_skip: 0
+  scale_factor: 1
+adc_overflow_count:
+  offset: 0x20
+parameters:
+  samples:
+    offset: 0xc4
+    dtype: uint32
+    min: 1
+    max: 1000000
+    group: acquisition
+derived_parameters: {}
