@@ -1,0 +1,7 @@
+Set spectrum analyser to 0 dbm 100kHz and plug directly into digital board.
+
+test system results:
+All bit counts roughly equal.
+Vrms according to multimeter was 221(+/-1) mV
+raw_data_test data had min of around -11k and max around +11k and rms of 7800 giving a voltage cutoff of +/-0.93 V.
+0.221/(7800/2**15) = 0.93 V
