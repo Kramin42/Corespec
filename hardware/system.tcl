@@ -1327,8 +1327,10 @@ proc create_hier_cell_TTL { parentCell nameHier } {
   create_bd_pin -dir O -from 7 -to 0 -type data IO
   create_bd_pin -dir O -from 3 -to 0 IO_15_12
   create_bd_pin -dir O -from 0 -to 0 LED_FRONT
-  create_bd_pin -dir O -from 4 -to 0 P_4_0
+  create_bd_pin -dir O -from 1 -to 0 P_1_0
+  create_bd_pin -dir O -from 1 -to 0 P_4_3
   create_bd_pin -dir O -from 0 -to 0 TEMP_GATE
+  create_bd_pin -dir I TRIGGER_IN
   create_bd_pin -dir O -from 3 -to 0 TTL
   create_bd_pin -dir I s_axi_aclk
   create_bd_pin -dir I -from 0 -to 0 s_axi_aresetn
@@ -1340,7 +1342,16 @@ proc create_hier_cell_TTL { parentCell nameHier } {
    CONFIG.C_ALL_OUTPUTS {0} \
    CONFIG.C_ALL_OUTPUTS_2 {0} \
    CONFIG.C_IS_DUAL {0} \
+   CONFIG.C_TRI_DEFAULT {0xFFFFFFFB} \
  ] $gpio_ttl
+
+  # Create instance: xlconcat_0, and set properties
+  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+  set_property -dict [ list \
+   CONFIG.IN0_WIDTH {2} \
+   CONFIG.IN2_WIDTH {29} \
+   CONFIG.NUM_PORTS {3} \
+ ] $xlconcat_0
 
   # Create instance: xlslice_15_8_IO_7_0, and set properties
   set xlslice_15_8_IO_7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_15_8_IO_7_0 ]
@@ -1357,6 +1368,13 @@ proc create_hier_cell_TTL { parentCell nameHier } {
    CONFIG.DIN_TO {16} \
    CONFIG.DOUT_WIDTH {4} \
  ] $xlslice_19_16_generic_3_0
+
+  # Create instance: xlslice_1_0_P_1_0, and set properties
+  set xlslice_1_0_P_1_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_1_0_P_1_0 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {1} \
+   CONFIG.DOUT_WIDTH {2} \
+ ] $xlslice_1_0_P_1_0
 
   # Create instance: xlslice_23_20_generic_3_0, and set properties
   set xlslice_23_20_generic_3_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_23_20_generic_3_0 ]
@@ -1382,12 +1400,13 @@ proc create_hier_cell_TTL { parentCell nameHier } {
    CONFIG.DOUT_WIDTH {4} \
  ] $xlslice_31_28_IO_15_12
 
-  # Create instance: xlslice_4_0_P_4_0, and set properties
-  set xlslice_4_0_P_4_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_4_0_P_4_0 ]
+  # Create instance: xlslice_4_3_P_4_3, and set properties
+  set xlslice_4_3_P_4_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_4_3_P_4_3 ]
   set_property -dict [ list \
    CONFIG.DIN_FROM {4} \
-   CONFIG.DOUT_WIDTH {5} \
- ] $xlslice_4_0_P_4_0
+   CONFIG.DIN_TO {3} \
+   CONFIG.DOUT_WIDTH {2} \
+ ] $xlslice_4_3_P_4_3
 
   # Create instance: xlslice_6_LED_FRONT, and set properties
   set xlslice_6_LED_FRONT [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_6_LED_FRONT ]
@@ -1409,15 +1428,18 @@ proc create_hier_cell_TTL { parentCell nameHier } {
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins S_AXI] [get_bd_intf_pins gpio_ttl/S_AXI]
 
   # Create port connections
-  connect_bd_net -net gpio_ttl_gpio_io_o [get_bd_pins gpio_ttl/gpio_io_i] [get_bd_pins gpio_ttl/gpio_io_o] [get_bd_pins xlslice_15_8_IO_7_0/Din] [get_bd_pins xlslice_19_16_generic_3_0/Din] [get_bd_pins xlslice_23_20_generic_3_0/Din] [get_bd_pins xlslice_27_24_generic_3_0/Din] [get_bd_pins xlslice_31_28_IO_15_12/Din] [get_bd_pins xlslice_4_0_P_4_0/Din] [get_bd_pins xlslice_6_LED_FRONT/Din] [get_bd_pins xlslice_7_TEMP_GATE/Din]
+  connect_bd_net -net TRIGGER_IN_1 [get_bd_pins TRIGGER_IN] [get_bd_pins xlconcat_0/In1]
+  connect_bd_net -net gpio_ttl_gpio_io_o [get_bd_pins gpio_ttl/gpio_io_o] [get_bd_pins xlslice_15_8_IO_7_0/Din] [get_bd_pins xlslice_19_16_generic_3_0/Din] [get_bd_pins xlslice_1_0_P_1_0/Din] [get_bd_pins xlslice_23_20_generic_3_0/Din] [get_bd_pins xlslice_27_24_generic_3_0/Din] [get_bd_pins xlslice_31_28_IO_15_12/Din] [get_bd_pins xlslice_4_3_P_4_3/Din] [get_bd_pins xlslice_6_LED_FRONT/Din] [get_bd_pins xlslice_7_TEMP_GATE/Din]
   connect_bd_net -net s_axi_aclk_1 [get_bd_pins s_axi_aclk] [get_bd_pins gpio_ttl/s_axi_aclk]
   connect_bd_net -net s_axi_aresetn_1 [get_bd_pins s_axi_aresetn] [get_bd_pins gpio_ttl/s_axi_aresetn]
+  connect_bd_net -net xlconcat_0_dout [get_bd_pins gpio_ttl/gpio_io_i] [get_bd_pins xlconcat_0/dout]
   connect_bd_net -net xlslice_15_8_IO_7_0_Dout [get_bd_pins IO] [get_bd_pins xlslice_15_8_IO_7_0/Dout]
   connect_bd_net -net xlslice_19_16_generic_4_0_Dout [get_bd_pins ADC] [get_bd_pins xlslice_19_16_generic_3_0/Dout]
+  connect_bd_net -net xlslice_1_0_P_1_0_Dout [get_bd_pins P_1_0] [get_bd_pins xlslice_1_0_P_1_0/Dout]
   connect_bd_net -net xlslice_23_20_generic_4_0_Dout [get_bd_pins DDS] [get_bd_pins xlslice_23_20_generic_3_0/Dout]
   connect_bd_net -net xlslice_27_24_generic_3_0_Dout [get_bd_pins TTL] [get_bd_pins xlslice_27_24_generic_3_0/Dout]
   connect_bd_net -net xlslice_31_28_generic_3_1_Dout [get_bd_pins IO_15_12] [get_bd_pins xlslice_31_28_IO_15_12/Dout]
-  connect_bd_net -net xlslice_4_0_P_4_0_Dout [get_bd_pins P_4_0] [get_bd_pins xlslice_4_0_P_4_0/Dout]
+  connect_bd_net -net xlslice_4_3_P_4_3_Dout [get_bd_pins P_4_3] [get_bd_pins xlslice_4_3_P_4_3/Dout]
   connect_bd_net -net xlslice_6_LED_FRONT_Dout [get_bd_pins LED_FRONT] [get_bd_pins xlslice_6_LED_FRONT/Dout]
   connect_bd_net -net xlslice_7_TEMP_GATE_Dout [get_bd_pins TEMP_GATE] [get_bd_pins xlslice_7_TEMP_GATE/Dout]
 
@@ -1963,10 +1985,12 @@ proc create_root_design { parentCell } {
   set IO_15_12 [ create_bd_port -dir O -from 3 -to 0 IO_15_12 ]
   set LED_FRONT [ create_bd_port -dir O -from 0 -to 0 LED_FRONT ]
   set N_TEMP_GATE [ create_bd_port -dir O -from 0 -to 0 N_TEMP_GATE ]
-  set P_4_0 [ create_bd_port -dir O -from 4 -to 0 P_4_0 ]
+  set P_1_0 [ create_bd_port -dir O -from 1 -to 0 P_1_0 ]
+  set P_4_3 [ create_bd_port -dir O -from 1 -to 0 P_4_3 ]
   set SRSET [ create_bd_port -dir O -from 0 -to 0 SRSET ]
   set TEMP_ADC_DIN_CLK_CSN [ create_bd_port -dir O -from 2 -to 0 TEMP_ADC_DIN_CLK_CSN ]
   set TEMP_ADC_DOUT [ create_bd_port -dir I TEMP_ADC_DOUT ]
+  set TRIGGER_IN [ create_bd_port -dir I TRIGGER_IN ]
 
   # Create instance: ADC_LTC2207
   create_hier_cell_ADC_LTC2207 [current_bd_instance .] ADC_LTC2207
@@ -2931,9 +2955,11 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
 HDL_ATTRIBUTE.MARK_DEBUG {true} \
  ] [get_bd_nets DDS_SDO_1]
   connect_bd_net -net TEMP_ADC_DOUT_1 [get_bd_ports TEMP_ADC_DOUT] [get_bd_pins microblaze_mcs_ppu/SPI_DIN]
+  connect_bd_net -net TRIGGER_IN_0_1 [get_bd_ports TRIGGER_IN] [get_bd_pins TTL/TRIGGER_IN]
   connect_bd_net -net TTL_DDS [get_bd_pins DDS_AD9951/DDS_TTL] [get_bd_pins TTL/DDS]
+  connect_bd_net -net TTL_Dout_0 [get_bd_ports P_1_0] [get_bd_pins TTL/P_1_0]
   connect_bd_net -net TTL_Dout_1 [get_bd_ports LED_FRONT] [get_bd_pins TTL/LED_FRONT]
-  connect_bd_net -net TTL_Dout_2 [get_bd_ports P_4_0] [get_bd_pins TTL/P_4_0]
+  connect_bd_net -net TTL_Dout_2 [get_bd_ports P_4_3] [get_bd_pins TTL/P_4_3]
   connect_bd_net -net TTL_IO [get_bd_ports IO] [get_bd_pins TTL/IO]
   set_property -dict [ list \
 HDL_ATTRIBUTE.MARK_DEBUG {true} \
