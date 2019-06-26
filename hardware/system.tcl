@@ -763,6 +763,7 @@ proc create_hier_cell_microblaze_mcs_ppu { parentCell nameHier } {
   # Create interface pins
 
   # Create pins
+  create_bd_pin -dir O -from 0 -to 0 PERIPHERAL_RESET
   create_bd_pin -dir I SPI_DIN
   create_bd_pin -dir O -from 2 -to 0 SPI_DOUT_CLK_CSN
   create_bd_pin -dir O -from 0 -to 0 SRSET
@@ -776,7 +777,8 @@ proc create_hier_cell_microblaze_mcs_ppu { parentCell nameHier } {
   set_property -dict [ list \
    CONFIG.FIT1_No_CLOCKS {100} \
    CONFIG.GPI3_SIZE {1} \
-   CONFIG.GPO1_SIZE {2} \
+   CONFIG.GPO1_INIT {0x00000000} \
+   CONFIG.GPO1_SIZE {1} \
    CONFIG.GPO2_SIZE {1} \
    CONFIG.GPO3_INIT {0x00000001} \
    CONFIG.GPO3_SIZE {4} \
@@ -788,7 +790,7 @@ proc create_hier_cell_microblaze_mcs_ppu { parentCell nameHier } {
    CONFIG.UART_BAUDRATE {115200} \
    CONFIG.USE_FIT1 {1} \
    CONFIG.USE_GPI3 {1} \
-   CONFIG.USE_GPO1 {0} \
+   CONFIG.USE_GPO1 {1} \
    CONFIG.USE_GPO2 {0} \
    CONFIG.USE_GPO3 {1} \
    CONFIG.USE_GPO4 {0} \
@@ -820,6 +822,7 @@ proc create_hier_cell_microblaze_mcs_ppu { parentCell nameHier } {
   connect_bd_net -net SPI_DIN_1 [get_bd_pins SPI_DIN] [get_bd_pins microblaze_mcs_0/GPIO3_tri_i]
   connect_bd_net -net UART_rxd_1 [get_bd_pins UART_rxd] [get_bd_pins microblaze_mcs_0/UART_rxd]
   connect_bd_net -net clk_1 [get_bd_pins clk] [get_bd_pins microblaze_mcs_0/Clk]
+  connect_bd_net -net microblaze_mcs_0_GPIO1_tri_o [get_bd_pins PERIPHERAL_RESET] [get_bd_pins microblaze_mcs_0/GPIO1_tri_o]
   connect_bd_net -net microblaze_mcs_0_GPIO3_tri_o [get_bd_pins microblaze_mcs_0/GPIO3_tri_o] [get_bd_pins xlslice_2_0_SPI_2_0/Din] [get_bd_pins xlslice_3_SRSET_3/Din]
   connect_bd_net -net microblaze_mcs_0_UART_txd [get_bd_pins UART_txd] [get_bd_pins microblaze_mcs_0/UART_txd]
   connect_bd_net -net reset_1 [get_bd_pins reset] [get_bd_pins microblaze_mcs_0/Reset]
@@ -1327,7 +1330,7 @@ proc create_hier_cell_TTL { parentCell nameHier } {
   create_bd_pin -dir O -from 7 -to 0 -type data IO
   create_bd_pin -dir O -from 3 -to 0 IO_15_12
   create_bd_pin -dir O -from 0 -to 0 LED_FRONT
-  create_bd_pin -dir O -from 1 -to 0 P_1_0
+  create_bd_pin -dir O -from 0 -to 0 P_0
   create_bd_pin -dir O -from 1 -to 0 P_4_3
   create_bd_pin -dir O -from 0 -to 0 TEMP_GATE
   create_bd_pin -dir I TRIGGER_IN
@@ -1353,6 +1356,13 @@ proc create_hier_cell_TTL { parentCell nameHier } {
    CONFIG.NUM_PORTS {3} \
  ] $xlconcat_0
 
+  # Create instance: xlslice_0_P_0, and set properties
+  set xlslice_0_P_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0_P_0 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {0} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_0_P_0
+
   # Create instance: xlslice_15_8_IO_7_0, and set properties
   set xlslice_15_8_IO_7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_15_8_IO_7_0 ]
   set_property -dict [ list \
@@ -1368,13 +1378,6 @@ proc create_hier_cell_TTL { parentCell nameHier } {
    CONFIG.DIN_TO {16} \
    CONFIG.DOUT_WIDTH {4} \
  ] $xlslice_19_16_generic_3_0
-
-  # Create instance: xlslice_1_0_P_1_0, and set properties
-  set xlslice_1_0_P_1_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_1_0_P_1_0 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {1} \
-   CONFIG.DOUT_WIDTH {2} \
- ] $xlslice_1_0_P_1_0
 
   # Create instance: xlslice_23_20_generic_3_0, and set properties
   set xlslice_23_20_generic_3_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_23_20_generic_3_0 ]
@@ -1429,13 +1432,13 @@ proc create_hier_cell_TTL { parentCell nameHier } {
 
   # Create port connections
   connect_bd_net -net TRIGGER_IN_1 [get_bd_pins TRIGGER_IN] [get_bd_pins xlconcat_0/In1]
-  connect_bd_net -net gpio_ttl_gpio_io_o [get_bd_pins gpio_ttl/gpio_io_o] [get_bd_pins xlslice_15_8_IO_7_0/Din] [get_bd_pins xlslice_19_16_generic_3_0/Din] [get_bd_pins xlslice_1_0_P_1_0/Din] [get_bd_pins xlslice_23_20_generic_3_0/Din] [get_bd_pins xlslice_27_24_generic_3_0/Din] [get_bd_pins xlslice_31_28_IO_15_12/Din] [get_bd_pins xlslice_4_3_P_4_3/Din] [get_bd_pins xlslice_6_LED_FRONT/Din] [get_bd_pins xlslice_7_TEMP_GATE/Din]
+  connect_bd_net -net gpio_ttl_gpio_io_o [get_bd_pins gpio_ttl/gpio_io_o] [get_bd_pins xlslice_0_P_0/Din] [get_bd_pins xlslice_15_8_IO_7_0/Din] [get_bd_pins xlslice_19_16_generic_3_0/Din] [get_bd_pins xlslice_23_20_generic_3_0/Din] [get_bd_pins xlslice_27_24_generic_3_0/Din] [get_bd_pins xlslice_31_28_IO_15_12/Din] [get_bd_pins xlslice_4_3_P_4_3/Din] [get_bd_pins xlslice_6_LED_FRONT/Din] [get_bd_pins xlslice_7_TEMP_GATE/Din]
   connect_bd_net -net s_axi_aclk_1 [get_bd_pins s_axi_aclk] [get_bd_pins gpio_ttl/s_axi_aclk]
   connect_bd_net -net s_axi_aresetn_1 [get_bd_pins s_axi_aresetn] [get_bd_pins gpio_ttl/s_axi_aresetn]
   connect_bd_net -net xlconcat_0_dout [get_bd_pins gpio_ttl/gpio_io_i] [get_bd_pins xlconcat_0/dout]
+  connect_bd_net -net xlslice_0_P_0_Dout [get_bd_pins P_0] [get_bd_pins xlslice_0_P_0/Dout]
   connect_bd_net -net xlslice_15_8_IO_7_0_Dout [get_bd_pins IO] [get_bd_pins xlslice_15_8_IO_7_0/Dout]
   connect_bd_net -net xlslice_19_16_generic_4_0_Dout [get_bd_pins ADC] [get_bd_pins xlslice_19_16_generic_3_0/Dout]
-  connect_bd_net -net xlslice_1_0_P_1_0_Dout [get_bd_pins P_1_0] [get_bd_pins xlslice_1_0_P_1_0/Dout]
   connect_bd_net -net xlslice_23_20_generic_4_0_Dout [get_bd_pins DDS] [get_bd_pins xlslice_23_20_generic_3_0/Dout]
   connect_bd_net -net xlslice_27_24_generic_3_0_Dout [get_bd_pins TTL] [get_bd_pins xlslice_27_24_generic_3_0/Dout]
   connect_bd_net -net xlslice_31_28_generic_3_1_Dout [get_bd_pins IO_15_12] [get_bd_pins xlslice_31_28_IO_15_12/Dout]
@@ -1985,7 +1988,8 @@ proc create_root_design { parentCell } {
   set IO_15_12 [ create_bd_port -dir O -from 3 -to 0 IO_15_12 ]
   set LED_FRONT [ create_bd_port -dir O -from 0 -to 0 LED_FRONT ]
   set N_TEMP_GATE [ create_bd_port -dir O -from 0 -to 0 N_TEMP_GATE ]
-  set P_1_0 [ create_bd_port -dir O -from 1 -to 0 P_1_0 ]
+  set PERIPHERAL_RESET [ create_bd_port -dir O -from 0 -to 0 PERIPHERAL_RESET ]
+  set P_0 [ create_bd_port -dir O -from 0 -to 0 P_0 ]
   set P_4_3 [ create_bd_port -dir O -from 1 -to 0 P_4_3 ]
   set SRSET [ create_bd_port -dir O -from 0 -to 0 SRSET ]
   set TEMP_ADC_DIN_CLK_CSN [ create_bd_port -dir O -from 2 -to 0 TEMP_ADC_DIN_CLK_CSN ]
@@ -2859,6 +2863,14 @@ proc create_root_design { parentCell } {
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
 
+  # Create instance: util_vector_logic_0, and set properties
+  set util_vector_logic_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 util_vector_logic_0 ]
+  set_property -dict [ list \
+   CONFIG.C_OPERATION {not} \
+   CONFIG.C_SIZE {1} \
+   CONFIG.LOGO_FILE {data/sym_notgate.png} \
+ ] $util_vector_logic_0
+
   # Create instance: xlconstant_0, and set properties
   set xlconstant_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_0 ]
   set_property -dict [ list \
@@ -2957,7 +2969,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net TEMP_ADC_DOUT_1 [get_bd_ports TEMP_ADC_DOUT] [get_bd_pins microblaze_mcs_ppu/SPI_DIN]
   connect_bd_net -net TRIGGER_IN_0_1 [get_bd_ports TRIGGER_IN] [get_bd_pins TTL/TRIGGER_IN]
   connect_bd_net -net TTL_DDS [get_bd_pins DDS_AD9951/DDS_TTL] [get_bd_pins TTL/DDS]
-  connect_bd_net -net TTL_Dout_0 [get_bd_ports P_1_0] [get_bd_pins TTL/P_1_0]
+  connect_bd_net -net TTL_Dout_0 [get_bd_ports P_0] [get_bd_pins TTL/P_0]
   connect_bd_net -net TTL_Dout_1 [get_bd_ports LED_FRONT] [get_bd_pins TTL/LED_FRONT]
   connect_bd_net -net TTL_Dout_2 [get_bd_ports P_4_3] [get_bd_pins TTL/P_4_3]
   connect_bd_net -net TTL_IO [get_bd_ports IO] [get_bd_pins TTL/IO]
@@ -2973,6 +2985,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_pins FPGA_CLKin/clk_out2]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins FPGA_CLKin/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
   connect_bd_net -net microblaze_mcs_ppu_Dout_0 [get_bd_ports SRSET] [get_bd_pins microblaze_mcs_ppu/SRSET]
+  connect_bd_net -net microblaze_mcs_ppu_PERIPHERAL_RESET [get_bd_pins microblaze_mcs_ppu/PERIPHERAL_RESET] [get_bd_pins util_vector_logic_0/Op1]
   connect_bd_net -net microblaze_mcs_ppu_SPI_DOUT_CLK_CSN [get_bd_ports TEMP_ADC_DIN_CLK_CSN] [get_bd_pins microblaze_mcs_ppu/SPI_DOUT_CLK_CSN]
   connect_bd_net -net microblaze_mcs_ppu_UART_txd [get_bd_pins azynq_0/UART0_RX] [get_bd_pins microblaze_mcs_ppu/UART_txd]
   connect_bd_net -net microblaze_ppu_Interrupt_1 [get_bd_pins azynq_0/IRQ_F2P] [get_bd_pins microblaze_ppu/Interrupt_1]
@@ -2982,6 +2995,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
 HDL_ATTRIBUTE.MARK_DEBUG {true} \
  ] [get_bd_nets processing_system7_0_FCLK_RESET0_N]
   connect_bd_net -net reset_1 [get_bd_pins microblaze_mcs_ppu/reset] [get_bd_pins proc_sys_reset_0/mb_reset]
+  connect_bd_net -net util_vector_logic_0_Res [get_bd_ports PERIPHERAL_RESET] [get_bd_pins util_vector_logic_0/Res]
   connect_bd_net -net xlconstant_0_const [get_bd_pins microblaze_ppu/PCap] [get_bd_pins xlconstant_0/dout]
   connect_bd_net -net xlconstant_1_dout [get_bd_pins azynq_0/SDIO1_CDN] [get_bd_pins xlconstant_1/dout]
 
