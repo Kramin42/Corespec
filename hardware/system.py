@@ -45,7 +45,7 @@ mailbox = ol.microblaze_ppu.microblaze_core.mailbox
 zynq_gpio = ol.zynq_gpio
 
 def set_flow_enabled(b):
-    zynq_gpio.write(0x0, 0 if b else 1)  # 0 is the flowing state
+    zynq_gpio.channel1.write(0 if b else 0b1000, 0b1000)  # 0 is the flowing state
 
 
 def stop() -> None:
