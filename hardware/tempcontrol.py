@@ -17,7 +17,7 @@ PACKET_SIZE = CMD_SIZE + DATA_SIZE
 
 PAR_FILE = 'tempcontrol.yaml'
 
-AMP_COOLDOWN_TIME = 2 # minutes
+AMP_COOLDOWN_TIME = 10 # seconds
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -108,7 +108,7 @@ def get_parameters():
     return parameters
 
 async def amp_on_delayed():
-    await asyncio.sleep(60*AMP_COOLDOWN_TIME)
+    await asyncio.sleep(AMP_COOLDOWN_TIME)
     amp_on()
 
 def amp_on():
