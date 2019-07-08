@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.15] - 2019-07-08
+### Added
+- Experimental Variable Echo Spacing CPMG.
+
 ## [1.1.14] - 2019-06-11
 ### Added
 - T2 Spin Echo Experiment: Runs Spin Echo experiments for a range of echo times.
