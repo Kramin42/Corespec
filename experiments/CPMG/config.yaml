@@ -7,4 +7,4 @@ defaults:
   plots:
     - Echo_Integrals
     - Echo_Envelope
-  order: 6
+  order: 7

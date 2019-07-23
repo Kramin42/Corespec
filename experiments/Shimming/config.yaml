@@ -12,3 +12,4 @@ defaults:
   plots:
     - Raw
     - FT
+  order: 5
