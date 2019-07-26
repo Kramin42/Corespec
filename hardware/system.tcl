@@ -1327,8 +1327,8 @@ proc create_hier_cell_TTL { parentCell nameHier } {
   # Create pins
   create_bd_pin -dir O -from 3 -to 0 ADC
   create_bd_pin -dir O -from 3 -to 0 DDS
-  create_bd_pin -dir O -from 7 -to 0 -type data IO
   create_bd_pin -dir O -from 3 -to 0 IO_15_12
+  create_bd_pin -dir O -from 3 -to 0 IO_3_0
   create_bd_pin -dir O -from 0 -to 0 LED_FRONT
   create_bd_pin -dir O -from 0 -to 0 P_0
   create_bd_pin -dir O -from 1 -to 0 P_4_3
@@ -1363,13 +1363,13 @@ proc create_hier_cell_TTL { parentCell nameHier } {
    CONFIG.DOUT_WIDTH {1} \
  ] $xlslice_0_P_0
 
-  # Create instance: xlslice_15_8_IO_7_0, and set properties
-  set xlslice_15_8_IO_7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_15_8_IO_7_0 ]
+  # Create instance: xlslice_11_8_IO_3_0, and set properties
+  set xlslice_11_8_IO_3_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_11_8_IO_3_0 ]
   set_property -dict [ list \
-   CONFIG.DIN_FROM {15} \
+   CONFIG.DIN_FROM {11} \
    CONFIG.DIN_TO {8} \
-   CONFIG.DOUT_WIDTH {8} \
- ] $xlslice_15_8_IO_7_0
+   CONFIG.DOUT_WIDTH {4} \
+ ] $xlslice_11_8_IO_3_0
 
   # Create instance: xlslice_19_16_generic_3_0, and set properties
   set xlslice_19_16_generic_3_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_19_16_generic_3_0 ]
@@ -1432,12 +1432,12 @@ proc create_hier_cell_TTL { parentCell nameHier } {
 
   # Create port connections
   connect_bd_net -net TRIGGER_IN_1 [get_bd_pins TRIGGER_IN] [get_bd_pins xlconcat_0/In1]
-  connect_bd_net -net gpio_ttl_gpio_io_o [get_bd_pins gpio_ttl/gpio_io_o] [get_bd_pins xlslice_0_P_0/Din] [get_bd_pins xlslice_15_8_IO_7_0/Din] [get_bd_pins xlslice_19_16_generic_3_0/Din] [get_bd_pins xlslice_23_20_generic_3_0/Din] [get_bd_pins xlslice_27_24_generic_3_0/Din] [get_bd_pins xlslice_31_28_IO_15_12/Din] [get_bd_pins xlslice_4_3_P_4_3/Din] [get_bd_pins xlslice_6_LED_FRONT/Din] [get_bd_pins xlslice_7_TEMP_GATE/Din]
+  connect_bd_net -net gpio_ttl_gpio_io_o [get_bd_pins gpio_ttl/gpio_io_o] [get_bd_pins xlslice_0_P_0/Din] [get_bd_pins xlslice_11_8_IO_3_0/Din] [get_bd_pins xlslice_19_16_generic_3_0/Din] [get_bd_pins xlslice_23_20_generic_3_0/Din] [get_bd_pins xlslice_27_24_generic_3_0/Din] [get_bd_pins xlslice_31_28_IO_15_12/Din] [get_bd_pins xlslice_4_3_P_4_3/Din] [get_bd_pins xlslice_6_LED_FRONT/Din] [get_bd_pins xlslice_7_TEMP_GATE/Din]
   connect_bd_net -net s_axi_aclk_1 [get_bd_pins s_axi_aclk] [get_bd_pins gpio_ttl/s_axi_aclk]
   connect_bd_net -net s_axi_aresetn_1 [get_bd_pins s_axi_aresetn] [get_bd_pins gpio_ttl/s_axi_aresetn]
   connect_bd_net -net xlconcat_0_dout [get_bd_pins gpio_ttl/gpio_io_i] [get_bd_pins xlconcat_0/dout]
   connect_bd_net -net xlslice_0_P_0_Dout [get_bd_pins P_0] [get_bd_pins xlslice_0_P_0/Dout]
-  connect_bd_net -net xlslice_15_8_IO_7_0_Dout [get_bd_pins IO] [get_bd_pins xlslice_15_8_IO_7_0/Dout]
+  connect_bd_net -net xlslice_11_8_IO_3_0_Dout [get_bd_pins IO_3_0] [get_bd_pins xlslice_11_8_IO_3_0/Dout]
   connect_bd_net -net xlslice_19_16_generic_4_0_Dout [get_bd_pins ADC] [get_bd_pins xlslice_19_16_generic_3_0/Dout]
   connect_bd_net -net xlslice_23_20_generic_4_0_Dout [get_bd_pins DDS] [get_bd_pins xlslice_23_20_generic_3_0/Dout]
   connect_bd_net -net xlslice_27_24_generic_3_0_Dout [get_bd_pins TTL] [get_bd_pins xlslice_27_24_generic_3_0/Dout]
@@ -1964,6 +1964,7 @@ proc create_root_design { parentCell } {
   # Create interface ports
   set DDR [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:ddrx_rtl:1.0 DDR ]
   set FIXED_IO [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO ]
+  set SPI_0_0 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:spi_rtl:1.0 SPI_0_0 ]
 
   # Create ports
   set ADC_CLKOUT_N [ create_bd_port -dir I ADC_CLKOUT_N ]
@@ -1984,8 +1985,12 @@ proc create_root_design { parentCell } {
   set DDS_SYNC [ create_bd_port -dir O -from 0 -to 0 DDS_SYNC ]
   set FPGA_CLK_N [ create_bd_port -dir I FPGA_CLK_N ]
   set FPGA_CLK_P [ create_bd_port -dir I FPGA_CLK_P ]
-  set IO [ create_bd_port -dir O -from 7 -to 0 -type data IO ]
+  set GRAD_SPI_CSN [ create_bd_port -dir O -from 0 -to 0 GRAD_SPI_CSN ]
+  set GRAD_SPI_MISO [ create_bd_port -dir I GRAD_SPI_MISO ]
+  set GRAD_SPI_MOSI [ create_bd_port -dir O GRAD_SPI_MOSI ]
+  set GRAD_SPI_SCLK [ create_bd_port -dir O GRAD_SPI_SCLK ]
   set IO_15_12 [ create_bd_port -dir O -from 3 -to 0 IO_15_12 ]
+  set IO_3_0 [ create_bd_port -dir O -from 3 -to 0 IO_3_0 ]
   set LED_FRONT [ create_bd_port -dir O -from 0 -to 0 LED_FRONT ]
   set N_TEMP_GATE [ create_bd_port -dir O -from 0 -to 0 N_TEMP_GATE ]
   set PERIPHERAL_RESET [ create_bd_port -dir O -from 0 -to 0 PERIPHERAL_RESET ]
@@ -2030,7 +2035,11 @@ proc create_root_design { parentCell } {
   # Create instance: axi_interconnect_0, and set properties
   set axi_interconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0 ]
   set_property -dict [ list \
-   CONFIG.NUM_MI {4} \
+   CONFIG.M00_HAS_REGSLICE {0} \
+   CONFIG.M01_HAS_REGSLICE {0} \
+   CONFIG.M02_HAS_REGSLICE {0} \
+   CONFIG.NUM_MI {5} \
+   CONFIG.S00_HAS_REGSLICE {1} \
    CONFIG.SYNCHRONIZATION_STAGES {2} \
  ] $axi_interconnect_0
 
@@ -2039,6 +2048,13 @@ proc create_root_design { parentCell } {
 
   # Create instance: axi_protocol_converter_0, and set properties
   set axi_protocol_converter_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_converter_0 ]
+
+  # Create instance: axi_quad_spi_gradient_dac, and set properties
+  set axi_quad_spi_gradient_dac [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_quad_spi:3.2 axi_quad_spi_gradient_dac ]
+  set_property -dict [ list \
+   CONFIG.C_USE_STARTUP {0} \
+   CONFIG.C_USE_STARTUP_INT {0} \
+ ] $axi_quad_spi_gradient_dac
 
   # Create instance: azynq_0, and set properties
   set azynq_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 azynq_0 ]
@@ -2898,6 +2914,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net axi_interconnect_0_M01_AXI [get_bd_intf_pins ADC_LTC2207/S_AXI] [get_bd_intf_pins axi_interconnect_0/M01_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M02_AXI [get_bd_intf_pins axi_interconnect_0/M02_AXI] [get_bd_intf_pins ddc/S_AXI]
   connect_bd_intf_net -intf_net axi_interconnect_0_M03_AXI [get_bd_intf_pins TTL/S_AXI] [get_bd_intf_pins axi_interconnect_0/M03_AXI]
+  connect_bd_intf_net -intf_net axi_interconnect_0_M04_AXI [get_bd_intf_pins axi_interconnect_0/M04_AXI] [get_bd_intf_pins axi_quad_spi_gradient_dac/AXI_LITE]
   connect_bd_intf_net -intf_net axi_interconnect_1_M01_AXI [get_bd_intf_pins axi_interconnect_1/M01_AXI] [get_bd_intf_pins zynq_gpio/S_AXI]
   connect_bd_intf_net -intf_net axi_protocol_converter_0_M_AXI [get_bd_intf_pins axi_protocol_converter_0/M_AXI] [get_bd_intf_pins azynq_0/S_AXI_HP0]
   connect_bd_intf_net -intf_net azynq_0_M_AXI_GP0 [get_bd_intf_pins axi_interconnect_1/S00_AXI] [get_bd_intf_pins azynq_0/M_AXI_GP0]
@@ -2908,7 +2925,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins azynq_0/FIXED_IO]
 
   # Create port connections
-  connect_bd_net -net ACLK_1 [get_bd_pins ADC_LTC2207/m_axis_aclk] [get_bd_pins ADC_LTC2207/s_axi_aclk] [get_bd_pins DDS_AD9951/ACLK] [get_bd_pins DDS_AD9951/P_CLK] [get_bd_pins TTL/s_axi_aclk] [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/M01_ACLK] [get_bd_pins axi_interconnect_0/M02_ACLK] [get_bd_pins axi_interconnect_0/M03_ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_protocol_converter_0/aclk] [get_bd_pins ddc/CLK] [get_bd_pins microblaze_ppu/aclk_out]
+  connect_bd_net -net ACLK_1 [get_bd_pins ADC_LTC2207/m_axis_aclk] [get_bd_pins ADC_LTC2207/s_axi_aclk] [get_bd_pins DDS_AD9951/ACLK] [get_bd_pins DDS_AD9951/P_CLK] [get_bd_pins TTL/s_axi_aclk] [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/M01_ACLK] [get_bd_pins axi_interconnect_0/M02_ACLK] [get_bd_pins axi_interconnect_0/M03_ACLK] [get_bd_pins axi_interconnect_0/M04_ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_protocol_converter_0/aclk] [get_bd_pins axi_quad_spi_gradient_dac/ext_spi_clk] [get_bd_pins axi_quad_spi_gradient_dac/s_axi_aclk] [get_bd_pins ddc/CLK] [get_bd_pins microblaze_ppu/aclk_out]
   connect_bd_net -net ADC_CLKOUT_P_1 [get_bd_ports ADC_CLKOUT_N] [get_bd_pins ADC_LTC2207/ADC_CLKOUT_N]
   connect_bd_net -net ADC_DATA_1 [get_bd_ports ADC_DATA] [get_bd_pins ADC_LTC2207/ADC_DATA]
   connect_bd_net -net ADC_LTC2207_ADC_DITH [get_bd_ports ADC_DITH] [get_bd_pins ADC_LTC2207/ADC_DITH]
@@ -2929,7 +2946,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
  ] [get_bd_nets ADC_LTC2207_ADC_SHDN]
   connect_bd_net -net ADC_OF_1 [get_bd_ports ADC_OF] [get_bd_pins ADC_LTC2207/ADC_OF]
   connect_bd_net -net ADC_TTL_1 [get_bd_pins ADC_LTC2207/ADC_TTL] [get_bd_pins TTL/ADC]
-  connect_bd_net -net ARESETN_1 [get_bd_pins ADC_LTC2207/m_axis_aresetn] [get_bd_pins ADC_LTC2207/s_axi_aresetn] [get_bd_pins DDS_AD9951/ARESETN] [get_bd_pins TTL/s_axi_aresetn] [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins axi_interconnect_0/M01_ARESETN] [get_bd_pins axi_interconnect_0/M02_ARESETN] [get_bd_pins axi_interconnect_0/M03_ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_protocol_converter_0/aresetn] [get_bd_pins ddc/aresetn] [get_bd_pins microblaze_ppu/areset_out]
+  connect_bd_net -net ARESETN_1 [get_bd_pins ADC_LTC2207/m_axis_aresetn] [get_bd_pins ADC_LTC2207/s_axi_aresetn] [get_bd_pins DDS_AD9951/ARESETN] [get_bd_pins TTL/s_axi_aresetn] [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins axi_interconnect_0/M01_ARESETN] [get_bd_pins axi_interconnect_0/M02_ARESETN] [get_bd_pins axi_interconnect_0/M03_ARESETN] [get_bd_pins axi_interconnect_0/M04_ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_protocol_converter_0/aresetn] [get_bd_pins axi_quad_spi_gradient_dac/s_axi_aresetn] [get_bd_pins ddc/aresetn] [get_bd_pins microblaze_ppu/areset_out]
   connect_bd_net -net DDS_AD9951_DDS_CLKEN [get_bd_ports DDS_CLKEN] [get_bd_pins DDS_AD9951/DDS_CLKEN]
   set_property -dict [ list \
 HDL_ATTRIBUTE.MARK_DEBUG {true} \
@@ -2966,19 +2983,20 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   set_property -dict [ list \
 HDL_ATTRIBUTE.MARK_DEBUG {true} \
  ] [get_bd_nets DDS_SDO_1]
+  connect_bd_net -net GRAD_MISO_1 [get_bd_ports GRAD_SPI_MISO] [get_bd_pins axi_quad_spi_gradient_dac/io1_i]
   connect_bd_net -net TEMP_ADC_DOUT_1 [get_bd_ports TEMP_ADC_DOUT] [get_bd_pins microblaze_mcs_ppu/SPI_DIN]
   connect_bd_net -net TRIGGER_IN_0_1 [get_bd_ports TRIGGER_IN] [get_bd_pins TTL/TRIGGER_IN]
   connect_bd_net -net TTL_DDS [get_bd_pins DDS_AD9951/DDS_TTL] [get_bd_pins TTL/DDS]
   connect_bd_net -net TTL_Dout_0 [get_bd_ports P_0] [get_bd_pins TTL/P_0]
   connect_bd_net -net TTL_Dout_1 [get_bd_ports LED_FRONT] [get_bd_pins TTL/LED_FRONT]
   connect_bd_net -net TTL_Dout_2 [get_bd_ports P_4_3] [get_bd_pins TTL/P_4_3]
-  connect_bd_net -net TTL_IO [get_bd_ports IO] [get_bd_pins TTL/IO]
-  set_property -dict [ list \
-HDL_ATTRIBUTE.MARK_DEBUG {true} \
- ] [get_bd_nets TTL_IO]
+  connect_bd_net -net TTL_Dout_3 [get_bd_ports IO_3_0] [get_bd_pins TTL/IO_3_0]
   connect_bd_net -net TTL_LED [get_bd_ports IO_15_12] [get_bd_pins TTL/IO_15_12]
   connect_bd_net -net TTL_TEMP_GATE [get_bd_ports N_TEMP_GATE] [get_bd_pins TTL/TEMP_GATE]
   connect_bd_net -net UART_rxd_1 [get_bd_pins azynq_0/UART0_TX] [get_bd_pins microblaze_mcs_ppu/UART_rxd]
+  connect_bd_net -net axi_quad_spi_gradient_dac_io0_o [get_bd_ports GRAD_SPI_MOSI] [get_bd_pins axi_quad_spi_gradient_dac/io0_o]
+  connect_bd_net -net axi_quad_spi_gradient_dac_sck_o [get_bd_ports GRAD_SPI_SCLK] [get_bd_pins axi_quad_spi_gradient_dac/sck_o]
+  connect_bd_net -net axi_quad_spi_gradient_dac_ss_o [get_bd_ports GRAD_SPI_CSN] [get_bd_pins axi_quad_spi_gradient_dac/ss_o]
   connect_bd_net -net clk_in1_n_1 [get_bd_ports FPGA_CLK_N] [get_bd_pins FPGA_CLKin/clk_in1_n]
   connect_bd_net -net clk_in1_p_1 [get_bd_ports FPGA_CLK_P] [get_bd_pins FPGA_CLKin/clk_in1_p]
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins FPGA_CLKin/clk_out1] [get_bd_pins axi_interconnect_1/ACLK] [get_bd_pins axi_interconnect_1/M00_ACLK] [get_bd_pins axi_interconnect_1/M01_ACLK] [get_bd_pins axi_interconnect_1/S00_ACLK] [get_bd_pins azynq_0/M_AXI_GP0_ACLK] [get_bd_pins azynq_0/S_AXI_HP0_ACLK] [get_bd_pins microblaze_mcs_ppu/clk] [get_bd_pins microblaze_ppu/clk_in1] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins zynq_gpio/s_axi_aclk]
@@ -3009,6 +3027,7 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   create_bd_addr_seg -range 0x10000000 -offset 0x30000000 [get_bd_addr_spaces ddc/dma_con/Data_S2MM] [get_bd_addr_segs azynq_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
   create_bd_addr_seg -range 0x00001000 -offset 0x42100000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs ADC_LTC2207/axi_gpio_0/S_AXI/Reg] SEG_axi_gpio_0_Reg
   create_bd_addr_seg -range 0x00010000 -offset 0x41200000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/axi_intc_0/S_AXI/Reg] SEG_axi_intc_0_Reg
+  create_bd_addr_seg -range 0x00010000 -offset 0x44A00000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs axi_quad_spi_gradient_dac/AXI_LITE/Reg] SEG_axi_quad_spi_gradient_dac_Reg
   create_bd_addr_seg -range 0x00010000 -offset 0x41C00000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs microblaze_ppu/microblaze_core/axi_timer_0/S_AXI/Reg] SEG_axi_timer_0_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x42001000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs DDS_AD9951/dds_outputs/S_AXI/Reg] SEG_dds_outputs_Reg
   create_bd_addr_seg -range 0x00001000 -offset 0x42000000 [get_bd_addr_spaces microblaze_ppu/microblaze_core/microblaze_0/Data] [get_bd_addr_segs DDS_AD9951/dds_spi/AXI_LITE/Reg] SEG_dds_spi_Reg
