@@ -39,13 +39,19 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
                     results[k] = np.sum(np.abs(y)**2)
                     if progress_handler is not None:
-                        progress_handler(i+j+k+1, iterations * 3 * 3)
+                        progress_handler(3*3*i+3*j+k+1, iterations * 3 * 3)
                     message_handler('result: %d' % results[k])
-                if results[-1] > results[1]:
-                    self.shims[j] -= int(shim_range / convratio)
-                elif results[-1] < results[1]:
-                    self.shims[j] += int(shim_range / convratio)
-            shim_range = int(shim_range*(convratio-1)/convratio)+1
+                if i == iterations-1: # on final iteration just pick the best point
+                    if results[-1] > results[1] and results[-1] > results[0]:
+                        self.shims[j] -= shim_range
+                    elif results[1] > results[-1] and results[1] > results[0]:
+                        self.shims[j] += shim_range
+                else: # on other iterations pick the midpoint of the better side
+                    if results[-1] > results[1]:
+                        self.shims[j] -= int(shim_range / convratio)
+                    elif results[-1] < results[1]:
+                        self.shims[j] += int(shim_range / convratio)
+            shim_range = max(1, int(shim_range*(convratio-1)/convratio))
             message_handler('Shims X: %d, Y: %d, Z: %d' % (self.shims[0], self.shims[1], self.shims[2]))
 
 
