@@ -42,7 +42,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 elif results[-1] < results[1]:
                     self.shims[j] += int(shim_range / CONVRATIO)
             shim_range = int(shim_range*(CONVRATIO-1)/CONVRATIO)+1
-            message_handler('Shims X: %d, Y: %d, Z: %d' % self.shims)
+            message_handler('Shims X: %d, Y: %d, Z: %d' % (self.shims[0], self.shims[1], self.shims[2]))
 
 
 
