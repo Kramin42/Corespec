@@ -21,7 +21,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
         shim_range = int(self.par['shim_range'])
         iterations = int(self.par['shim_iterations'])
-        CONVRATIO = 2
+        convratio = int(self.par['conv_ratio'])
         if progress_handler is not None:
             progress_handler(0, iterations*3*3)
         for i in range(iterations):
@@ -42,10 +42,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                         progress_handler(i+j+k+1, iterations * 3 * 3)
                     message_handler('result: %d' % results[k])
                 if results[-1] > results[1]:
-                    self.shims[j] -= int(shim_range / CONVRATIO)
+                    self.shims[j] -= int(shim_range / convratio)
                 elif results[-1] < results[1]:
-                    self.shims[j] += int(shim_range / CONVRATIO)
-            shim_range = int(shim_range*(CONVRATIO-1)/CONVRATIO)+1
+                    self.shims[j] += int(shim_range / convratio)
+            shim_range = int(shim_range*(convratio-1)/convratio)+1
             message_handler('Shims X: %d, Y: %d, Z: %d' % (self.shims[0], self.shims[1], self.shims[2]))
 
 

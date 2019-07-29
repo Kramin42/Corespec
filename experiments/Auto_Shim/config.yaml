@@ -16,6 +16,11 @@ parameters:
     dtype: int
     unit: ''
     group: autoshim
+  conv_ratio:
+    dtype: int
+    unit: ''
+    min: 2
+    group: autoshim
 defaults:
   plots:
     - Raw
