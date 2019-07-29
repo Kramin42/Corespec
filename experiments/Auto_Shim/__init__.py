@@ -22,9 +22,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         shim_range = int(self.par['shim_range'])
         iterations = int(self.par['shim_iterations'])
         CONVRATIO = 2
+        if progress_handler is not None:
+            progress_handler(0, iterations*3*3)
         for i in range(iterations):
-            if progress_handler is not None:
-                progress_handler(i, iterations)
             for j in range(3): # X, Y, Z
                 results = {}
                 for k in [-1, 0, 1]:
@@ -38,6 +38,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                                                    message_handler=message_handler)
                     y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
                     results[k] = np.sum(np.abs(y)**2)
+                    if progress_handler is not None:
+                        progress_handler(i+j+k+1, iterations * 3 * 3)
                     message_handler('result: %d' % results[k])
                 if results[-1] > results[1]:
                     self.shims[j] -= int(shim_range / CONVRATIO)

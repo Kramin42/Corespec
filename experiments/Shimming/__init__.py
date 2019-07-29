@@ -17,6 +17,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     async def run(self, progress_handler=None, message_handler=None):
         await self.programs['FID'].run(progress_handler=progress_handler,
                                        message_handler=message_handler)
+        y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
+        message_handler('Raw data SumSq: %d' % np.sum(np.abs(y)**2))
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
