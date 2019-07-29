@@ -1,0 +1,23 @@
+# Autoshim helper experiment configuration
+description:
+  An autoshim helper experiment.
+programs:
+  - FID
+parameters:
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
+  shim_iterations:
+    dtype: int
+    unit: ''
+    group: autoshim
+  shim_range:
+    dtype: int
+    unit: ''
+    group: autoshim
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 5

@@ -122,7 +122,7 @@ def amp_off():
         raise Exception('Temperature control not ready')
     write(b'$AMPOFF#')
 
-def set_parameters(**pars):
+def set_parameters(**pars): # FIXME: update global parameters object
     for key in pars: # ensure they are floats
         pars[key] = float(pars[key])
     with open(os.path.join(dir_path, PAR_FILE), 'w') as f:
