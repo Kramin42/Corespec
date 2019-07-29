@@ -35,7 +35,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     self.programs['FID'].set_par('shim_Z', self.try_shims[2])
                     await self.programs['FID'].run(progress_handler=None,
                                                    message_handler=message_handler)
-                    y = self.gaussian_apodize(y, self.par['gaussian_lb'])
+                    y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
                     results[k] = np.sqrt(np.mean(np.abs(y)**2))
                 if results[-1] > results[1]:
                     self.shims[j] -= int(shim_range / CONVRATIO)
