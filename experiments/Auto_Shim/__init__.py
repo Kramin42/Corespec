@@ -16,12 +16,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
         self.shims = np.array([int(self.par['shim_X']),
-                                    int(self.par['shim_Y']),
-                                    int(self.par['shim_Z'])])
+                               int(self.par['shim_Y']),
+                               int(self.par['shim_Z'])])
 
         shim_range = int(self.par['shim_range'])
         iterations = int(self.par['shim_iterations'])
-        CONVRATIO = 4
+        CONVRATIO = 2
         for i in range(iterations):
             if progress_handler is not None:
                 progress_handler(i, iterations)
@@ -30,13 +30,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 for k in [-1, 0, 1]:
                     self.try_shims = self.shims.copy()
                     self.try_shims[j] += k*shim_range
+                    message_handler('trying (X: %d, Y: %d, Z: %d)' % (self.try_shims[0], self.try_shims[1], self.try_shims[2]))
                     self.programs['FID'].set_par('shim_X', self.try_shims[0])
                     self.programs['FID'].set_par('shim_Y', self.try_shims[1])
                     self.programs['FID'].set_par('shim_Z', self.try_shims[2])
                     await self.programs['FID'].run(progress_handler=None,
                                                    message_handler=message_handler)
                     y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
-                    results[k] = np.sqrt(np.mean(np.abs(y)**2))
+                    results[k] = np.sum(np.abs(y)**2)
+                    message_handler('result: %d' % results[k])
                 if results[-1] > results[1]:
                     self.shims[j] -= int(shim_range / CONVRATIO)
                 elif results[-1] < results[1]:
