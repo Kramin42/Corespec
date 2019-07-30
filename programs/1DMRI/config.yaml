@@ -160,7 +160,7 @@ parameters:
     unit: us
     scaling: 1000
     group: pulse
-    min: 50000
+    min: 50
 derived_parameters:
   GX_encode:
     offset: 0xf8
