@@ -200,7 +200,7 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${{echo_time} - ({width_90} + {width_180} + {samples}*{dwell_time}*10)/2 - {damp_time} - {echo_shift}}
+    value: ${({echo_time} - ({width_90} + {width_180} + {samples}*{dwell_time}*10))/2 - {damp_time} - {echo_shift}}
     min: 1000
   T3:
     offset: 0xb8

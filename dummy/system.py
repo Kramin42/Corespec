@@ -5,7 +5,7 @@ from time import sleep, time
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 status = 0
 run_time = time()
