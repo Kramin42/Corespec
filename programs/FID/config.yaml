@@ -105,21 +105,56 @@ parameters:
     min: -32768
     max: 32767
     shared: true
-    group: pulse
+    group: shim
   shim_Y:
     offset: 0xf0
     dtype: int32
     min: -32768
     max: 32767
     shared: true
-    group: pulse
+    group: shim
   shim_Z:
     offset: 0xf4
     dtype: int32
     min: -32768
     max: 32767
     shared: true
-    group: pulse
+    group: shim
+  shim_Z2:
+    offset: 0xf8
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_ZX:
+    offset: 0xfc
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_ZY:
+    offset: 0x100
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_XY:
+    offset: 0x104
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_X2Y2:
+    offset: 0x108
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
 derived_parameters:
   ignore_samples:
     offset: 0xc8
