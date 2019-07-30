@@ -129,7 +129,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['SpinEcho'].data
+        data = self.programs['1DMRI'].data
         data = data.view(np.complex64)
         return data
 
