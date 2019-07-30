@@ -155,6 +155,12 @@ parameters:
     min: -32768
     max: 32767
     group: pulse
+  delta:
+    dtype: uint32
+    unit: us
+    scaling: 1000
+    group: pulse
+    min: 50000
 derived_parameters:
   GX_encode:
     offset: 0xf8
@@ -195,12 +201,12 @@ derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${{samples}*{dwell_time}*5 - {echo_shift}}
-    min: 100000
+    value: ${{delta}}
+    min: 50000
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${{echo_time} - ({width_90} + {width_180} + {samples}*{dwell_time}*10)/2 - {damp_time} + {echo_shift}}
+    value: ${{echo_time} - ({width_90} + {width_180})/2 - {damp_time} - {delta}}
     min: 50000
   T3:
     offset: 0xb8
