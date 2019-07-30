@@ -159,37 +159,19 @@ derived_parameters:
   GX_encode:
     offset: 0xf8
     dtype: int32
-    value: ${{shim_X} - {GX}}
+    value: ${{shim_X} + {GX}}
     min: -32768
     max: 32767
   GY_encode:
     offset: 0xfc
     dtype: int32
-    value: ${{shim_Y} - {GY}}
+    value: ${{shim_Y} + {GY}}
     min: -32768
     max: 32767
   GZ_encode:
     offset: 0x100
     dtype: int32
-    value: ${{shim_Z} - {GZ}}
-    min: -32768
-    max: 32767
-  GX_read:
-    offset: 0x104
-    dtype: int32
-    value: ${{GX} + {shim_X}}
-    min: -32768
-    max: 32767
-  GY_read:
-    offset: 0x108
-    dtype: int32
-    value: ${{GY} + {shim_Y}}
-    min: -32768
-    max: 32767
-  GZ_read:
-    offset: 0x10c
-    dtype: int32
-    value: ${{GZ} + {shim_Z}}
+    value: ${{shim_Z} + {GZ}}
     min: -32768
     max: 32767
   T1:
