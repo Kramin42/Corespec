@@ -1,0 +1,15 @@
+# 1D MRI experiment configuration
+description:
+  A 1D MRI experiment.
+programs:
+  - 1DMRI
+parameters:
+  sample_shift:
+    dtype: float
+    unit: us
+    group: acquisition
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 6
