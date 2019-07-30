@@ -1,7 +1,7 @@
 # 1D MRI program configuration
 description:
   A 1D MRI experiment.
-executable: 1D_MRI_DMA.elf
+executable: 1D_MRI.elf
 action:
   offset: 0x0
   values:
