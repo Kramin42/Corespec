@@ -70,6 +70,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             O2_shim_range = int(O2_shim_range * (convratio - 1) / convratio)
             message_handler('Shims X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d' %
                             tuple(self.try_shims.tolist()))
+        if progress_handler is not None:
+            progress_handler(iterations * 8 * 3, iterations * 8 * 3)
 
 
 
