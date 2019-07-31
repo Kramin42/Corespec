@@ -66,8 +66,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                         self.shims[j] -= int(shim_range / convratio)
                     elif results[-1] < results[1]:
                         self.shims[j] += int(shim_range / convratio)
-            O1_shim_range = int(O1_shim_range * (convratio - 1)/convratio)
-            O2_shim_range = int(O1_shim_range * (convratio - 1) / convratio)
+            O1_shim_range = int(O1_shim_range * (convratio - 1) / convratio)
+            O2_shim_range = int(O2_shim_range * (convratio - 1) / convratio)
             message_handler('Shims X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d' %
                             tuple(self.try_shims.tolist()))
 
