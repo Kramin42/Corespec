@@ -2052,6 +2052,7 @@ proc create_root_design { parentCell } {
   # Create instance: axi_quad_spi_gradient_dac, and set properties
   set axi_quad_spi_gradient_dac [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_quad_spi:3.2 axi_quad_spi_gradient_dac ]
   set_property -dict [ list \
+   CONFIG.C_SCK_RATIO {4} \
    CONFIG.C_USE_STARTUP {0} \
    CONFIG.C_USE_STARTUP_INT {0} \
  ] $axi_quad_spi_gradient_dac
