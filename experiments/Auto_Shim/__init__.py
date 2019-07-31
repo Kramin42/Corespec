@@ -17,29 +17,42 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     async def run(self, progress_handler=None, message_handler=None):
         self.shims = np.array([int(self.par['shim_X']),
                                int(self.par['shim_Y']),
-                               int(self.par['shim_Z'])])
+                               int(self.par['shim_Z']),
+                               int(self.par['shim_Z2']),
+                               int(self.par['shim_ZX']),
+                               int(self.par['shim_ZY']),
+                               int(self.par['shim_XY']),
+                               int(self.par['shim_X2Y2'])])
 
-        shim_range = int(self.par['shim_range'])
+        O1_shim_range = int(self.par['O1_shim_range'])
+        O2_shim_range = int(self.par['O2_shim_range'])
         iterations = int(self.par['shim_iterations'])
         convratio = int(self.par['conv_ratio'])
         if progress_handler is not None:
-            progress_handler(0, iterations*3*3)
+            progress_handler(0, iterations*8*3)
         for i in range(iterations):
-            for j in range(3): # X, Y, Z
+            for j in range(8): # X, Y, Z, Z2, ZX, ZY, XY, X2Y2
+                shim_range = O1_shim_range if j < 3 else O2_shim_range
                 results = {}
                 for k in [-1, 0, 1]:
                     self.try_shims = self.shims.copy()
                     self.try_shims[j] += k*shim_range
-                    message_handler('trying (X: %d, Y: %d, Z: %d)' % (self.try_shims[0], self.try_shims[1], self.try_shims[2]))
+                    message_handler('trying (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
+                                    tuple(self.try_shims.tolist()))
                     self.programs['FID'].set_par('shim_X', self.try_shims[0])
                     self.programs['FID'].set_par('shim_Y', self.try_shims[1])
                     self.programs['FID'].set_par('shim_Z', self.try_shims[2])
+                    self.programs['FID'].set_par('shim_Z2', self.try_shims[3])
+                    self.programs['FID'].set_par('shim_ZX', self.try_shims[4])
+                    self.programs['FID'].set_par('shim_ZY', self.try_shims[5])
+                    self.programs['FID'].set_par('shim_XY', self.try_shims[6])
+                    self.programs['FID'].set_par('shim_X2Y2', self.try_shims[7])
                     await self.programs['FID'].run(progress_handler=None,
                                                    message_handler=message_handler)
                     y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
                     results[k] = np.sum(np.abs(y)**2)
                     if progress_handler is not None:
-                        progress_handler(3*3*i+3*j+k+1, iterations * 3 * 3)
+                        progress_handler(8*3*i+3*j+k+1, iterations * 8 * 3)
                     message_handler('result: %d' % results[k])
                 if i == iterations-1: # on final iteration just pick the best point
                     if results[-1] > results[1] and results[-1] > results[0]:
@@ -51,8 +64,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                         self.shims[j] -= int(shim_range / convratio)
                     elif results[-1] < results[1]:
                         self.shims[j] += int(shim_range / convratio)
-            shim_range = max(1, int(shim_range*(convratio-1)/convratio))
-            message_handler('Shims X: %d, Y: %d, Z: %d' % (self.shims[0], self.shims[1], self.shims[2]))
+            O1_shim_range = max(1, int(O1_shim_range*(convratio-1)/convratio))
+            O2_shim_range = max(1, int(O1_shim_range * (convratio - 1) / convratio))
+            message_handler('Shims X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d' %
+                            tuple(self.try_shims.tolist()))
 
 
 

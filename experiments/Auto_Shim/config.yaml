@@ -12,7 +12,11 @@ parameters:
     dtype: int
     unit: ''
     group: autoshim
-  shim_range:
+  O1_shim_range:
+    dtype: int
+    unit: ''
+    group: autoshim
+  O2_shim_range:
     dtype: int
     unit: ''
     group: autoshim
