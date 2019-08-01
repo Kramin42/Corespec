@@ -8,6 +8,10 @@ parameters:
     dtype: float
     unit: us
     group: acquisition
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
 defaults:
   plots:
     - Raw

@@ -23,6 +23,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
@@ -37,6 +38,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_FT(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
         sample_shift = self.par['sample_shift']*0.000001  # μs->s
         fft = np.fft.fftshift(np.fft.fft(y))
@@ -131,3 +133,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         sample_shift = self.par['sample_shift']
         phase = get_autophase(data, t0=-0.5*dwell_time*len(data)+sample_shift, dwelltime=dwell_time)
         return data * np.exp(1j * phase)  # rotate
+
+    def gaussian_apodize(self, data, lb):
+        t = np.abs(np.linspace(-1, 1, len(data)), endpoint=True)
+        return data * np.exp(-lb*lb*t*t)
