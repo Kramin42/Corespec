@@ -15,6 +15,7 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
+        self.data = None
         self.shims = np.array([int(self.par['shim_X']),
                                int(self.par['shim_Y']),
                                int(self.par['shim_Z']),
@@ -51,7 +52,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     self.programs['FID'].set_par('shim_X2Y2', self.try_shims[7])
                     await self.programs['FID'].run(progress_handler=None,
                                                    message_handler=message_handler)
-                    y = self.gaussian_apodize(self.raw_data(), self.par['gaussian_lb'])
+                    self.data = self.programs['FID'].data.view(np.complex64)
+                    y = self.gaussian_apodize(self.data, self.par['gaussian_lb'])
                     results[k] = np.sum(np.abs(y)**2)
                     if progress_handler is not None:
                         progress_handler(8*3*i+3*j+k+1, iterations * 8 * 3)
@@ -192,9 +194,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['FID'].data
-        data = data.view(np.complex64)
-        return data
+        if self.data is None:
+            raise Exception('Data is not ready to be read!')
+        return self.data
 
     def autophase(self, data):
         phase = get_autophase(data)

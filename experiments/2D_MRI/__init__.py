@@ -15,14 +15,15 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        await self.programs['FID'].run(progress_handler=progress_handler,
+        self.programs['2DMRI'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
+        await self.programs['2DMRI'].run(progress_handler=progress_handler,
                                        message_handler=message_handler)
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
         y = self.autophase(self.raw_data())
-        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
+        x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
         return {
@@ -37,12 +38,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_FT(self):
         y = self.autophase(self.raw_data())
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
-        fft = np.fft.fft(y)
-        freq = np.fft.fftfreq(y.size, d=dwell_time)
+        sample_shift = self.par['sample_shift']*0.000001  # μs->s
+        fft = np.fft.fftshift(np.fft.fft(y))
+        freq = np.fft.fftshift(np.fft.fftfreq(y.size, d=dwell_time))
+        fft *= np.exp(1j*2*np.pi*-(-0.5*dwell_time*len(y)+sample_shift)*freq)
         # sort the frequency axis
-        p = freq.argsort()
-        freq = freq[p]
-        fft = fft[p]
+        #p = freq.argsort()
+        #freq = freq[p]
+        #fft = fft[p]
         fft /= 1000000  # μV->V
         fft *= dwell_time*1000  # V->V/kHz
         return {
@@ -82,7 +85,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Phase(self):
         y = self.autophase(self.raw_data())
-        x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
+        x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         x /= 1000000  # μs->s
         
         # return object according to plotly schema
@@ -99,13 +102,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_FT(self):
         data = self.export_FT()
-        peak_index = np.argmax(data['fft_mag'])
-        peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
-        avg_start = peak_index - int(len(data['freq'])/20)
-        avg_end = peak_index + int(len(data['freq'])/20) + 1
-        if avg_start>0 and avg_end<=len(data['freq']):
-            peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
-        peak_freq = self.par['freq'] + peak_freq_offset
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
@@ -120,16 +116,18 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT (peak@{:0.5f}{})'.format(peak_freq, 'M'+data['freq_unit']),
+                'title': 'FFT',
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}
 
     def raw_data(self):
-        data = self.programs['FID'].data
+        data = self.programs['2DMRI'].data
         data = data.view(np.complex64)
         return data
 
     def autophase(self, data):
-        phase = get_autophase(data)
-        return data * np.exp(1j * phase) # rotate
+        dwell_time = self.par['dwell_time']
+        sample_shift = self.par['sample_shift']
+        phase = get_autophase(data, t0=-0.5*dwell_time*len(data)+sample_shift, dwelltime=dwell_time)
+        return data * np.exp(1j * phase)  # rotate
