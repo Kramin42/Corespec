@@ -135,5 +135,5 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         return data * np.exp(1j * phase)  # rotate
 
     def gaussian_apodize(self, data, lb):
-        t = np.abs(np.linspace(-1, 1, len(data)), endpoint=True)
+        t = np.abs(np.linspace(-1, 1, len(data), endpoint=True))
         return data * np.exp(-lb*lb*t*t)
