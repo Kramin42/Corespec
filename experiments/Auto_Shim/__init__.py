@@ -165,10 +165,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         if avg_start>0 and avg_end<=len(data['freq']):
             peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
         peak_freq = self.par['freq'] + peak_freq_offset
-        height = data['fft_mag'].max()
+        height = data['fft_real'].max()
         left_hw_index = -1
         right_hw_index = -1
-        for i,x in enumerate(data['fft_mag']):
+        for i, x in enumerate(data['fft_real']):
             if x > height/2:
                 if left_hw_index==-1:
                     left_hw_index = i
