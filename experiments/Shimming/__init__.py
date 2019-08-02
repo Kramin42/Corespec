@@ -130,7 +130,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT (peak@{:0.5f}{}, height: {:0.2f} uV, 50% width: {:.0f} Hz)'.format(peak_freq, 'M'+data['freq_unit'], height*1000000, half_width/1000000.0),
+                'title': 'FFT (peak@{:0.5f}{}, height: {:0.2f} uV, 50% width: {:.0f} Hz)'.format(peak_freq, 'M'+data['freq_unit'], height*1000000, half_width),
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}
