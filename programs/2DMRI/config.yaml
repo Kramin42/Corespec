@@ -209,19 +209,19 @@ derived_parameters:
   GX1:
     offset: 0x10c
     dtype: int32
-    value: ${{shim_X} + {phase_GX}}
+    value: ${{shim_X} + {phase_GX} + {read_GX}}
     min: -32768
     max: 32767
   GY1:
     offset: 0x110
     dtype: int32
-    value: ${{shim_Y} + {phase_GY}}
+    value: ${{shim_Y} + {phase_GY} + {read_GZ}}
     min: -32768
     max: 32767
   GZ1:
     offset: 0x114
     dtype: int32
-    value: ${{shim_Z} + {phase_GZ}}
+    value: ${{shim_Z} + {phase_GZ} + {read_GZ}}
     min: -32768
     max: 32767
   GX2:

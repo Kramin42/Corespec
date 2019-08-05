@@ -12,6 +12,11 @@ parameters:
     dtype: float
     unit: ''
     group: acquisition
+  phase_steps:
+    dtype: int
+    unit: ''
+    min: 1
+    group: pulse
 defaults:
   plots:
     - Raw
