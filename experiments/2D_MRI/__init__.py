@@ -42,7 +42,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         dwell_time = self.par['dwell_time']
         sample_shift = self.par['sample_shift']
-        phase = get_autophase(self.data[int(self.par['phase_steps'])//2,:], t0=-0.5 * dwell_time * len(self.par['samples']) + sample_shift, dwelltime=dwell_time)
+        phase = get_autophase(self.data[int(self.par['phase_steps'])//2,:], t0=-0.5 * dwell_time * int(self.par['samples']) + sample_shift, dwelltime=dwell_time)
         export_data = self.data * np.exp(1j * phase)  # rotate
         export_data /= 1000000  # μV->V
         return {
@@ -76,7 +76,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_Raw(self):
-        y = self.autophase(self.raw_data())
+        y = self.autophase(self.raw_data()[-1,:])
         y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         x = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
                         0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
