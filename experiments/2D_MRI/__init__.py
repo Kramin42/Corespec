@@ -15,29 +15,44 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        self.programs['2DMRI'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
-        await self.programs['2DMRI'].run(progress_handler=progress_handler,
-                                       message_handler=message_handler)
+        phase_G = np.array([int(self.par['phase_GX']), int(self.par['phase_GY']), int(self.par['phase_GZ'])])
+        phase_steps = int(self.par['phase_steps'])
+        Gs = np.outer(np.linspace(1, -1, phase_steps, endpoint=False), phase_G).astype(int)
+        self.data = None
+        for i,G in enumerate(Gs):
+            if progress_handler is not None:
+                progress_handler(i, phase_steps)
+            self.programs['2DMRI'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
+            self.programs['2DMRI'].set_par('phase_GX', G[0])
+            self.programs['2DMRI'].set_par('phase_GY', G[1])
+            self.programs['2DMRI'].set_par('phase_GZ', G[2])
+            await self.programs['2DMRI'].run(progress_handler=None, message_handler=message_handler)
+            run_data = self.programs['2DMRI'].data.view(np.complex64)
+            # self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
+            if self.data is None:
+                self.data = np.array([run_data])
+            else:
+                self.data = np.append(self.data, [run_data], axis=0)
+        # if progress_handler is not None:
+        #     progress_handler(phase_steps, phase_steps)
+
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
-        y = self.autophase(self.raw_data())
-        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
-        x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
-        y /= 1000000  # μV->V
-        x /= 1000000  # μs->s
+        dwell_time = self.par['dwell_time']
+        sample_shift = self.par['sample_shift']
+        phase = get_autophase(self.data[int(self.par['phase_steps'])//2,:], t0=-0.5 * dwell_time * len(self.par['samples']) + sample_shift, dwelltime=dwell_time)
+        export_data = self.data * np.exp(1j * phase)  # rotate
+        export_data /= 1000000  # μV->V
         return {
-            'x': x,
-            'y_real': y.real,
-            'y_imag': y.imag,
-            'y_mag': np.abs(y),
-            'y_unit': 'V',
-            'x_unit': 's'}
+            'real': export_data.real,
+            'imag': export_data.imag,
+            'unit': 'V'}
 
 
     def export_FT(self):
-        y = self.autophase(self.raw_data())
+        y = self.autophase(self.raw_data()[-1,:])
         y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
         sample_shift = self.par['sample_shift']*0.000001  # μs->s
@@ -57,36 +72,38 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'fft_mag': np.abs(fft),
             'fft_unit': 'V/kHz',
             'freq_unit': 'Hz'}
-
-    # def export_default(self):
-    #     return self.export_Raw()
     
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_Raw(self):
-        data = self.export_Raw()
+        y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
+        x = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
+                        0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
+        y /= 1000000  # μV->V
+        x /= 1000000  # μs->s
         # return object according to plotly schema
         return {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_real']}, {
+                    'x': x,
+                    'y': y.real}, {
                     'name': 'Imag.',
                     'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_imag']}, {
+                    'x': x,
+                    'y': y.imag}, {
                     'name': 'Mag.',
                     'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_mag']}],
+                    'x': x,
+                    'y': np.abs(y)}],
                 'layout': {
                     'title': 'Real/Imaginary data',
-                    'xaxis': {'title': data['x_unit']},
-                    'yaxis': {'title': data['y_unit']}
+                    'xaxis': {'title': 's'},
+                    'yaxis': {'title': 'V'}
                 }}
 
     def plot_Phase(self):
-        y = self.autophase(self.raw_data())
+        y = self.autophase(self.raw_data()[-1,:])
         x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         x /= 1000000  # μs->s
         
@@ -124,9 +141,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['2DMRI'].data
-        data = data.view(np.complex64)
-        return data
+        return self.data.copy()
 
     def autophase(self, data):
         dwell_time = self.par['dwell_time']
