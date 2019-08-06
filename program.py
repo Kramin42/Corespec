@@ -15,7 +15,7 @@ import scipy.signal as signal
 from config import CONFIG
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 programs_dir = os.path.join(dir_path, 'programs')
@@ -335,6 +335,7 @@ class Program:
             self._data_postprocessed = True
             # calibrate step
             self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
+            logger.debug('data[0]: %f, %f' % (self._data[0].real, self._data[0].imag))
             if 'scale_factor' in self.config_get('output'):
                 self._data = self._data * self.config_get('output.scale_factor')
             if 'postprocess' in self._config:

@@ -92,5 +92,5 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def raw_data(self):
         data = self.programs['Noise'].data
-        logger.debug('data[0]: %d, %d' % (data[0].real, data[0].imag))
+        logger.debug('data[0]: %f, %f' % (data[0].real, data[0].imag))
         return data
