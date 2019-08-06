@@ -39,7 +39,6 @@ class Program:
         self._data_postprocessed = False
         self._data_ready = False
         self._data = None
-        self._acc_data = None
         self._aborted = False
 
     def set_par(self, name: str, value):
