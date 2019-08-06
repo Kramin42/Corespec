@@ -3,7 +3,7 @@ from experiment import BaseExperiment # required
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 import numpy as np
 
@@ -91,4 +91,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        return self.programs['Noise'].data
+        data = self.programs['Noise'].data
+        logger.debug('data[0]: %d, %d' % (data[0].real, data[0].imag))
+        return data
