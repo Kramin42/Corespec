@@ -118,9 +118,9 @@ class Program:
             block_count = int(self.config_get('output.block_count'))
             block_length = int(self.config_get('output.block_length'))
             rotbuf_counter = 0
-            self._acc_data = np.zeros(
+            acc_data = np.zeros(
                 block_count*(block_length+block_skip),
-                dtype=np.float32)
+                dtype=self.config_get('output.dtype'))
             rotbuf_finished = False
         while self.status!=self.config_get('status.values.finished') or not rotbuf_finished:
             final_run_done = self.status==self.config_get('status.values.finished')
@@ -145,7 +145,7 @@ class Program:
                         scans_to_read = rotbuf_write_index - rotbuf_read_index
                     else:
                         scans_to_read = rotbuf_length - rotbuf_read_index
-                    self._acc_data += np.sum(
+                    acc_data += np.sum(
                         np.split(
                             system.read_dma(
                                 offset=int(self.config_get('output.offset')),
@@ -158,7 +158,7 @@ class Program:
                     # allow partial data to be retrieved
                     rotbuf_counter += scans_to_read
                     rotbuf_finished = (rotbuf_counter == rotbuf_total)
-                    data = np.array(np.split(self._acc_data/rotbuf_counter, block_count))[:, block_skip:].flatten()
+                    data = np.array(np.split(acc_data/rotbuf_counter, block_count))[:, block_skip:].flatten()
                     self._set_data(data, partial=(not rotbuf_finished))
 
                     rotbuf_read_index+=scans_to_read
