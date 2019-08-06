@@ -10,6 +10,7 @@ import asyncio
 import logging
 import yaml
 import numpy as np
+import scipy.signal as signal
 
 from config import CONFIG
 
@@ -35,6 +36,7 @@ class Program:
             self._config = yaml.load(f.read())
         self.par = {}
         self.par_deps = {}
+        self._data_postprocessed = False
         self._data_ready = False
         self._data = None
         self._acc_data = None
@@ -155,16 +157,13 @@ class Program:
 
                     # allow partial data to be retrieved
                     rotbuf_counter += scans_to_read
-                    self._data = np.array(np.split(self._acc_data/rotbuf_counter, block_count))[:, block_skip:].flatten()
-                    self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
-                    if 'scale_factor' in self.config_get('output'):
-                        self._data = self._data * self.config_get('output.scale_factor')
-                    self._data_ready = True
+                    rotbuf_finished = (rotbuf_counter == rotbuf_total)
+                    data = np.array(np.split(self._acc_data/rotbuf_counter, block_count))[:, block_skip:].flatten()
+                    self._set_data(data, partial=(not rotbuf_finished))
 
                     rotbuf_read_index+=scans_to_read
                     rotbuf_read_index%=rotbuf_length
                     system.write_par(int(self.config_get('output.rotbuf_read_index_offset')), rotbuf_read_index, 'uint32')
-                    rotbuf_finished = (rotbuf_counter == rotbuf_total)
 
             await asyncio.sleep(0.1)
 
@@ -268,10 +267,10 @@ class Program:
         # read the data
         logger.debug('run: reading data')
         if self.config_get('output.type') == 'FIFO':
-            self._data = system.read_fifo(
+            self._set_data(system.read_fifo(
                 offset=int(self.config_get('output.offset')),
                 length=int(self.config_get('output.length')),
-                dtype=self.config_get('output.dtype'))
+                dtype=self.config_get('output.dtype')))
         elif self.config_get('output.type') == 'DMA':
             cfg_output = self.config_get('output')
             if not rotbuf:
@@ -290,21 +289,15 @@ class Program:
                         offset=int(self.config_get('output.offset')),
                         length=(block_skip+block_length)*block_count,
                         dtype=self.config_get('output.dtype'))
-                    self._data = np.array(np.split(tempdata, block_count))[:,block_skip:].flatten()
+                    self._set_data(np.array(np.split(tempdata, block_count))[:,block_skip:].flatten())
                     #for i in range(block_count):
                     #    self._data[i*block_length:(i+1)*block_length] = \
                     #        tempdata[block_skip+i*(block_length+block_skip):(i+1)*(block_length+block_skip)]
                 else:  # basic method
-                    self._data = system.read_dma(
+                    self._set_data(system.read_dma(
                         offset=int(self.config_get('output.offset')),
                         length=int(self.config_get('output.length')),
-                        dtype=self.config_get('output.dtype'))
-
-        if not rotbuf:
-            self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
-            if 'scale_factor' in self.config_get('output'):
-                self._data = self._data*self.config_get('output.scale_factor')
-            self._data_ready = True
+                        dtype=self.config_get('output.dtype')))
 
         if message_handler:
             try:
@@ -328,10 +321,30 @@ class Program:
         # trigger ensure_finished to exit
         self._aborted = True
 
+    def _set_data(self, data, partial=False, skip_postprocess=False):
+        # TODO: keep track of complete or partial data
+        self._data = data
+        self._data_postprocessed = skip_postprocess
+        self._data_ready = True
+
     @property
     def data(self):
         if not self._data_ready:
             raise Exception('Data is not ready to be read!')
+
+        if not self._data_postprocessed:
+            self._data_postprocessed = True
+            # calibrate step
+            self._data = system.calibrate(self._data, self.get_scaled_par('dwell_time'))
+            if 'scale_factor' in self.config_get('output'):
+                self._data = self._data * self.config_get('output.scale_factor')
+            if 'postprocess' in self._config:
+                if 'decimation' in self.config_get('postprocess'):
+                    dec = int(self.config_get('postprocess.decimation'))
+                    b, a = signal.butter(12, 0.8 / dec)
+                    self._data = signal.filtfilt(b, a, self._data)
+                    self._data = self._data[slice(None, None, dec)]
+
         return np.copy(self._data) # don't let them change our data!
 
     @property

@@ -17,7 +17,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     async def run(self, progress_handler=None, message_handler=None):
         phase_G = np.array([int(self.par['phase_GX']), int(self.par['phase_GY']), int(self.par['phase_GZ'])])
         phase_steps = int(self.par['phase_steps'])
-        Gs = np.outer(np.linspace(1, -1, phase_steps, endpoint=True), phase_G).astype(int)
+        Gs = np.outer(np.linspace(1, -1, phase_steps, endpoint=False), phase_G).astype(int)
         self.data = None
         for i,G in enumerate(Gs):
             if progress_handler is not None:

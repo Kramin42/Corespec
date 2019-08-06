@@ -30,6 +30,8 @@ output:
   rotbuf_read_index_offset: 0x34
   rotbuf_write_index_offset: 0x38
   scale_factor: 1
+postprocess:
+  decimation: 5
 adc_overflow_count:
   offset: 0x20
 parameters:
@@ -109,10 +111,10 @@ parameters:
   dwell_time:
     offset: 0xcc
     dtype: uint32
-    min: 0.1
-    max: 80
+    min: 0.5
+    max: 400
     unit: us
-    scaling: 100
+    scaling: 20 # *100 to convert to hardware decimation, /5 for the post decimation
     group: acquisition
   scans:
     offset: 0xd0
