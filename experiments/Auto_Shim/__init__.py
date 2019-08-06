@@ -52,7 +52,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     self.programs['FID'].set_par('shim_X2Y2', self.try_shims[7])
                     await self.programs['FID'].run(progress_handler=None,
                                                    message_handler=message_handler)
-                    self.data = self.programs['FID'].data.view(np.complex64)
+                    self.data = self.programs['FID'].data
                     y = self.gaussian_apodize(self.data, self.par['gaussian_lb'])
                     results[k] = np.sum(np.abs(y)**2)
                     if progress_handler is not None:

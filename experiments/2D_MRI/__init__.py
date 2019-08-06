@@ -27,7 +27,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['2DMRI'].set_par('phase_GY', G[1])
             self.programs['2DMRI'].set_par('phase_GZ', G[2])
             await self.programs['2DMRI'].run(progress_handler=None, message_handler=message_handler)
-            run_data = self.programs['2DMRI'].data.view(np.complex64)
+            run_data = self.programs['2DMRI'].data
             # self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
             if self.data is None:
                 self.data = np.array([run_data])
