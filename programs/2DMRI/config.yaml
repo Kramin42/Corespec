@@ -62,7 +62,7 @@ parameters:
     offset: 0xa8
     dtype: uint32
     min: 1
-    max: 500
+    max: 5000
     unit: us
     scaling: 1000
     shared: true
@@ -71,7 +71,7 @@ parameters:
     offset: 0xac
     dtype: uint32
     min: 1
-    max: 500
+    max: 5000
     unit: us
     scaling: 1000
     shared: true
@@ -182,32 +182,32 @@ parameters:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
   read_GY:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
   read_GZ:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
   phase_GX:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
   phase_GY:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
   phase_GZ:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
 derived_parameters:
   GX1:
     offset: 0x10c

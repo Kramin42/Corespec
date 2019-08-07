@@ -1,0 +1,59 @@
+# 3D MRI experiment configuration
+description:
+  A 3D MRI experiment.
+programs:
+  - 2DMRI
+parameters:
+  sample_shift:
+    dtype: float
+    unit: us
+    group: acquisition
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
+  phase1_GX:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase1_GY:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase1_GZ:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase1_steps:
+    dtype: int
+    unit: ''
+    min: 1
+    group: gradients
+  phase2_GX:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase2_GY:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase2_GZ:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase2_steps:
+    dtype: int
+    unit: ''
+    min: 1
+    group: gradients
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 6
