@@ -39,8 +39,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 await self.programs['2DMRI'].run(progress_handler=None, message_handler=message_handler)
                 self.data[i, j] = self.programs['2DMRI'].data
                 self.last_index = (i, j)
-        # if progress_handler is not None:
-        #     progress_handler(phase_steps, phase_steps)
+
 
     
     # start a function name with "export_" for it to be listed as an export format
@@ -48,7 +47,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         dwell_time = self.par['dwell_time']
         sample_shift = self.par['sample_shift']
-        phase = get_autophase(self.data[int(self.par['phase_steps'])//2,:], t0=-0.5 * dwell_time * int(self.par['samples']) + sample_shift, dwelltime=dwell_time)
+        phase = get_autophase(self.data[int(self.par['phase1_steps'])//2,int(self.par['phase2_steps'])//2,:], t0=-0.5 * dwell_time * int(self.par['samples']) + sample_shift, dwelltime=dwell_time)
         export_data = self.data * np.exp(1j * phase)  # rotate
         export_data /= 1000000  # μV->V
         return {
