@@ -27,7 +27,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         phase2_steps = int(self.par['phase2_steps'])
         G1s = np.outer(np.linspace(1, -1, phase1_steps, endpoint=False), phase1_G).astype(int)
         G2s = np.outer(np.linspace(1, -1, phase2_steps, endpoint=False), phase2_G).astype(int)
-        self.data = np.zeros((phase1_steps, phase2_steps, int(self.par['samples'])))
+        self.data = np.zeros((phase1_steps, phase2_steps, int(self.par['samples'])), dtype=np.complex128)
         for i,G1 in enumerate(G1s):
             for j,G2 in enumerate(G2s):
                 if progress_handler is not None:
