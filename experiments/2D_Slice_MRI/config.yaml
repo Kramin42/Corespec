@@ -1,8 +1,8 @@
 # 2D MRI experiment configuration
 description:
-  A 2D MRI experiment.
+  A 2D Slice MRI experiment.
 programs:
-  - 2DMRI
+  - 2D_SLICE_MRI
 parameters:
   sample_shift:
     dtype: float
