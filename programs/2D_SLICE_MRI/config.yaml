@@ -263,7 +263,7 @@ derived_parameters:
   GX3:
     offset: 0x124
     dtype: int32
-    value: ${{shim_X} + {sliceGX}}
+    value: ${{shim_X} + {slice_GX}}
     min: -32768
     max: 32767
   GY3:
