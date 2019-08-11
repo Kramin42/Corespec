@@ -37,6 +37,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_FT(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
         sample_shift = self.par['sample_shift']*0.000001  # μs->s
         fft = np.fft.fftshift(np.fft.fft(y))
@@ -62,25 +63,30 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_Raw(self):
-        data = self.export_Raw()
+        y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
+        x = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
+                        0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
+        y /= 1000000  # μV->V
+        x /= 1000000  # μs->s
         # return object according to plotly schema
         return {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_real']}, {
+                    'x': x,
+                    'y': y.real}, {
                     'name': 'Imag.',
                     'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_imag']}, {
+                    'x': x,
+                    'y': y.imag}, {
                     'name': 'Mag.',
                     'type': 'scatter',
-                    'x': data['x'],
-                    'y': data['y_mag']}],
+                    'x': x,
+                    'y': np.abs(y)}],
                 'layout': {
                     'title': 'Real/Imaginary data',
-                    'xaxis': {'title': data['x_unit']},
-                    'yaxis': {'title': data['y_unit']}
+                    'xaxis': {'title': 's'},
+                    'yaxis': {'title': 'V'}
                 }}
 
     def plot_Phase(self):
@@ -102,13 +108,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_FT(self):
         data = self.export_FT()
-        peak_index = np.argmax(data['fft_mag'])
-        peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
-        avg_start = peak_index - int(len(data['freq'])/20)
-        avg_end = peak_index + int(len(data['freq'])/20) + 1
-        if avg_start>0 and avg_end<=len(data['freq']):
-            peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
-        peak_freq = self.par['freq'] + peak_freq_offset
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
@@ -123,7 +122,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT (peak@{:0.4f}{})'.format(peak_freq, 'M'+data['freq_unit']),
+                'title': 'FFT',
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}
@@ -137,3 +136,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         sample_shift = self.par['sample_shift']
         phase = get_autophase(data, t0=-0.5*dwell_time*len(data)+sample_shift, dwelltime=dwell_time)
         return data * np.exp(1j * phase)  # rotate
+
+    def gaussian_apodize(self, data, lb):
+        t = np.abs(np.linspace(-1, 1, len(data), endpoint=True))
+        return data * np.exp(-lb*lb*t*t)

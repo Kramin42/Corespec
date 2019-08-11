@@ -62,7 +62,7 @@ parameters:
     offset: 0xa8
     dtype: uint32
     min: 1
-    max: 500
+    max: 5000
     unit: us
     scaling: 1000
     shared: true
@@ -71,7 +71,7 @@ parameters:
     offset: 0xac
     dtype: uint32
     min: 1
-    max: 500
+    max: 5000
     unit: us
     scaling: 1000
     shared: true
@@ -178,38 +178,56 @@ parameters:
     max: 32767
     shared: true
     group: shim
-  GX:
+  read_GX:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
-  GY:
+    group: gradients
+  read_GY:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
-  GZ:
+    group: gradients
+  read_GZ:
     dtype: int32
     min: -32768
     max: 32767
-    group: pulse
+    group: gradients
 derived_parameters:
-  GX_encode:
+  GX1:
     offset: 0x10c
     dtype: int32
-    value: ${{shim_X} + {GX}}
+    value: ${{shim_X} + {read_GX}}
     min: -32768
     max: 32767
-  GY_encode:
+  GY1:
     offset: 0x110
     dtype: int32
-    value: ${{shim_Y} + {GY}}
+    value: ${{shim_Y} + {read_GY}}
     min: -32768
     max: 32767
-  GZ_encode:
+  GZ1:
     offset: 0x114
     dtype: int32
-    value: ${{shim_Z} + {GZ}}
+    value: ${{shim_Z} + {read_GZ}}
+    min: -32768
+    max: 32767
+  GX2:
+    offset: 0x118
+    dtype: int32
+    value: ${{shim_X} + {read_GX}}
+    min: -32768
+    max: 32767
+  GY2:
+    offset: 0x11c
+    dtype: int32
+    value: ${{shim_Y} + {read_GY}}
+    min: -32768
+    max: 32767
+  GZ2:
+    offset: 0x120
+    dtype: int32
+    value: ${{shim_Z} + {read_GZ}}
     min: -32768
     max: 32767
   T1:
