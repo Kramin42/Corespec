@@ -129,14 +129,14 @@ derived_parameters:
     offset: 0x10c
     dtype: int32
     value: ${{read_G}}
-    min: -32768
-    max: 32767
+    min: -524288
+    max: 524287
   GX2:
     offset: 0x118
     dtype: int32
     value: ${{read_G}}
-    min: -32768
-    max: 32767
+    min: -524288
+    max: 524287
   T1:
     offset: 0xb0
     dtype: uint32
