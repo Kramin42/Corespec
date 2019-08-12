@@ -121,8 +121,8 @@ parameters:
     group: pulse
   read_G:
     dtype: int32
-    min: -32768
-    max: 32767
+    min: -524288
+    max: 524287
     group: gradients
 derived_parameters:
   GX1:
