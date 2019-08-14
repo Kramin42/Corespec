@@ -1,7 +1,7 @@
-# SpinEcho program configuration
+# DIFF_PGSE program configuration
 description:
-  A SpinEcho experiment.
-executable: SpinEcho_DMA.elf
+  A diffusion PGSE experiment.
+executable: DIFF_PGSE.elf
 action:
   offset: 0x0
   values:
@@ -104,7 +104,7 @@ parameters:
     offset: 0xc4
     dtype: uint32
     min: 1
-    max: 16000
+    max: 100000
     group: acquisition
   dwell_time:
     offset: 0xcc
@@ -119,17 +119,47 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
+  phase_grad:
+    offset: 0x10c
+    dtype: int32
+    min: -524288
+    max: 524287
+    group: gradients
+  grad_time:
+    dtype: uint32
+    min: 1
+    max: 100000
+    unit: us
+    scaling: 1000
+    group: gradients
+  diff_time:
+    dtype: uint32
+    min: 1
+    max: 4000000000
+    unit: us
+    scaling: 1000
+    group: pulse
 derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${{echo_time}/2 - ({width_90} + {width_180})/2 - 1000}
-    min: 12000
+    value: ${{grad_time}}
+    min: 50000
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${{echo_time}/2 - ({width_180} + {samples}*{dwell_time}*10)/2 - {damp_time} + {echo_shift} - 7*{dwell_time}*10}
-    min: 5000
+    value: ${{echo_time}/2 - ({width_90} + {width_180})/2 - {damp_time} - {grad_time}}
+    min: 20000
+  T3:
+    offset: 0xb8
+    dtype: uint32
+    value: ${{diff_time} - {echo_time}/2 + ({width_90} - {width_180})/2}
+    min: 2000
+  T4:
+    offset: 0x140
+    dtype: uint32
+    value: ${{echo_time} - {diff_time} - {width_90}/2 - {damp_time} - {grad_time} - ({samples}/2 + 7)*{dwell_time}*10}
+    min: 20000
   duty_cycle:
     value: ${({width_180}+{width_90})/{rep_time}}
     max: 0.1

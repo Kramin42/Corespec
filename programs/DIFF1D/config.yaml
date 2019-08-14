@@ -119,7 +119,7 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
-  read_G:
+  read_grad:
     dtype: int32
     min: -524288
     max: 524287
@@ -128,13 +128,13 @@ derived_parameters:
   GX1:
     offset: 0x10c
     dtype: int32
-    value: ${{read_G}}
+    value: ${{read_grad}}
     min: -524288
     max: 524287
   GX2:
     offset: 0x118
     dtype: int32
-    value: ${{read_G}}
+    value: ${{read_grad}}
     min: -524288
     max: 524287
   T1:
@@ -145,12 +145,12 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${{echo_time} - ({width_90} + {width_180} + {samples}*{dwell_time}*10)/2 - {damp_time}}
+    value: ${{echo_time}/2 - ({width_90} + {width_180} + {samples}*{dwell_time}*10)/2 - {damp_time}}
     min: 50000
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${{echo_time} - ({width_180} + {samples}*{dwell_time}*10)/2 - {damp_time} + {echo_shift} - 7*{dwell_time}*10}
+    value: ${{echo_time}/2 - ({width_180} + {samples}*{dwell_time}*10)/2 - {damp_time} + {echo_shift} - 7*{dwell_time}*10}
     min: 10000
   duty_cycle:
     value: ${({width_180}+{width_90})/{rep_time}}
