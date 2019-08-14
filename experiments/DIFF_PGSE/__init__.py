@@ -21,7 +21,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
         grads = np.linspace(0, int(self.par['max_grad']), int(self.par['grad_steps']), endpoint=True)
-        self.data = np.zeros((grads, int(self.par['samples'])), dtype=np.complex64)
+        self.data = np.zeros((int(self.par['grad_steps']), int(self.par['samples'])), dtype=np.complex64)
         self.last_index = None
         for i,G in enumerate(grads):
             if progress_handler is not None:
