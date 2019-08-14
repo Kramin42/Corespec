@@ -16,7 +16,7 @@ import numpy as np
 
 class Experiment(BaseExperiment):  # must be named 'Experiment'
     def override(self):
-        del self.par['phase_grad']
+        del self.par_def['phase_grad']
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
