@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.16] - 2019-08-12
+### Added
+- Support for diffusion gradient.
+- 1D MRI experiment using diffusion gradient.
+- PGSE experiment using diffusion gradient.
+
 ## [1.1.15] - 2019-07-08
 ### Added
 - Experimental Variable Echo Spacing CPMG.
