@@ -15,30 +15,47 @@ import numpy as np
 # e.g. self.programs['CPMG'] to access the CPMG program
 
 class Experiment(BaseExperiment):  # must be named 'Experiment'
+    def override(self):
+        del self.par['phase_grad']
+
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        self.programs['DIFF_PGSE'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
-        await self.programs['DIFF_PGSE'].run(progress_handler=progress_handler,
-                                         message_handler=message_handler)
+        grads = np.linspace(0, int(self.par['max_grad']), int(self.par['grad_steps']), endpoint=True)
+        self.data = np.zeros((grads, int(self.par['samples'])), dtype=np.complex64)
+        self.last_index = None
+        for i,G in enumerate(grads):
+            if progress_handler is not None:
+                progress_handler(i, len(grads))
+            self.programs['DIFF_PGSE'].set_par('phase_grad', G)
+            self.programs['DIFF_PGSE'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
+            await self.programs['DIFF_PGSE'].run(progress_handler=None, message_handler=message_handler)
+            self.data[i] = self.programs['DIFF_PGSE'].data.view(np.complex64)
+            self.last_index = i
+
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
-        y = self.autophase(self.raw_data())
-        x = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
+        dwell_time = self.par['dwell_time']
+        sample_shift = self.par['sample_shift']
+        samples = self.par['samples']
+        phase = get_autophase(self.raw_data()[0,:], t0=-0.5 * dwell_time * samples + sample_shift, dwelltime=dwell_time)
+        y = self.raw_data() * np.exp(1j * phase)  # rotate
+        times = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
                         0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
+        grads = np.linspace(0, int(self.par['max_grad']), int(self.par['grad_steps']), endpoint=True)
         y /= 1000000  # μV->V
-        x /= 1000000  # μs->s
+        times /= 1000000  # μs->s
         return {
-            'x': x,
+            'time_axis': times,
+            'grad_axis': grads,
             'y_real': y.real,
             'y_imag': y.imag,
-            'y_mag': np.abs(y),
             'y_unit': 'V',
-            'x_unit': 's'}
+            'time_unit': 's'}
 
     def export_FT(self):
-        y = self.autophase(self.raw_data())
+        y = self.autophase(self.last_data())
         y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         dwell_time = self.par['dwell_time'] * 0.000001  # μs->s
         sample_shift = self.par['sample_shift'] * 0.000001  # μs->s
@@ -59,13 +76,10 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             'fft_unit': 'V/kHz',
             'freq_unit': 'Hz'}
 
-    # def export_default(self):
-    #     return self.export_Raw()
-
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_Raw(self):
-        y = self.autophase(self.raw_data())
+        y = self.autophase(self.last_data())
         y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         x = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
                         0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
@@ -92,7 +106,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             }}
 
     def plot_Phase(self):
-        y = self.autophase(self.raw_data())
+        y = self.autophase(self.last_data())
         x = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
                         0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
         x /= 1000000  # μs->s
@@ -131,8 +145,10 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['DIFF_PGSE'].data.view(np.complex64)
-        return data
+        return self.data
+
+    def last_data(self):
+        return self.data[self.last_index, :]
 
     def autophase(self, data):
         dwell_time = self.par['dwell_time']

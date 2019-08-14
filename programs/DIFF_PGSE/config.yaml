@@ -124,21 +124,21 @@ parameters:
     dtype: int32
     min: -524288
     max: 524287
-    group: gradients
+    group: gradient
   grad_time:
     dtype: uint32
     min: 1
     max: 100000
     unit: us
     scaling: 1000
-    group: gradients
+    group: gradient
   diff_time:
     dtype: uint32
     min: 1
     max: 4000000000
     unit: us
     scaling: 1000
-    group: pulse
+    group: gradient
 derived_parameters:
   T1:
     offset: 0xb0

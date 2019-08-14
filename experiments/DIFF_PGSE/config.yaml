@@ -12,6 +12,14 @@ parameters:
     dtype: float
     unit: ''
     group: acquisition
+  max_grad:
+    dtype: int32
+    min: -524288
+    max: 524287
+    group: gradient
+  grad_steps:
+    dtype: int
+    group: gradient
 defaults:
   plots:
     - Raw
