@@ -41,8 +41,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         samples = self.par['samples']
         phase = get_autophase(self.raw_data()[0,:], t0=-0.5 * dwell_time * samples + sample_shift, dwelltime=dwell_time)
         y = self.raw_data() * np.exp(1j * phase)  # rotate
-        times = np.linspace(-0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'],
-                        0.5 * self.par['dwell_time'] * len(y) + self.par['sample_shift'], len(y), endpoint=False)
+        times = np.linspace(-0.5 * self.par['dwell_time'] * samples + self.par['sample_shift'],
+                        0.5 * self.par['dwell_time'] * samples + self.par['sample_shift'], samples, endpoint=False)
         grads = np.linspace(0, int(self.par['max_grad']), int(self.par['grad_steps']), endpoint=True)
         y /= 1000000  # μV->V
         times /= 1000000  # μs->s
