@@ -309,7 +309,7 @@ derived_parameters:
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${{echo_time} - ({width_180} + {samples}*{dwell_time}*10)/2 - {unslice_time} + {echo_shift} - 7*{dwell_time}*10}
+    value: ${{echo_time} - ({width_180} + {samples}*{dwell_time}*10)/2 + {echo_shift} - 7*{dwell_time}*10}
     min: 10000
   duty_cycle:
     value: ${({width_180}+{width_90})/{rep_time}}
