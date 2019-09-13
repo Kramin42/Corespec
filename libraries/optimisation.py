@@ -149,7 +149,7 @@ async def nelder_mead_async(f, x_start,
     # simplex iter
     iters = 0
     while 1:
-        print('iter', iters)
+        logger.debug('iteration %d' % iters)
         # order
         res.sort(key=lambda x: x[1])
         best = res[0][1]
@@ -161,7 +161,8 @@ async def nelder_mead_async(f, x_start,
 
         if progress_handler is not None:
             progress_handler(iters, max_iter)
-        message_handler('Best SumSq: %d' % best)
+        if message_handler is not None:
+            message_handler('Best SumSq: %d' % best)
 
         # break after no_improv_break iterations with no improvement
         if best < prev_best - no_improve_thr*np.abs(prev_best):
@@ -177,8 +178,6 @@ async def nelder_mead_async(f, x_start,
         x0 = np.zeros(n)
         for tup in res[:-1]:
             x0 += tup[0] / n
-
-        print('centroid', x0)
 
         # reflection
         xr = x0 + alpha*(x0 - res[-1][0])

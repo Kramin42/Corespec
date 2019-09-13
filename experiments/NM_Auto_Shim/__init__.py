@@ -50,7 +50,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             result = np.sum(np.abs(y) ** 2)
             logger.debug('SumSq: %d' % result)
             return -result
-        opt_res = await nelder_mead_async(evalfunc, self.shims, step=init_step, message_handler=message_handler, progress_handler=progress_handler)
+        opt_res = await nelder_mead_async(evalfunc, self.shims, max_iter=iterations, step=init_step, message_handler=message_handler, progress_handler=progress_handler)
         message_handler('Final Shims: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
                         tuple(opt_res[0].tolist()))
     
