@@ -161,10 +161,9 @@ async def nelder_mead_async(f, x_start,
 
         if progress_handler is not None:
             progress_handler(iters, max_iter)
+        message_handler('Best SumSq: %d' % best)
 
         # break after no_improv_break iterations with no improvement
-        print('...best so far: %f' % best)
-
         if best < prev_best - no_improve_thr*np.abs(prev_best):
             no_improv = 0
             prev_best = best
@@ -187,6 +186,7 @@ async def nelder_mead_async(f, x_start,
         if res[0][1] <= rscore < res[-2][1]:
             del res[-1]
             res.append([xr, rscore])
+            logger.debug('Using reflected point')
             continue
 
         # expansion
@@ -196,10 +196,12 @@ async def nelder_mead_async(f, x_start,
             if escore < rscore:
                 del res[-1]
                 res.append([xe, escore])
+                logger.debug('Using expanded point')
                 continue
             else:
                 del res[-1]
                 res.append([xr, rscore])
+                logger.debug('Using reflected point after expansion')
                 continue
 
         # contraction
@@ -208,6 +210,7 @@ async def nelder_mead_async(f, x_start,
         if cscore < res[-1][1]:
             del res[-1]
             res.append([xc, cscore])
+            logger.debug('Using contracted point')
             continue
 
         # reduction
@@ -218,3 +221,4 @@ async def nelder_mead_async(f, x_start,
             score = await f(redx)
             nres.append([redx, score])
         res = nres
+        logger.debug('Reducing points')

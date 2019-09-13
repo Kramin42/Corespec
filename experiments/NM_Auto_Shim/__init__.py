@@ -5,7 +5,7 @@ from libraries.optimisation import nelder_mead_async
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 import numpy as np
 
@@ -33,7 +33,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         if progress_handler is not None:
             progress_handler(0, iterations)
         async def evalfunc(try_shims):
-            message_handler('Trying (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
+            logger.debug('Trying (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
                             tuple(try_shims.tolist()))
             self.programs['FID'].set_par('shim_X', try_shims[0])
             self.programs['FID'].set_par('shim_Y', try_shims[1])
@@ -48,7 +48,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.data = self.programs['FID'].data
             y = self.gaussian_apodize(self.data, self.par['gaussian_lb'])
             result = np.sum(np.abs(y) ** 2)
-            message_handler('SumSq: %d' % result)
+            logger.debug('SumSq: %d' % result)
             return -result
         opt_res = await nelder_mead_async(evalfunc, self.shims, step=init_step, message_handler=message_handler, progress_handler=progress_handler)
         message_handler('Final Shims: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
