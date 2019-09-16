@@ -8,7 +8,11 @@ parameters:
     dtype: float
     unit: ''
     group: acquisition
-  shim_iterations:
+  max_iterations:
+    dtype: int
+    unit: ''
+    group: autoshim
+  exit_iterations:
     dtype: int
     unit: ''
     group: autoshim

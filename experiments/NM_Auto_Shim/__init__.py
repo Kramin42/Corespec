@@ -29,9 +29,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         O1_shim_step = int(self.par['O1_shim_step'])
         O2_shim_step = int(self.par['O2_shim_step'])
         init_step = [O1_shim_step,O1_shim_step,O1_shim_step,O2_shim_step,O2_shim_step,O2_shim_step,O2_shim_step,O2_shim_step]
-        iterations = int(self.par['shim_iterations'])
+        max_iterations = int(self.par['max_iterations'])
+        exit_iterations = int(self.par['exit_iterations'])
         if progress_handler is not None:
-            progress_handler(0, iterations)
+            progress_handler(0, max_iterations)
         async def evalfunc(try_shims):
             logger.debug('Trying (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
                             tuple(try_shims.tolist()))
@@ -50,7 +51,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             result = np.sum(np.abs(y) ** 2)
             logger.debug('SumSq: %d' % result)
             return -result
-        opt_res = await nelder_mead_async(evalfunc, self.shims, max_iter=iterations, step=init_step, message_handler=message_handler, progress_handler=progress_handler)
+        opt_res = await nelder_mead_async(evalfunc, self.shims, max_iter=max_iterations, no_improv_break=exit_iterations, step=init_step, message_handler=message_handler, progress_handler=progress_handler)
         message_handler('Final Shims: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
                         tuple(opt_res[0].tolist()))
     
