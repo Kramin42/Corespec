@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.14] - 2019-09-26
+### fixed
+- Changed heating to only gate off during acquisition, not entire pulse program.
+
 ## [1.1.13] - 2019-03-12
 ### Added
 - Flowmeter and Flow_T2 experiments now take the parameters flow\_crop,
