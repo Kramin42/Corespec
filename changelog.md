@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.17] - 2019-09-26
+### Fixed
+- Changed heating to only gate off during acquisition, not entire pulse program.
+
 ## [1.1.16] - 2019-08-12
 ### Added
 - Support for diffusion gradient.
