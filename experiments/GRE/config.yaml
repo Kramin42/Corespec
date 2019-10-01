@@ -2,7 +2,7 @@
 description:
   A GRE experiment.
 programs:
-  - GRE
+  - 1DFIDGRE
 defaults:
   plots:
     - Raw
