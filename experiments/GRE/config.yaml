@@ -1,0 +1,10 @@
+# GRE experiment configuration
+description:
+  A GRE experiment.
+programs:
+  - GRE
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 3
