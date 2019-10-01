@@ -22,7 +22,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
-        y = self.autophase(self.raw_data())
+        y = self.raw_data()
         x = np.linspace(-0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], 0.5*self.par['dwell_time']*len(y)+self.par['sample_shift'], len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
