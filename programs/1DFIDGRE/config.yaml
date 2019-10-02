@@ -59,22 +59,6 @@ parameters:
     scaling: 1000
     shared: true
     group: pulse
-  damp_time:
-    offset: 0xbc
-    dtype: uint32
-    min: 1
-    unit: us
-    scaling: 1000
-    shared: true
-    group: pulse
-  acq_delay:
-    offset: 0xb0
-    dtype: uint32
-    min: 1
-    unit: us
-    scaling: 1000
-    shared: true
-    group: pulse
   rep_time:
     offset: 0xd4
     dtype: uint64
@@ -180,6 +164,12 @@ parameters:
     unit: us
     scaling: 1000
     group: gradients
+  evo_time:
+    dtype: uint32
+    min: 1
+    unit: us
+    scaling: 1000
+    group: acquisition
 derived_parameters:
   GX1:
     offset: 0x10c
@@ -222,6 +212,11 @@ derived_parameters:
     dtype: uint32
     value: ${({samples}+7)*{dwell_time}*5}
     min: 50000
+  T3:
+    offset: 0xb8
+    dtype: uint32
+    value: ${{evo_time} - ({samples}+7)*{dwell_time}*10 - {width_90}/2 - 3*{ramp_time}}
+    min: 1000
   ignore_samples:
     offset: 0xc8
     dtype: uint32
