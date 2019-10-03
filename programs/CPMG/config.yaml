@@ -124,6 +124,62 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
+  shim_X:
+    offset: 0xec
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_Y:
+    offset: 0xf0
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_Z:
+    offset: 0xf4
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_Z2:
+    offset: 0xf8
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_ZX:
+    offset: 0xfc
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_ZY:
+    offset: 0x100
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_XY:
+    offset: 0x104
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_X2Y2:
+    offset: 0x108
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
 derived_parameters:
   T1:
     offset: 0xb0
@@ -141,7 +197,7 @@ derived_parameters:
     value: ${({echo_time} - {width_180} + {samples}*{dwell_time}*10)/2 - {echo_shift} + 7*{dwell_time}*10}
     min: ${({samples}+7)*{dwell_time}*10+1000}
   duty_cycle:
-    value: ${({width_180}*{echo_count})/{rep_time}}
+    value: ${({width_180}*{echo_count})/({rep_time}+{echo_count}*{echo_time})}
     max: 0.1
   ignore_samples:
     offset: 0xc8
