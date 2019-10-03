@@ -1,0 +1,10 @@
+# 2D MRI experiment configuration
+description:
+  A 2D MRI experiment using a CPMG based sequence.
+programs:
+  - 2DMRICPMG
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 6
