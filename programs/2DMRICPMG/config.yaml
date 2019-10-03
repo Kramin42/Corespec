@@ -305,12 +305,12 @@ derived_parameters:
     value: ${({echo_time}-{width_180}-{width_90})/2 - ({samples}+7)*{dwell_time}*5 - 2*{ramp_time}}
     min: 10000
   T4:
-    offset: 0x1cc
+    offset: 0x1c8
     dtype: uint32
     value: ${({echo_time}-{width_180})/2 - ({samples}+7)*{dwell_time}*5 - 2*{ramp_time}}
     min: 50000
   T5:
-    offset: 0x1d0
+    offset: 0x1cc
     dtype: uint32
     value: ${({samples}+7)*{dwell_time}*10}
     min: 10000
