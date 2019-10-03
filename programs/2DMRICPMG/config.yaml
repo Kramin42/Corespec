@@ -74,14 +74,6 @@ parameters:
     scaling: 1000
     shared: true
     group: pulse
-  damp_time:
-    offset: 0xbc
-    dtype: uint32
-    min: 1
-    unit: us
-    scaling: 1000
-    shared: true
-    group: pulse
   echo_time:
     dtype: uint32
     min: 1
@@ -313,12 +305,12 @@ derived_parameters:
     value: ${({echo_time}-{width_180}-{width_90})/2 - ({samples}+7)*{dwell_time}*5 - 2*{ramp_time}}
     min: 10000
   T4:
-    offset: 0xb8
+    offset: 0x1cc
     dtype: uint32
     value: ${({echo_time}-{width_180})/2 - ({samples}+7)*{dwell_time}*5 - 2*{ramp_time}}
     min: 50000
   T5:
-    offset: 0xb8
+    offset: 0x1d0
     dtype: uint32
     value: ${({samples}+7)*{dwell_time}*10}
     min: 10000
