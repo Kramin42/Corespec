@@ -150,7 +150,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['CPMG'].data
+        data = self.programs['2DMRICPMG'].data
         return data
 
     def integrated_data(self, decimation=1):
