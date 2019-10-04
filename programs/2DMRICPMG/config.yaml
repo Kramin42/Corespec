@@ -279,6 +279,24 @@ derived_parameters:
     value: ${{phase_GZ_step}}
     min: -32768
     max: 32767
+  GX4:
+    offset: 0x130
+    dtype: int32
+    value: ${{shim_X} - {phase_GX_start}}
+    min: -32768
+    max: 32767
+  GY4:
+    offset: 0x134
+    dtype: int32
+    value: ${{shim_Y} - {phase_GY_start}}
+    min: -32768
+    max: 32767
+  GZ4:
+    offset: 0x138
+    dtype: int32
+    value: ${{shim_Z} - {phase_GZ_start}}
+    min: -32768
+    max: 32767
   GX_limit:
     dtype: int32
     value: ${{shim_X} + {phase_GX_start} + {phase_GX_step}*{echo_count}}
