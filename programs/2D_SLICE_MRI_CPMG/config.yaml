@@ -60,7 +60,6 @@ parameters:
     offset: 0xa8
     dtype: uint32
     min: 1
-    max: 500
     unit: us
     scaling: 1000
     shared: true
@@ -69,7 +68,6 @@ parameters:
     offset: 0xac
     dtype: uint32
     min: 1
-    max: 500
     unit: us
     scaling: 1000
     shared: true
