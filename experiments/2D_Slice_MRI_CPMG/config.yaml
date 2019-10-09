@@ -2,7 +2,7 @@
 description:
   A 2D MRI experiment using a CPMG based sequence.
 programs:
-  - 2DMRICPMG
+  - 2D_SLICE_MRI_CPMG
 defaults:
   plots:
     - Raw

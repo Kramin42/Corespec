@@ -1,0 +1,439 @@
+# CPMG program configuration
+description:
+  A CPMG experiment.
+executable: 2D_SLICE_MRI_CPMG.elf
+action:
+  offset: 0x0
+  values:
+    stop: 0
+    run: 1
+status:
+  offset: 0x4
+  values:
+    uninitialised: 1
+    running: 2
+    capture: 3
+    finished: 10
+progress:
+  offset: 0x1c
+  limit: ${{scans}-1}
+output:
+  type: DMA
+  dtype: complex64
+  offset: 0x0
+  block_count: ${{echo_count}}
+  block_length: ${{samples}}
+  block_skip: 7
+  rotbuf: true
+  rotbuf_total: ${{scans}}
+  rotbuf_length_offset: 0x30
+  rotbuf_read_index_offset: 0x34
+  rotbuf_write_index_offset: 0x38
+  scale_factor: 1
+adc_overflow_count:
+  offset: 0x20
+parameters:
+  freq:
+    dtype: float64
+    unit: MHz
+    shared: true
+    group: pulse
+  amp_90:
+    offset: 0x98
+    dtype: float32
+    min: 0
+    max: 100
+    unit: '%'
+    scaling: 0.01
+    shared: true
+    group: pulse
+  amp_180:
+    offset: 0xa0
+    dtype: float32
+    min: 0
+    max: 100
+    unit: '%'
+    scaling: 0.01
+    shared: true
+    group: pulse
+  width_90:
+    offset: 0xa8
+    dtype: uint32
+    min: 1
+    max: 500
+    unit: us
+    scaling: 1000
+    shared: true
+    group: pulse
+  width_180:
+    offset: 0xac
+    dtype: uint32
+    min: 1
+    max: 500
+    unit: us
+    scaling: 1000
+    shared: true
+    group: pulse
+  echo_time:
+    dtype: uint32
+    min: 1
+    unit: us
+    scaling: 1000
+    group: pulse
+  echo_shift:
+    dtype: int32
+    unit: us
+    scaling: 1000
+    group: acquisition
+  rep_time:
+    offset: 0xd4
+    dtype: uint64
+    min: 0
+    unit: s
+    scaling: 1000000000
+    group: pulse
+  echo_count:
+    offset: 0xc0
+    dtype: uint32
+    min: 1
+    group: pulse
+  samples:
+    offset: 0xc4
+    dtype: uint32
+    min: 1
+    max: 16000
+    group: acquisition
+  dwell_time:
+    offset: 0xcc
+    dtype: uint32
+    min: 0.1
+    max: 80
+    unit: us
+    scaling: 100
+    group: acquisition
+  scans:
+    offset: 0xd0
+    dtype: uint32
+    min: 1
+    group: pulse
+  shim_X:
+    offset: 0xec
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_Y:
+    offset: 0xf0
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_Z:
+    offset: 0xf4
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_Z2:
+    offset: 0xf8
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_ZX:
+    offset: 0xfc
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_ZY:
+    offset: 0x100
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_XY:
+    offset: 0x104
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  shim_X2Y2:
+    offset: 0x108
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  slice_GX:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  slice_GY:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  slice_GZ:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  read_GX:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  read_GY:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  read_GZ:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase_GX_start:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase_GY_start:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase_GZ_start:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase_GX_step:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase_GY_step:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  phase_GZ_step:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradients
+  grad_ramp_time:
+    offset: 0xb0
+    dtype: uint32
+    min: 10
+    unit: us
+    scaling: 1000
+    group: gradients
+derived_parameters:
+  GX1:
+    offset: 0x10c
+    dtype: int32
+    value: ${{shim_X} + {slice_GX}}
+    min: -32768
+    max: 32767
+  GY1:
+    offset: 0x110
+    dtype: int32
+    value: ${{shim_Y} + {slice_GY}}
+    min: -32768
+    max: 32767
+  GZ1:
+    offset: 0x114
+    dtype: int32
+    value: ${{shim_Z} + {slice_GZ}}
+    min: -32768
+    max: 32767
+  GX2:
+    offset: 0x118
+    dtype: int32
+    value: ${{shim_X} + {read_GX} - {slice_GX}}
+    min: -32768
+    max: 32767
+  GY2:
+    offset: 0x11c
+    dtype: int32
+    value: ${{shim_Y} + {read_GY} - {slice_GY}}
+    min: -32768
+    max: 32767
+  GZ2:
+    offset: 0x120
+    dtype: int32
+    value: ${{shim_Z} + {read_GZ} - {slice_GZ}}
+    min: -32768
+    max: 32767
+  GX3:
+    offset: 0x124
+    dtype: int32
+    value: ${{shim_X} + {read_GX}}
+    min: -32768
+    max: 32767
+  GY3:
+    offset: 0x128
+    dtype: int32
+    value: ${{shim_Y} + {read_GY}}
+    min: -32768
+    max: 32767
+  GZ3:
+    offset: 0x12c
+    dtype: int32
+    value: ${{shim_Z} + {read_GZ}}
+    min: -32768
+    max: 32767
+  GX4:
+    offset: 0x130
+    dtype: int32
+    value: ${{shim_X} + {phase_GX_start}}
+    min: -32768
+    max: 32767
+  GY4:
+    offset: 0x134
+    dtype: int32
+    value: ${{shim_Y} + {phase_GY_start}}
+    min: -32768
+    max: 32767
+  GZ4:
+    offset: 0x138
+    dtype: int32
+    value: ${{shim_Z} + {phase_GZ_start}}
+    min: -32768
+    max: 32767
+  GX5:
+    offset: 0x1d0
+    dtype: int32
+    value: ${{shim_X} + {read_GX}}
+    min: -32768
+    max: 32767
+  GY5:
+    offset: 0x1d4
+    dtype: int32
+    value: ${{shim_Y} + {read_GY}}
+    min: -32768
+    max: 32767
+  GZ5:
+    offset: 0x1d8
+    dtype: int32
+    value: ${{shim_Z} + {read_GZ}}
+    min: -32768
+    max: 32767
+  GX6:
+    offset: 0x1dc
+    dtype: int32
+    value: ${{shim_X} - {phase_GX_start}}
+    min: -32768
+    max: 32767
+  GY6:
+    offset: 0x1e0
+    dtype: int32
+    value: ${{shim_Y} - {phase_GY_start}}
+    min: -32768
+    max: 32767
+  GZ6:
+    offset: 0x1e4
+    dtype: int32
+    value: ${{shim_Z} - {phase_GZ_start}}
+    min: -32768
+    max: 32767
+  GX7:
+    offset: 0x1ec
+    dtype: int32
+    value: ${{phase_GX_step}}
+    min: -32768
+    max: 32767
+  GY7:
+    offset: 0x1f0
+    dtype: int32
+    value: ${{phase_GY_step}}
+    min: -32768
+    max: 32767
+  GZ7:
+    offset: 0x1f4
+    dtype: int32
+    value: ${{phase_GZ_step}}
+    min: -32768
+    max: 32767
+  GX_limit:
+    dtype: int32
+    value: ${{shim_X} + {phase_GX_start} + {phase_GX_step}*{echo_count}}
+    min: -32768
+    max: 32767
+  GY_limit:
+    dtype: int32
+    value: ${{shim_Y} + {phase_GY_start} + {phase_GY_step}*{echo_count}}
+    min: -32768
+    max: 32767
+  GZ_limit:
+    dtype: int32
+    value: ${{shim_Z} + {phase_GZ_start} + {phase_GZ_step}*{echo_count}}
+    min: -32768
+    max: 32767
+  T2:
+    offset: 0xb4
+    dtype: uint32
+    value: ${({width_90} - {grad_ramp_time})/2}
+    min: 10000
+  T3:
+    offset: 0xb8
+    dtype: uint32
+    value: ${({samples}+7)*{dwell_time}*5 - ({width_90} + {grad_ramp_time})/2}
+    min: 10000
+  T4:
+    offset: 0x1c8
+    dtype: uint32
+    value: ${({echo_time}-{width_180}-{width_90})/2 - 3*{grad_ramp_time} - ({samples}+7)*{dwell_time}*5}
+    min: 10000
+  T5:
+    offset: 0x1cc
+    dtype: uint32
+    value: ${({echo_time}-{width_180})/2 - 2*{grad_ramp_time} - ({samples}+7)*{dwell_time}*5}
+    min: 50000
+  T6:
+    offset: 0x1e8
+    dtype: uint32
+    value: ${({samples}+7)*{dwell_time}*10}
+    min: 10000
+  duty_cycle:
+    value: ${({width_180}*{echo_count})/({rep_time}+{echo_count}*{echo_time})}
+    max: 0.1
+  ignore_samples:
+    offset: 0xc8
+    dtype: uint32
+    value: 7
+  freqTx:
+    offset: 0x80
+    dtype: float64
+    value: ${{freq}}
+  freqRx:
+    offset: 0x88
+    dtype: float64
+    value: ${{freq}}
+  phase:
+    offset: 0x90
+    dtype: float64
+    value: 0
+  P90:
+    offset: 0x9c
+    dtype: float32
+    value: 90
+  P180:
+    offset: 0xa4
+    dtype: float32
+    value: 180
+  gainRx:
+    offset: 0xe4
+    dtype: uint32
+    value: 7
