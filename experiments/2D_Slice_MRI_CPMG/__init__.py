@@ -170,8 +170,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             'z': data.real.ravel()}],
             'layout': {
                 'title': 'K-Space',
-                'xaxis': {'title': 'k_x'},
-                'yaxis': {'title': 'k_y'}
+                'xaxis': {'title': 'kx'},
+                'yaxis': {'title': 'ky'}
             }}
 
     def plot_Image(self):

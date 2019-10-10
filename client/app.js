@@ -56710,7 +56710,7 @@ var Plot = function (_React$Component) {
           if (result.data[0].type === 'contour') {
             (0, _d3plot.d3plot_contour)(d3.select('#' + _this2.svgid), result);
           } else if (result.data[0].type === 'image') {
-            d3plot_image(d3.select('#' + _this2.svgid), result);
+            (0, _d3plot.d3plot_image)(d3.select('#' + _this2.svgid), result);
           } else {
             (0, _d3plot.d3plot)(d3.select('#' + _this2.svgid), result);
           }
