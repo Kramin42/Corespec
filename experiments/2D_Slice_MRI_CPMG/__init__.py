@@ -167,7 +167,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             'type': 'contour',
             'x': kx,
             'y': ky,
-            'z': data.ravel()}],
+            'z': data.real.ravel()}],
             'layout': {
                 'title': 'K-Space',
                 'xaxis': {'title': 'k_x'},
@@ -192,7 +192,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             'type': 'image',
             'x': kx,
             'y': ky,
-            'z': data.ravel()}],
+            'z': np.abs(data).ravel()}],
             'layout': {
                 'title': 'Image',
                 'xaxis': {'title': 'x'},
