@@ -149,6 +149,56 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
                 'yaxis': {'title': data['y_unit']}
             }}
 
+    def plot_KSpace(self):
+        data = self.autophase(self.raw_data())
+        samples = int(self.par['samples'])
+        dwell_time = self.par['dwell_time']
+        echo_count = int(self.par['echo_count'])
+        F_grad = np.linalg.norm([self.par['read_GX'], self.par['read_GY'], self.par['read_GZ']])
+        P_grad_start = -np.linalg.norm(
+            [self.par['phase_GX_start'], self.par['phase_GY_start'], self.par['phase_GZ_start']])
+        P_grad_step = np.linalg.norm(
+            [self.par['phase_GX_step'], self.par['phase_GY_step'], self.par['phase_GZ_step']])
+        kx = F_grad*np.linspace(0, samples*dwell_time, samples, endpoint=False)
+        kx-= kx[-1]/2 # start halfway
+        ky = P_grad_start + np.linspace(0, echo_count * P_grad_step, num=echo_count, endpoint=False)
+        return {'data': [{
+            'name': '',
+            'type': 'contour',
+            'x': kx,
+            'y': ky,
+            'z': data.ravel()}],
+            'layout': {
+                'title': 'K-Space',
+                'xaxis': {'title': 'k_x'},
+                'yaxis': {'title': 'k_y'}
+            }}
+
+    def plot_Image(self):
+        data = self.autophase(self.raw_data())
+        samples = int(self.par['samples'])
+        dwell_time = self.par['dwell_time']
+        echo_count = int(self.par['echo_count'])
+        F_grad = np.linalg.norm([self.par['read_GX'], self.par['read_GY'], self.par['read_GZ']])
+        P_grad_start = -np.linalg.norm(
+            [self.par['phase_GX_start'], self.par['phase_GY_start'], self.par['phase_GZ_start']])
+        P_grad_step = np.linalg.norm(
+            [self.par['phase_GX_step'], self.par['phase_GY_step'], self.par['phase_GZ_step']])
+        kx = F_grad*np.linspace(0, samples*dwell_time, samples, endpoint=False)
+        kx-= kx[-1]/2 # start halfway
+        ky = P_grad_start + np.linspace(0, echo_count * P_grad_step, num=echo_count, endpoint=False)
+        return {'data': [{
+            'name': '',
+            'type': 'image',
+            'x': kx,
+            'y': ky,
+            'z': data.ravel()}],
+            'layout': {
+                'title': 'Image',
+                'xaxis': {'title': 'x'},
+                'yaxis': {'title': 'y'}
+            }}
+
     def raw_data(self):
         data = self.programs['2D_SLICE_MRI_CPMG'].data
         return data
