@@ -57364,6 +57364,11 @@ function uuidv4() {
   });
 }
 
+function interpolateCividis(x) {
+  x = Math.max(0, Math.min(1, x));
+  return 'rgb(' + [-4.54 - x * (35.34 - x * (2381.73 - x * (6402.7 - x * (7024.72 - x * 2710.57)))), 32.49 + x * (170.73 + x * (52.82 - x * (131.46 - x * (176.58 - x * 67.37)))), 81.24 + x * (442.36 - x * (2482.43 - x * (6167.24 - x * (6614.94 - x * 2475.67))))].map(Math.floor).join(", ") + ')';
+}
+
 function d3plot_image(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000;
   var width = 600;
@@ -57384,7 +57389,7 @@ function d3plot_image(svg, plotDef) {
   var z = plotDef.data[0].z;
 
   var color_interp = function color_interp(t) {
-    return d3.interpolateCividis(1 - t);
+    return interpolateCividis(t);
   };
 
   // generate a renderer canvas
@@ -57481,7 +57486,7 @@ function d3plot_contour(svg, plotDef) {
   console.log(contours);
   //var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
   var color_interp = function color_interp(t) {
-    return d3.interpolateMagma(1 - t);
+    return interpolateCividis(t);
   };
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(function (d) {
     return color_interp;

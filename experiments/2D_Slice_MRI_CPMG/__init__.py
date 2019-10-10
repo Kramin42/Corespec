@@ -162,41 +162,39 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         kx = F_grad*np.linspace(0, samples*dwell_time, samples, endpoint=False)
         kx-= kx[-1]/2 # start halfway
         ky = P_grad_start + np.linspace(0, echo_count * P_grad_step, num=echo_count, endpoint=False)
-        return {'data': [{
-            'name': '',
-            'type': 'contour',
-            'x': kx,
-            'y': ky,
-            'z': data.real.ravel()}],
-            'layout': {
-                'title': 'K-Space',
-                'xaxis': {'title': 'kx'},
-                'yaxis': {'title': 'ky'}
-            }}
-
-    def plot_Image(self):
-        data = self.autophase(self.raw_data())
-        samples = int(self.par['samples'])
-        dwell_time = self.par['dwell_time']
-        echo_count = int(self.par['echo_count'])
-        F_grad = np.linalg.norm([self.par['read_GX'], self.par['read_GY'], self.par['read_GZ']])
-        P_grad_start = -np.linalg.norm(
-            [self.par['phase_GX_start'], self.par['phase_GY_start'], self.par['phase_GZ_start']])
-        P_grad_step = np.linalg.norm(
-            [self.par['phase_GX_step'], self.par['phase_GY_step'], self.par['phase_GZ_step']])
-        kx = F_grad*np.linspace(0, samples*dwell_time, samples, endpoint=False)
-        kx-= kx[-1]/2 # start halfway
-        ky = P_grad_start + np.linspace(0, echo_count * P_grad_step, num=echo_count, endpoint=False)
+        norm_data = data.real/np.max(data.real)
         return {'data': [{
             'name': '',
             'type': 'image',
             'x': kx,
             'y': ky,
-            'z': np.abs(data).ravel()}],
+            'z': norm_data.ravel()}],
+            'layout': {
+                'title': 'K-Space',
+                'xaxis': {'title': 'k_freq'},
+                'yaxis': {'title': 'k_phase'}
+            }}
+
+    def plot_Image(self):
+        data = self.autophase(self.raw_data())
+        samples = int(self.par['samples'])
+        echo_count = int(self.par['echo_count'])
+        data = np.reshape(data, (echo_count, samples))
+        image_data = np.abs(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(data))))
+        image_data/= np.max(image_data)
+        # TODO: calibrate x/y scale
+        x = np.linspace(0, 1, samples)
+        y = np.linspace(0, 1, echo_count)
+        return {'data': [{
+            'name': '',
+            'type': 'image',
+            'x': x,
+            'y': y,
+            'z': image_data.ravel()}],
             'layout': {
                 'title': 'Image',
-                'xaxis': {'title': 'x'},
-                'yaxis': {'title': 'y'}
+                'xaxis': {'title': 'frequency encode dim.'},
+                'yaxis': {'title': 'phase encode dim.'}
             }}
 
     def raw_data(self):

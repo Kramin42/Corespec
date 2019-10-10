@@ -27,6 +27,15 @@ function uuidv4() {
   )
 }
 
+function interpolateCividis(x) {
+  x = Math.max(0, Math.min(1, x));
+  return `rgb(${[
+    -4.54 - x * (35.34 - x * (2381.73 - x * (6402.7 - x * (7024.72 - x * 2710.57)))),
+    32.49 + x * (170.73 + x * (52.82 - x * (131.46 - x * (176.58 - x * 67.37)))),
+    81.24 + x * (442.36 - x * (2482.43 - x * (6167.24 - x * (6614.94 - x * 2475.67))))
+  ].map(Math.floor).join(", ")})`;
+}
+
 export function d3plot_image(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000
   var width = 600
@@ -46,7 +55,7 @@ export function d3plot_image(svg, plotDef) {
   var y = plotDef.data[0].y
   var z = plotDef.data[0].z
 
-  var color_interp = (t) => d3.interpolateCividis(1-t)
+  var color_interp = (t) => interpolateCividis(t)
 
   // generate a renderer canvas
   const renderer = document.createElement('canvas');
@@ -181,7 +190,7 @@ export function d3plot_contour(svg, plotDef) {
   var contours = d3.contours().size([x.length, y.length]).thresholds(20)(z)
   console.log(contours)
   //var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => d3.interpolateRgb('#ffffff', '#000000'))
-  var color_interp = (t) => d3.interpolateMagma(1-t)
+  var color_interp = (t) => interpolateCividis(t)
   var color = d3.scaleLinear().domain(d3.extent(z)).interpolate(d => color_interp)
 
   var scale_x = d3.scaleLinear()
