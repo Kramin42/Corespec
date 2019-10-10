@@ -162,7 +162,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         kx = F_grad*np.linspace(0, samples*dwell_time, samples, endpoint=False)
         kx-= kx[-1]/2 # start halfway
         ky = P_grad_start + np.linspace(0, echo_count * P_grad_step, num=echo_count, endpoint=False)
-        norm_data = (data.real+np.min(data.real))/(np.max(data.real)-np.min(data.real))
+        norm_data = (data.real-np.min(data.real))/(np.max(data.real)-np.min(data.real))
         return {'data': [{
             'name': '',
             'type': 'image',
