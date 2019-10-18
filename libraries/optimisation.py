@@ -124,6 +124,7 @@ def nelder_mead(f, x_start,
         res = nres
 
 async def nelder_mead_async(f, x_start,
+                x_lb=None, x_ub=None,
                 step=1, no_improve_thr=10e-6,
                 no_improv_break=10, max_iter=0,
                 alpha=1., gamma=2., rho=0.5, sigma=0.5,
@@ -194,6 +195,9 @@ async def nelder_mead_async(f, x_start,
 
         # reflection
         xr = x0 + alpha*(x0 - res[-1][0])
+        # check bounds
+        if x_lb is not None or x_ub is not None:
+            xr = np.clip(xr, x_lb, x_ub)
         rscore = await f(xr)
         if res[0][1] <= rscore < res[-2][1]:
             del res[-1]
@@ -204,6 +208,9 @@ async def nelder_mead_async(f, x_start,
         # expansion
         if rscore < res[0][1]:
             xe = x0 + gamma*(xr - x0)
+            # check bounds
+            if x_lb is not None or x_ub is not None:
+                xe = np.clip(xe, x_lb, x_ub)
             escore = await f(xe)
             if escore < rscore:
                 del res[-1]
@@ -218,6 +225,9 @@ async def nelder_mead_async(f, x_start,
 
         # contraction
         xc = x0 + rho*(res[-1][0] - x0)
+        # check bounds
+        if x_lb is not None or x_ub is not None:
+            xc = np.clip(xc, x_lb, x_ub)
         cscore = await f(xc)
         if cscore < res[-1][1]:
             del res[-1]
@@ -230,6 +240,9 @@ async def nelder_mead_async(f, x_start,
         nres = []
         for tup in res:
             redx = x1 + sigma*(tup[0] - x1)
+            # check bounds
+            if x_lb is not None or x_ub is not None:
+                redx = np.clip(redx, x_lb, x_ub)
             score = await f(redx)
             nres.append([redx, score])
         res = nres
