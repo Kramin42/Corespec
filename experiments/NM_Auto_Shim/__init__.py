@@ -28,9 +28,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
         O1_shim_step = int(self.par['O1_shim_step'])
         O2_shim_step = int(self.par['O2_shim_step'])
+        O1_precision = int(self.par['O1_precision'])
+        O2_precision = int(self.par['O2_precision'])
         init_step = [O1_shim_step,O1_shim_step,O1_shim_step,O2_shim_step,O2_shim_step,O2_shim_step,O2_shim_step,O2_shim_step]
+        precision = [O1_precision, O1_precision, O1_precision, O2_precision, O2_precision, O2_precision, O2_precision, O2_precision]
         max_iterations = int(self.par['max_iterations'])
-        exit_iterations = int(self.par['exit_iterations'])
         if progress_handler is not None:
             progress_handler(0, max_iterations)
         async def evalfunc(try_shims):
@@ -53,7 +55,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             return -result
         lower_bounds = [-32768]*8
         upper_bounds = [32767]*8
-        opt_res = await nelder_mead_async(evalfunc, self.shims, x_lb=lower_bounds, x_ub=upper_bounds, max_iter=max_iterations, no_improv_break=exit_iterations, step=init_step, message_handler=message_handler, progress_handler=progress_handler)
+        opt_res = await nelder_mead_async(evalfunc, self.shims, x_lb=lower_bounds, x_ub=upper_bounds, max_iter=max_iterations, step=init_step, x_precision=precision, message_handler=message_handler, progress_handler=progress_handler)
         message_handler('Final Shims: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
                         tuple(opt_res[0].tolist()))
     

@@ -7,7 +7,7 @@ logger.setLevel(logging.DEBUG)
 
 def nelder_mead(f, x_start,
                 x_lb=None, x_ub=None,
-                step=1, no_improve_thr=10e-6,
+                step=1, no_improve_thr=1e-5,
                 no_improv_break=10, max_iter=0,
                 alpha=1., gamma=2., rho=0.5, sigma=0.5):
     '''
@@ -123,10 +123,10 @@ def nelder_mead(f, x_start,
             nres.append([redx, score])
         res = nres
 
+
 async def nelder_mead_async(f, x_start,
                 x_lb=None, x_ub=None,
-                step=1, no_improve_thr=10e-6,
-                no_improv_break=10, max_iter=0,
+                step=1, x_precision=None, max_iter=0,
                 alpha=1., gamma=2., rho=0.5, sigma=0.5,
                 progress_handler=None, message_handler=None):
     '''
@@ -147,7 +147,11 @@ async def nelder_mead_async(f, x_start,
     n = len(x_start)
     prev_best = await f(x_start)
     no_improv = 0
+    no_improve_thr = 1e-5
     res = [[x_start, prev_best]]
+
+    if x_precision is None:
+        x_precision = np.copy(x_start)*1e-3
 
     for i in range(n):
         x = np.copy(x_start)
@@ -159,6 +163,8 @@ async def nelder_mead_async(f, x_start,
         res.append([x, score])
 
     print(res)
+
+    message_handler('Starting SumSq: %d' % -prev_best)
 
     # simplex iter
     iters = 0
@@ -175,18 +181,19 @@ async def nelder_mead_async(f, x_start,
 
         if progress_handler is not None:
             progress_handler(iters, max_iter)
-        if message_handler is not None:
-            message_handler('Best SumSq: %d' % best)
+
 
         # break after no_improv_break iterations with no improvement
         if best < prev_best - no_improve_thr*np.abs(prev_best):
+            if message_handler is not None:
+                message_handler('New Best SumSq: %d' % -best)
             no_improv = 0
             prev_best = best
         else:
             no_improv += 1
-
-        if no_improv >= no_improv_break:
-            return res[0]
+        #
+        # if no_improv >= no_improv_break:
+        #     return res[0]
 
         # centroid
         x0 = np.zeros(n)
@@ -234,6 +241,17 @@ async def nelder_mead_async(f, x_start,
             res.append([xc, cscore])
             logger.debug('Using contracted point')
             continue
+
+        # if all above methods failed, check our simplex size before reducing
+        # exit if already at desired precision
+        precision_met = True
+        for i, p in enumerate(x_precision):
+            xs_i = [r[0][i] for r in res]
+            logger.debug('precision %d: %f' % (i, np.max(xs_i) - np.min(xs_i)))
+            if x_precision > np.max(xs_i) - np.min(xs_i):
+                precision_met = False
+        if precision_met:
+            return res[0]
 
         # reduction
         x1 = res[0][0]

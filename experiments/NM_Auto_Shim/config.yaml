@@ -12,17 +12,21 @@ parameters:
     dtype: int
     unit: ''
     group: autoshim
-  exit_iterations:
-    dtype: int
-    unit: ''
-    group: autoshim
   O1_shim_step:
     dtype: int
     unit: ''
     group: autoshim
+  O1_precision:
+    dtype: int
+    unit:''
+    group: autoshim
   O2_shim_step:
     dtype: int
     unit: ''
+    group: autoshim
+  O2_precision:
+    dtype: int
+    unit:''
     group: autoshim
 defaults:
   plots:
