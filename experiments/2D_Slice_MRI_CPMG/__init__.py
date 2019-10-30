@@ -180,11 +180,17 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
         data = np.reshape(data, (echo_count, samples))
+        interp_ratio = int(self.par['interpolation'])
+        if interp_ratio > 1:
+            F_pad = np.zeros((((interp_ratio-1)*samples)//2, data.shape[0])).transpose()
+            data = np.concatenate((F_pad, data, F_pad), axis=1)
+            P_pad = np.zeros((((interp_ratio - 1) * echo_count) // 2, data.shape[1]))
+            data = np.concatenate((P_pad, data, P_pad), axis=0)
         image_data = np.abs(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(data))))
         image_data/= np.max(image_data)
         # TODO: calibrate x/y scale
-        x = np.linspace(0, 1, samples)
-        y = np.linspace(0, 1, echo_count)
+        x = np.linspace(0, 1, samples*interp_ratio)
+        y = np.linspace(0, 1, echo_count*interp_ratio)
         return {'data': [{
             'name': '',
             'type': 'image',
