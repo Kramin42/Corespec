@@ -18,7 +18,7 @@ parameters:
     group: autoshim
   O1_precision:
     dtype: int
-    unit:''
+    unit: ''
     group: autoshim
   O2_shim_step:
     dtype: int
@@ -26,7 +26,7 @@ parameters:
     group: autoshim
   O2_precision:
     dtype: int
-    unit:''
+    unit: ''
     group: autoshim
 defaults:
   plots:

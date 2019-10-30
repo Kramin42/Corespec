@@ -248,7 +248,7 @@ async def nelder_mead_async(f, x_start,
         for i, p in enumerate(x_precision):
             xs_i = [r[0][i] for r in res]
             logger.debug('precision %d: %f' % (i, np.max(xs_i) - np.min(xs_i)))
-            if x_precision > np.max(xs_i) - np.min(xs_i):
+            if p < np.max(xs_i) - np.min(xs_i):
                 precision_met = False
         if precision_met:
             return res[0]
