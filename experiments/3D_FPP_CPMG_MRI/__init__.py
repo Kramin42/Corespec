@@ -18,7 +18,7 @@ import numpy as np
 class Experiment(BaseExperiment):  # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        phase_G = np.array([int(self.par['phase_GX']), int(self.par['phase_GY']), int(self.par['phase_GZ'])])
+        phase_G = np.array([int(self.par['phase_GX_start']), int(self.par['phase_GY_start']), int(self.par['phase_GZ_start'])])
         phase2_G = np.array([int(self.par['phase2_GX']), int(self.par['phase2_GY']), int(self.par['phase2_GZ'])])
         phase2_steps = int(self.par['phase2_steps'])
         G2s = np.outer(np.linspace(1, -1, phase2_steps, endpoint=False), phase2_G).astype(int)
@@ -26,9 +26,9 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         for i,G2 in enumerate(G2s):
             if progress_handler is not None:
                 progress_handler(i, phase2_steps)
-            self.programs['2DMRICPMG'].set_par('phase_GX', phase_G[0]+G2[0])
-            self.programs['2DMRICPMG'].set_par('phase_GY', phase_G[1]+G2[1])
-            self.programs['2DMRICPMG'].set_par('phase_GZ', phase_G[2]+G2[2])
+            self.programs['2DMRICPMG'].set_par('phase_GX_start', phase_G[0]+G2[0])
+            self.programs['2DMRICPMG'].set_par('phase_GY_start', phase_G[1]+G2[1])
+            self.programs['2DMRICPMG'].set_par('phase_GZ_start', phase_G[2]+G2[2])
             await self.programs['2DMRICPMG'].run(progress_handler=None, message_handler=message_handler)
             run_data = self.programs['2DMRICPMG'].data
             # self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
