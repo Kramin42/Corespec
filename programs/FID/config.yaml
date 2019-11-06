@@ -42,6 +42,7 @@ soft_pulse:
   shape_len_dtype: uint32
   shape_spacing_offset: 0x144
   shape_spacing_dtype: uint32
+  shape_spacing_scaling: 1000000000
   shape_points_offset: 0x200
   shape_points_dtype: float32
   max_len: 256
