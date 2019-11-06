@@ -36,7 +36,7 @@ postprocess:
 adc_overflow_count:
   offset: 0x20
 soft_pulse:
-  pulse_width: ${{width_90}*1e-9}  # in seconds
+  pulse_width: ${{width_90}*0.000000001}  # in seconds
   slice_width: ${{slice_90}}  # in meters
   shape_len_offset: 0x140
   shape_len_dtype: uint32

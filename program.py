@@ -235,7 +235,7 @@ class Program:
                 self.config_get('soft_pulse.shape_len_dtype'))
             system.write_par(
                 self.config_get('soft_pulse.shape_spacing_offset'),
-                SP_spacing,
+                SP_spacing*self.config_get('soft_pulse.shape_spacing_scaling'),
                 self.config_get('soft_pulse.shape_spacing_dtype'))
             system.write_par(
                 self.config_get('soft_pulse.shape_points_offset'),
