@@ -11,6 +11,7 @@ import logging
 import yaml
 import numpy as np
 import scipy.signal as signal
+from libraries.pulseshapes import calc_soft_pulse
 
 from config import CONFIG
 
@@ -222,6 +223,24 @@ class Program:
                         self.config_get('derived_parameters.'+par_name+'.offset'),
                         self.par[par_name],
                         self.config_get('derived_parameters.'+par_name+'.dtype'))
+
+        if 'soft_pulse' in self._config:
+            SP_N, SP_spacing, SP_points = calc_soft_pulse(
+                self.config_get('soft_pulse.pulse_width'),
+                self.config_get('soft_pulse.slice_width'),
+                N_max=self.config_get('soft_pulse.max_len'))
+            system.write_par(
+                self.config_get('soft_pulse.shape_len_offset'),
+                SP_N,
+                self.config_get('soft_pulse.shape_len_dtype'))
+            system.write_par(
+                self.config_get('soft_pulse.shape_spacing_offset'),
+                SP_spacing,
+                self.config_get('soft_pulse.shape_spacing_dtype'))
+            system.write_par(
+                self.config_get('soft_pulse.shape_points_offset'),
+                SP_points,
+                self.config_get('soft_pulse.shape_points_dtype'))
 
         rotbuf = 'rotbuf' in self.config_get('output') and self.config_get('output.rotbuf')
 

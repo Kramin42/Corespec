@@ -35,6 +35,16 @@ postprocess:
   decimation: 5
 adc_overflow_count:
   offset: 0x20
+soft_pulse:
+  pulse_width: ${{width_90}*1e-9}  # in seconds
+  slice_width: ${{slice_90}}  # in meters
+  shape_len_offset: 0x140
+  shape_len_dtype: uint32
+  shape_spacing_offset: 0x144
+  shape_spacing_dtype: uint32
+  shape_points_offset: 0x200
+  shape_points_dtype: float32
+  max_len: 256
 parameters:
   freq:
     dtype: float64
@@ -48,7 +58,6 @@ parameters:
     max: 100
     unit: '%'
     scaling: 0.01
-    shared: true
     group: pulse
   width_90:
     offset: 0xa8
@@ -57,7 +66,13 @@ parameters:
     max: 5000
     unit: us
     scaling: 1000
-    shared: true
+    group: pulse
+  slice_90:
+    dtype: float32
+    min: 0
+    max: 10
+    unit: mm
+    scaling: 0.001
     group: pulse
   damp_time:
     offset: 0xbc

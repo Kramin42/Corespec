@@ -11,7 +11,7 @@ from mmap import mmap
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -80,7 +80,7 @@ def write_par(
         offset: int,
         value,
         dtype=np.dtype(np.int32)) -> None:
-    value = np.array([value], dtype=dtype)[0] # must be a better way...
+    value = np.array(value, dtype=dtype)
     # offset is a bytes offset since params could have varying size
     logger.debug('writing %s at 0x%X', value, offset)
     mem_p.write(offset, value.tobytes())

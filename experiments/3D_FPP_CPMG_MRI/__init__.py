@@ -106,12 +106,11 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
     # start a function name with "plot_" for it to be listed as a plot type
     # it must take no arguments and return a JSON serialisable dict
     def plot_Raw(self):
-        data = self.export_Raw()
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
         dwell_time = self.par['dwell_time']
         data = self.autophase(self.integrated_data())
-        t = np.zeros(data.size)
+        t = np.zeros(samples*echo_count)
         offset = 0
         sample_times = np.linspace(0, samples * dwell_time,
                                    num=samples, endpoint=False)
