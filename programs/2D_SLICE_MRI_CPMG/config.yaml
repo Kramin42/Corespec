@@ -34,20 +34,45 @@ postprocess:
   decimation: 10
 adc_overflow_count:
   offset: 0x20
+soft_pulse:
+  pulse_width: ${{soft_pulse_width_90}*0.000000001}  # in seconds
+  slice_width: ${{slice_90}}  # in meters
+  shape_len_offset: 0x140
+  shape_len_dtype: uint32
+  shape_spacing_offset: 0x144
+  shape_spacing_dtype: uint32
+  shape_spacing_scaling: 1000000000
+  shape_points_offset: 0x200
+  shape_points_dtype: float32
+  max_len: 256
 parameters:
   freq:
     dtype: float64
     unit: MHz
     shared: true
     group: pulse
-  amp_90:
+  soft_pulse_amp_90:
     offset: 0x98
     dtype: float32
     min: 0
     max: 100
     unit: '%'
     scaling: 0.01
-    shared: true
+    group: pulse
+  soft_pulse_width_90:
+    offset: 0xa8
+    dtype: uint32
+    min: 1
+    max: 5000
+    unit: us
+    scaling: 1000
+    group: pulse
+  slice_90:
+    dtype: float32
+    min: 0
+    max: 10
+    unit: mm
+    scaling: 0.001
     group: pulse
   amp_180:
     offset: 0xa0
@@ -56,14 +81,6 @@ parameters:
     max: 100
     unit: '%'
     scaling: 0.01
-    shared: true
-    group: pulse
-  width_90:
-    offset: 0xa8
-    dtype: uint32
-    min: 1
-    unit: us
-    scaling: 1000
     shared: true
     group: pulse
   width_180:

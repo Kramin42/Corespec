@@ -8,11 +8,15 @@ english:
       label: 90 Amp.
     fid_amp_90:
       label: 90 Amp.
+    soft_pulse_amp_90:
+      label: 90 Amp.
     amp_180:
-      label: 180 power
+      label: 180 Amp.
     width_90:
       label: 90 width
     fid_width_90:
+      label: 90 width
+    soft_pulse_width_90:
       label: 90 width
     width_180:
       label: 180 width
