@@ -36,7 +36,7 @@ postprocess:
 adc_overflow_count:
   offset: 0x20
 soft_pulse:
-  pulse_width: ${{width_90}*0.000000001}  # in seconds
+  pulse_width: ${{fid_width_90}*0.000000001}  # in seconds
   slice_width: ${{slice_90}}  # in meters
   shape_len_offset: 0x140
   shape_len_dtype: uint32
@@ -52,7 +52,7 @@ parameters:
     unit: MHz
     shared: true
     group: pulse
-  amp_90:
+  fid_amp_90:
     offset: 0x98
     dtype: float32
     min: 0
@@ -60,7 +60,7 @@ parameters:
     unit: '%'
     scaling: 0.01
     group: pulse
-  width_90:
+  fid_width_90:
     offset: 0xa8
     dtype: uint32
     min: 1

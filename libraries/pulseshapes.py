@@ -50,7 +50,7 @@ def calc_soft_pulse(pulse_width, slice_width, flip_angle=90, gradient=G_MAX, N_m
     F_stop = ((B + BW) / 2) / F_sample
 
     if F_pass < 0:
-        raise Exception("Slice Width*Pulse Width product too small (%f < %f)." % (pulse_width*slice_width, D_inf/gamma_G))
+        raise Exception("Slice Width*Pulse Width product too small (%.2E < %.2E)." % (pulse_width*slice_width, D_inf/gamma_G))
 
     points = signal.remez(N, [0, F_pass, F_stop, 0.5], [1, 0], [1 / delta_1, 1 / delta_2])
     points *= 1 / np.max(points)

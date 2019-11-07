@@ -5,10 +5,14 @@ english:
     phase:
       label: Phase
     amp_90:
-      label: 90 power
+      label: 90 Amp.
+    fid_amp_90:
+      label: 90 Amp.
     amp_180:
       label: 180 power
     width_90:
+      label: 90 width
+    fid_width_90:
       label: 90 width
     width_180:
       label: 180 width
