@@ -402,17 +402,17 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({width_90} - {grad_ramp_time})/2}
+    value: ${({soft_pulse_width_90} - {grad_ramp_time})/2}
     min: 10000
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({samples}+7)*{dwell_time}*5 - ({width_90} + {grad_ramp_time})/2}
+    value: ${({samples}+7)*{dwell_time}*5 - ({soft_pulse_width_90} + {grad_ramp_time})/2}
     min: 10000
   T4:
     offset: 0x1c8
     dtype: uint32
-    value: ${({echo_time}-{width_180}-{width_90})/2 - 3*{grad_ramp_time} - ({samples}+7)*{dwell_time}*5}
+    value: ${({echo_time}-{width_180}-{soft_pulse_width_90})/2 - 3*{grad_ramp_time} - ({samples}+7)*{dwell_time}*5}
     min: 10000
   T5:
     offset: 0x1cc
