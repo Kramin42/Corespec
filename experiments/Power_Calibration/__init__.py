@@ -14,7 +14,7 @@ import numpy as np
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
     def override(self):
-        del self.par_def['amp_90']
+        del self.par_def['fid_amp_90']
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
@@ -30,7 +30,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         for amp in amps:
             progress_handler(index, count)
             logger.debug('running amplitude %s' % amp)
-            self.programs['FID'].set_par('amp_90', amp)
+            self.programs['FID'].set_par('fid_amp_90', amp)
             await self.programs['FID'].run(message_handler=message_handler)
             run_data = self.programs['FID'].data
             #self.data = np.append(self.data, np.max(np.abs(np.fft.fft(run_data))))
