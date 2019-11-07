@@ -1,4 +1,5 @@
 # 2D MRI experiment configuration
+hidden: True
 description:
   A 2D Slice MRI experiment.
 programs:

@@ -113,3 +113,8 @@ class BaseExperiment:
                 par_def = prog.config_get('parameters')
                 if name in par_def:
                     prog.set_par(name, value)
+
+    def is_hidden(self):
+        if  'hidden' in self._config and self._config['hidden'] is True:
+            return True
+        return False

@@ -258,7 +258,10 @@ app = web.Application([
 if __name__ == '__main__':
     for name in list_experiments():
         try:
-            experiments[name] = load_experiment(name)
+            new_exp = load_experiment(name)
+            if new_exp.is_hidden():
+                continue
+            experiments[name] = new_exp
         except Exception as e:
             logger.exception(e)
     for name in list_workspaces():
