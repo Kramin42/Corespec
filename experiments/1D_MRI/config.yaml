@@ -2,7 +2,7 @@
 description:
   A 1D MRI experiment.
 programs:
-  - 1DMRI
+  - 2D_SLICE_MRI
 parameters:
   sample_shift:
     dtype: float

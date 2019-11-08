@@ -13,10 +13,18 @@ import numpy as np
 # e.g. self.programs['CPMG'] to access the CPMG program
 
 class Experiment(BaseExperiment): # must be named 'Experiment'
+    def override(self):
+        del self.par_def['phase_GX']
+        del self.par_def['phase_GY']
+        del self.par_def['phase_GZ']
+
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        self.programs['1DMRI'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
-        await self.programs['1DMRI'].run(progress_handler=progress_handler,
+        self.programs['2D_SLICE_MRI'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
+        self.programs['2D_SLICE_MRI'].set_par('phase_GX', 0)
+        self.programs['2D_SLICE_MRI'].set_par('phase_GY', 0)
+        self.programs['2D_SLICE_MRI'].set_par('phase_GZ', 0)
+        await self.programs['2D_SLICE_MRI'].run(progress_handler=progress_handler,
                                        message_handler=message_handler)
     
     # start a function name with "export_" for it to be listed as an export format
@@ -128,7 +136,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def raw_data(self):
-        data = self.programs['1DMRI'].data
+        data = self.programs['2D_SLICE_MRI'].data
         return data
 
     def autophase(self, data):
