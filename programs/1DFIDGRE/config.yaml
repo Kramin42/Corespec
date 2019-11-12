@@ -210,12 +210,12 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({samples}+7)*{dwell_time}*5}
+    value: ${{samples}*{dwell_time}*5 + 7*{dwell_time}*10 - {ramp_time}/2}
     min: 50000
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${{evo_time} - ({samples}+7)*{dwell_time}*10 - {width_90}/2 - 3*{ramp_time}}
+    value: ${{evo_time} - {samples}*{dwell_time}*5 - 7*{dwell_time}*10 - {width_90}/2 - 3*{ramp_time}}
     min: 1000
   ignore_samples:
     offset: 0xc8
