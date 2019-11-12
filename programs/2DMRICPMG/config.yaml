@@ -32,6 +32,7 @@ output:
   scale_factor: 1
 postprocess:
   decimation: 10
+  block_length: ${{samples}}
 adc_overflow_count:
   offset: 0x20
 parameters:

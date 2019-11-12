@@ -361,7 +361,13 @@ class Program:
                     dec = int(self.config_get('postprocess.decimation'))
                     #b, a = signal.butter(12, 0.8 / dec)
                     b, a = signal.cheby2(12, 40, 1.0 / dec)
-                    self._data = signal.filtfilt(b, a, self._data)
+                    if 'block_length' in self.config_get('postprocess'):
+                        block_length = int(self.config_get('postprocess.block_length'))
+                        block_count = self._data.size//block_length
+                        for i in range(block_count):
+                            self._data[i*block_length:(i+1)*block_length] = signal.filtfilt(b, a, self._data[i*block_length:(i+1)*block_length])
+                    else:
+                        self._data = signal.filtfilt(b, a, self._data)
                     self._data = self._data[slice(None, None, dec)]
 
         return np.copy(self._data) # don't let them change our data!
