@@ -48,7 +48,7 @@ class Workspace:
             return yaml.load(f.read())
 
     def save_par_set(self, exp_name, par_set_name, parameters, par_def):
-        for name, value in parameters.items():
+        for name, value in parameters.items().copy():
             if name not in par_def or value == '':
                 del parameters[name]
         os.makedirs(os.path.join(self._par_dir, exp_name), exist_ok=True)
@@ -61,7 +61,7 @@ class Workspace:
             default_pars[experiment_name] = {}
         if 'shared' not in default_pars:
             default_pars['shared'] = {}
-        for name, value in parameters.items().copy():
+        for name, value in parameters.items():
             if name in par_def:
                 if 'shared' in par_def[name] and par_def[name]['shared']:
                     default_pars['shared'][name] = value
