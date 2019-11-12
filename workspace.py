@@ -61,7 +61,7 @@ class Workspace:
             default_pars[experiment_name] = {}
         if 'shared' not in default_pars:
             default_pars['shared'] = {}
-        for name, value in parameters.items():
+        for name, value in parameters.items().copy():
             if name in par_def:
                 if 'shared' in par_def[name] and par_def[name]['shared']:
                     default_pars['shared'][name] = value
