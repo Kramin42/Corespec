@@ -1,10 +1,10 @@
-# GRE experiment configuration
+# 1D GRE experiment configuration
 description:
-  A GRE experiment.
+  A 1D GRE experiment.
 programs:
   - 1DFIDGRE
 defaults:
   plots:
     - Raw
     - FT
-  order: 3
+  order: 9

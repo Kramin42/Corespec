@@ -1,7 +1,7 @@
-# GRE program configuration
+# 1D GRE program configuration
 ---
 description:
-  A GRE program.
+  A 1D GRE program.
 executable: FID_GRE_1D.elf
 action:
   offset: 0x0

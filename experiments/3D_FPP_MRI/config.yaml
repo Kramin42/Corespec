@@ -1,4 +1,5 @@
 # 3D MRI experiment configuration
+hidden: True
 description:
   A 3D MRI experiment.
 programs:

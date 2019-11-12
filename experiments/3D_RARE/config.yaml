@@ -28,4 +28,4 @@ defaults:
   plots:
     - Raw
     - Echo_Integrals
-  order: 6
+  order: 11

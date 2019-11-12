@@ -1,4 +1,5 @@
 # Autoshim helper experiment configuration
+hidden: True
 description:
   An autoshim helper experiment.
 programs:

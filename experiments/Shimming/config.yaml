@@ -1,4 +1,5 @@
 # Shimming helper experiment configuration
+hidden: True
 description:
   A Shimming helper experiment.
 programs:
