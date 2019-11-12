@@ -1,4 +1,5 @@
 # Spin Echo experiment configuration
+hidden: True
 description:
   A Spin Echo experiment.
 programs:
