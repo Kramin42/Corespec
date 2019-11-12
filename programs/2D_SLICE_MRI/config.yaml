@@ -317,7 +317,7 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${{echo_time} - ({soft_pulse_width_90} + {width_180} + {samples}*{dwell_time}*10)/2 - {unslice_time}}
+    value: ${{echo_time} - ({soft_pulse_width_90} + {width_180} + {samples}*{dwell_time}*10)/2 - {soft_pulse_width_90}/2}
     min: 50000
   T3:
     offset: 0xb8

@@ -20,7 +20,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        self.programs['2D_SLICE_MRI'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
         self.programs['2D_SLICE_MRI'].set_par('phase_GX', 0)
         self.programs['2D_SLICE_MRI'].set_par('phase_GY', 0)
         self.programs['2D_SLICE_MRI'].set_par('phase_GZ', 0)
