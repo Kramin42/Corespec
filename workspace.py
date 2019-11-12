@@ -48,7 +48,7 @@ class Workspace:
             return yaml.load(f.read())
 
     def save_par_set(self, exp_name, par_set_name, parameters, par_def):
-        for name, value in parameters.items().copy():
+        for name, value in parameters.copy().items():
             if name not in par_def or value == '':
                 del parameters[name]
         os.makedirs(os.path.join(self._par_dir, exp_name), exist_ok=True)
