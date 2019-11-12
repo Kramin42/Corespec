@@ -157,7 +157,7 @@ async def set_parameters(ws, experiment_name, parameters):
 
 
 async def save_parameter_set(ws, experiment_name, par_set_name, parameters):
-    workspace.save_par_set(experiment_name, par_set_name, parameters)
+    workspace.save_par_set(experiment_name, par_set_name, parameters, experiments[experiment_name].par_def)
     await ws.send(json.dumps({'type': 'message', 'message': 'Saved parameter set %s.' % par_set_name}))
 
 

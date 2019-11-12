@@ -47,7 +47,10 @@ class Workspace:
         with open(os.path.join(self._par_dir, exp_name, par_set_name+'.yaml'), 'r') as f:
             return yaml.load(f.read())
 
-    def save_par_set(self, exp_name, par_set_name, parameters):
+    def save_par_set(self, exp_name, par_set_name, parameters, par_def):
+        for name, value in parameters.items():
+            if name not in par_def or value == '':
+                del parameters[name]
         os.makedirs(os.path.join(self._par_dir, exp_name), exist_ok=True)
         with open(os.path.join(self._par_dir, exp_name, par_set_name+'.yaml'), 'w') as f:
             yaml.dump(parameters, f, default_flow_style=False)
