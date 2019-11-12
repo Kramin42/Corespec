@@ -92,14 +92,6 @@ parameters:
     scaling: 1000
     shared: true
     group: pulse
-  unslice_time:
-    offset: 0x13c
-    dtype: uint32
-    min: 1
-    unit: us
-    scaling: 1000
-    shared: true
-    group: pulse
   echo_time:
     dtype: uint32
     min: 1
@@ -312,6 +304,11 @@ derived_parameters:
     value: ${{shim_Z} - {slice_GZ}}
     min: -32768
     max: 32767
+  unslice_time:
+    offset: 0x13c
+    dtype: uint32
+    value: ${{soft_pulse_width_90}/2}
+    min: 10000
   T1:
     offset: 0xb0
     dtype: uint32
