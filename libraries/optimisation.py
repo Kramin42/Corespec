@@ -3,7 +3,7 @@ import numpy as np
 
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 def nelder_mead(f, x_start,
                 x_lb=None, x_ub=None,

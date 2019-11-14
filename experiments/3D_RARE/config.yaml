@@ -26,6 +26,6 @@ parameters:
     group: gradients
 defaults:
   plots:
-    - Raw
     - Echo_Integrals
+    - Echo_Envelope
   order: 11

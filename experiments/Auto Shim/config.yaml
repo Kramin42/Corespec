@@ -30,6 +30,6 @@ parameters:
     group: autoshim
 defaults:
   plots:
-    - Raw
+    - SumSq
     - FT
   order: 5

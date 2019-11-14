@@ -5,7 +5,7 @@ from libraries.optimisation import nelder_mead_async
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 import numpy as np
 

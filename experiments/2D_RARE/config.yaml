@@ -11,6 +11,6 @@ parameters:
     group: postprocessing
 defaults:
   plots:
-    - Raw
-    - Echo_Integrals
+    - KSpace
+    - Image
   order: 10
