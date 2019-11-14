@@ -108,7 +108,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
     def plot_Raw(self):
         samples = int(self.par['samples'])
         echo_count = int(self.par['echo_count'])
-        dwell_time = self.par['dwell_time']
+        dwell_time = float(self.par['dwell_time'])
         data = self.autophase(self.integrated_data())
         t = np.zeros(samples*echo_count)
         offset = 0

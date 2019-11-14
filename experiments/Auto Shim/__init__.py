@@ -55,9 +55,18 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             return -result
         lower_bounds = [-32768]*8
         upper_bounds = [32767]*8
-        opt_res = await nelder_mead_async(evalfunc, self.shims, x_lb=lower_bounds, x_ub=upper_bounds, max_iter=max_iterations, step=init_step, x_precision=precision, message_handler=message_handler, progress_handler=progress_handler)
-        message_handler('Final Shims: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
-                        tuple(opt_res[0].tolist()))
+        self.opt_res = []
+        try:
+            iter = 0
+            async for r in nelder_mead_async(evalfunc, self.shims, x_lb=lower_bounds, x_ub=upper_bounds, max_iter=max_iterations, step=init_step, x_precision=precision, message_handler=message_handler):
+                self.opt_res.append(r)
+                iter += 1
+                progress_handler(iter, max_iterations)
+        except:
+            raise
+        finally:
+            message_handler('Final Shims: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' %
+                        tuple(self.opt_res[-1][0].tolist()))
     
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
@@ -172,6 +181,24 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'title': 'FFT (peak@{:0.4f}{}, height: {:0.4f} uV, 50% width: {:.0f} Hz)'.format(peak_freq, 'M'+data['freq_unit'], height*1000000, half_width),
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
+            }}
+
+    def plot_SumSq(self):
+        x = []
+        y = []
+        for i,res in enumerate(self.opt_res):
+            x.append(i)
+            y.append(res[1])
+
+        return {'data': [{
+            'name': '',
+            'type': 'scatter',
+            'x': np.array(x, dtype=np.float),
+            'y': np.array(y, dtype=np.float)}],
+            'layout': {
+                'title': 'Auto Shim Progress',
+                'xaxis': {'title': 'iteration'},
+                'yaxis': {'title': 'SumSq'}
             }}
 
     def raw_data(self):

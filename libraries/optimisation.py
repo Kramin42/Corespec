@@ -164,7 +164,7 @@ async def nelder_mead_async(f, x_start,
 
     print(res)
 
-    message_handler('Starting SumSq: %d' % -prev_best)
+    #message_handler('Starting SumSq: %d' % -prev_best)
 
     # simplex iter
     iters = 0
@@ -172,21 +172,22 @@ async def nelder_mead_async(f, x_start,
         logger.debug('iteration %d' % iters)
         # order
         res.sort(key=lambda x: x[1])
+        yield res[0]
         best = res[0][1]
 
         # break after max_iter
         if max_iter > 0 and iters >= max_iter:
-            return res[0]
+            return
         iters += 1
 
-        if progress_handler is not None:
-            progress_handler(iters, max_iter)
+        # if progress_handler is not None:
+        #     progress_handler(iters, max_iter)
 
 
         # break after no_improv_break iterations with no improvement
         if best < prev_best - no_improve_thr*np.abs(prev_best):
-            if message_handler is not None:
-                message_handler('New Best SumSq: %d' % -best)
+            #if message_handler is not None:
+            #    message_handler('New Best SumSq: %d' % -best)
             no_improv = 0
             prev_best = best
         else:
@@ -251,7 +252,7 @@ async def nelder_mead_async(f, x_start,
             if p < np.max(xs_i) - np.min(xs_i):
                 precision_met = False
         if precision_met:
-            return res[0]
+            return
 
         # reduction
         x1 = res[0][0]
