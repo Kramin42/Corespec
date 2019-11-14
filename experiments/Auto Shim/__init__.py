@@ -188,7 +188,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y = []
         for i,res in enumerate(self.opt_res):
             x.append(i)
-            y.append(res[1])
+            y.append(-res[1])
 
         return {'data': [{
             'name': '',
