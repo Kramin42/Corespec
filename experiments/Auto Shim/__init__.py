@@ -60,6 +60,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             iter = 0
             async for r in nelder_mead_async(evalfunc, self.shims, x_lb=lower_bounds, x_ub=upper_bounds, max_iter=max_iterations, step=init_step, x_precision=precision, message_handler=message_handler):
                 self.opt_res.append(r)
+                logger.debug('Best Shims So Far: (X: %d, Y: %d, Z: %d, Z2: %d, ZX: %d, ZY: %d, XY: %d, X2Y2: %d)' % tuple(r[0].tolist()))
                 iter += 1
                 progress_handler(iter, max_iterations)
         except:
