@@ -1,7 +1,7 @@
 # Changelog
 
 ## [1.1.2] - 2019-11-15
-- Beta version features:
+### Added/Changed
 - Power Calibration experiment for hard and soft pulses
 - Nelder-Mead based Auto Shim
 - 1D Spin Echo imaging experiment with slicing
