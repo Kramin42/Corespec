@@ -131,8 +131,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             'y': data.imag}],
             'layout': {
                 'title': 'Raw data',
-                'yaxis': {'title': data['unit']},
-                'xaxis': {'title': data['time_unit']}
+                'yaxis': {'title': 'V'},
+                'xaxis': {'title': 's'}
             }}
 
     def plot_Echo_Integrals(self):

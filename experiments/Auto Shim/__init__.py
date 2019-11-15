@@ -198,8 +198,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'y': np.array(y, dtype=np.float)}],
             'layout': {
                 'title': 'Auto Shim Progress',
-                'xaxis': {'title': 'iteration'},
-                'yaxis': {'title': 'SumSq'}
+                'xaxis': {'title': 'Iteration'},
+                'yaxis': {'title': 'Best Sum of Squares'}
             }}
 
     def raw_data(self):
