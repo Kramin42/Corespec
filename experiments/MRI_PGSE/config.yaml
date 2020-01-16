@@ -1,0 +1,27 @@
+# PGSE experiment configuration
+description:
+  A PGSE experiment using X Channel of MRI board.
+programs:
+  - MRI_PGSE
+parameters:
+  sample_shift:
+    dtype: float
+    unit: us
+    group: acquisition
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
+  max_grad:
+    dtype: int32
+    min: -32768
+    max: 32767
+    group: gradient
+  grad_steps:
+    dtype: int
+    group: gradient
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 10
