@@ -46,6 +46,8 @@ export default class Plot extends React.Component {
         result.data = decode_plot_data(result.data);
         if (result.data[0].type === 'contour') {
           d3plot_contour(d3.select('#'+this.svgid), result);
+        } else if (result.data[0].type === 'image') {
+          d3plot_image(d3.select('#'+this.svgid), result);
         } else {
           d3plot(d3.select('#'+this.svgid), result);
         }

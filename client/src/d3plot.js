@@ -27,6 +27,148 @@ function uuidv4() {
   )
 }
 
+
+function interpolateCividis(x) {
+  x = Math.max(0, Math.min(1, x));
+  return `rgb(${[
+    -4.54 - x * (35.34 - x * (2381.73 - x * (6402.7 - x * (7024.72 - x * 2710.57)))),
+    32.49 + x * (170.73 + x * (52.82 - x * (131.46 - x * (176.58 - x * 67.37)))),
+    81.24 + x * (442.36 - x * (2482.43 - x * (6167.24 - x * (6614.94 - x * 2475.67))))
+  ].map(Math.floor).join(", ")})`;
+}
+
+export function d3plot_image(svg, plotDef) {
+  var MAX_DISPLAY_POINTS = 1000
+  var width = 600
+  var height = 400
+  var margin = {left: 60, right: 20, top: 30, bottom: 40}
+  var f_w = 60
+  var f_h = 13
+  var fontS = 12
+  var fontM = 14
+  var fontL = 16
+  var w = width-margin.left-margin.right
+  var h = height-margin.top-margin.bottom
+  svg.selectAll('*').remove()
+  svg.attr('viewBox', '0 0 '+width+' '+height)
+
+  var x = plotDef.data[0].x
+  var y = plotDef.data[0].y
+  var z = plotDef.data[0].z
+
+  var color_interp = (t) => interpolateCividis(t)
+
+  // generate a renderer canvas
+  const renderer = document.createElement('canvas');
+  const context = renderer.getContext('2d');
+  const image = context.createImageData(x.length, y.length);
+  for (var j = 0, k = 0, l = 0; j < y.length; ++j) {
+    for (var i = 0; i < x.length; ++i, ++k, l += 4) {
+      var c = d3.rgb(color_interp(z[k]));
+      image.data[l + 0] = c.r;
+      image.data[l + 1] = c.g;
+      image.data[l + 2] = c.b;
+      image.data[l + 3] = 255;
+    }
+  }
+  renderer.width = image.width;
+  renderer.height = image.height;
+  // render our ImageData on this canvas
+  renderer.getContext('2d').putImageData(image, 0, 0);
+  const image_uri = renderer.toDataURL();
+
+  var scale_x = d3.scaleLinear()
+    .domain([0,x.length])
+    .range([0,w]);
+  var scale_y = d3.scaleLinear()
+    .domain([0,y.length])
+    .range([h,0]);
+
+  var SITickFormatX = d3.format('.4~s')
+  var SITickFormatY = d3.format('.3~s')
+  var SIFocusFormat = d3.format('.5~s')
+  var tickFormatX = (val) => {return SITickFormatX(val).replace(/µ/,'\u03bc')}
+  var tickFormatY = (val) => {return SITickFormatY(val).replace(/µ/,'\u03bc')}
+  var focusFormat = (val) => {return SIFocusFormat(val).replace(/µ/,'\u03bc')}
+
+  var axis_scale_x = d3.scaleLog()
+    .domain([d3.min(x), d3.max(x)])
+    .range([0,w]);
+  var axis_scale_y = d3.scaleLog()
+    .domain([d3.min(y), d3.max(y)])
+    .range([h,0]);
+  var axis_x = d3.axisBottom()
+    .scale(axis_scale_x)
+    // .ticks(3)
+    // .tickFormat(tickFormatX)
+  var axis_y = d3.axisLeft()
+    .scale(axis_scale_y)
+    // .ticks(3)
+    // .tickFormat(tickFormatY)
+
+  var g = svg.append('g')
+    .attr('transform', 'translate('+margin.left+','+margin.top+')')
+
+  //title
+  if (plotDef.layout.title) {
+    svg.append('text')
+      .attr('class', 'title')
+      .attr('font-size', fontL)
+      .attr('fill', '#333')
+      .attr('x', width/2)
+      .attr('y', margin.top/2 + fontL/2)
+      .style('text-anchor', 'middle')
+      .text(plotDef.layout.title)
+  }
+
+  //white fill and border
+  g.append('rect')
+    .attr('width', w)
+    .attr('height', h)
+    .attr('fill', 'white')
+    .attr('stroke', 'black')
+
+  // plot area clip
+  var clipID = uuidv4()
+  g.append('clipPath')
+    .attr('id', clipID)
+    .append('rect')
+    .attr('width', w)
+    .attr('height', h)
+
+  g.append("image")
+    .attr("width", w)
+    .attr("height", h)
+    .attr("xlink:href", image_uri);
+
+  // axes
+  var axis_x_g = g.append('g')
+    .attr("class", "x axis")
+    .attr("transform", "translate(-0.5," + (h-0.5) + ")")
+    .call(axis_x)
+  if (plotDef.layout.xaxis) {
+    axis_x_g.append('text')
+      .attr('font-size', fontM)
+      .attr('dx', w/2)
+      .attr('dy', margin.bottom-fontM/4)
+      .style('text-anchor', 'middle')
+      .text(plotDef.layout.xaxis.title)
+  }
+  var axis_y_g = g.append('g')
+    .attr("class", "y axis")
+    .attr("transform", "translate(-0.5," + (-0.5) + ")")
+    .call(axis_y)
+  if (plotDef.layout.yaxis) {
+  axis_y_g.append('text')
+    .attr('font-size', fontM)
+    .attr('transform', 'rotate(-90)')
+    .attr('dx', -h/2)
+    .attr('dy', -margin.left+fontM)
+    .style('text-anchor', 'middle')
+    .text(plotDef.layout.yaxis.title)
+  }
+}
+
 export function d3plot_contour(svg, plotDef) {
   var MAX_DISPLAY_POINTS = 1000
   var width = 600
