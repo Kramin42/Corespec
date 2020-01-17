@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 
 import generateId from './util/generateId';
 import {decode_plot_data} from './util/decode'
-import {d3plot, d3plot_contour} from './d3plot';
+import {d3plot, d3plot_contour, d3plot_image} from './d3plot';
 import './css/d3plot.css';
 
 import './css/Plot.css';
