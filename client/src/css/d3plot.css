@@ -9,6 +9,10 @@ text {
   fill: black;
 }
 
+svg {
+  image-rendering: pixelated;
+}
+
 .axis path,
 .axis line {
   vector-effect: non-scaling-stroke;

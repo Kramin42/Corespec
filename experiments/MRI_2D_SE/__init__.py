@@ -1,5 +1,6 @@
 from experiment import BaseExperiment  # required
 from libraries.autophase import get_autophase
+from scipy.signal import decimate
 
 # for debugging
 import logging
@@ -148,7 +149,9 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
 
     def plot_KSpace(self):
         data = self.raw_data()
-        samples = int(self.par['samples'])
+        decimation = int(self.par['decimation'])
+        data = decimate(data, decimation, axis=1)
+        samples = int(self.par['samples'])//decimation
         dwell_time = self.par['dwell_time']
         phase_steps = int(self.par['phase_steps'])
         F_grad = np.linalg.norm([self.par['read_GX'], self.par['read_GY'], self.par['read_GZ']])
@@ -174,15 +177,16 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
 
     def plot_Image(self):
         data = self.raw_data()
-        samples = int(self.par['samples'])
+        decimation = int(self.par['decimation'])
+        data = decimate(data, decimation, axis=1)
+        samples = int(self.par['samples']) // decimation
         phase_steps = int(self.par['phase_steps'])
-        # interp_ratio = int(self.par['interpolation'])
-        interp_ratio = 1
-        # if interp_ratio > 1:
-        #     F_pad = np.zeros((((interp_ratio-1)*samples)//2, data.shape[0])).transpose()
-        #     data = np.concatenate((F_pad, data, F_pad), axis=1)
-        #     P_pad = np.zeros((((interp_ratio - 1) * echo_count) // 2, data.shape[1]))
-        #     data = np.concatenate((P_pad, data, P_pad), axis=0)
+        interp_ratio = int(self.par['interpolation'])
+        if interp_ratio > 1:
+            F_pad = np.zeros((((interp_ratio-1)*samples)//2, data.shape[0])).transpose()
+            data = np.concatenate((F_pad, data, F_pad), axis=1)
+            P_pad = np.zeros((((interp_ratio - 1) * phase_steps) // 2, data.shape[1]))
+            data = np.concatenate((P_pad, data, P_pad), axis=0)
         image_data = np.abs(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(data))))
         image_data = (image_data - np.min(image_data))/(np.max(image_data) - np.min(image_data))
         # TODO: calibrate x/y scale

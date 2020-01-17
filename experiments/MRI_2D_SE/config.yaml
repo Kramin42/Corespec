@@ -12,6 +12,17 @@ parameters:
     dtype: float
     unit: ''
     group: acquisition
+  interpolation:
+    dtype: int
+    unit: ''
+    min: 1
+    group: postprocessing
+  decimation:
+    dtype: int
+    unit: ''
+    min: 1
+    max: 10
+    group: postprocessing
   phase_GX_start:
     dtype: int
     unit: ''
