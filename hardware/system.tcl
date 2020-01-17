@@ -1984,7 +1984,7 @@ proc create_root_design { parentCell } {
   set DDS_SYNC [ create_bd_port -dir O -from 0 -to 0 DDS_SYNC ]
   set FPGA_CLK_N [ create_bd_port -dir I FPGA_CLK_N ]
   set FPGA_CLK_P [ create_bd_port -dir I FPGA_CLK_P ]
-  set GRADIENT_CSN [ create_bd_port -dir O -from 0 -to 0 GRADIENT_CSN ]
+  set GRADIENT_CSN [ create_bd_port -dir O -from 1 -to 0 GRADIENT_CSN ]
   set GRADIENT_MISO [ create_bd_port -dir I GRADIENT_MISO ]
   set GRADIENT_MOSI [ create_bd_port -dir O GRADIENT_MOSI ]
   set GRADIENT_SCLK [ create_bd_port -dir O GRADIENT_SCLK ]
@@ -1992,7 +1992,6 @@ proc create_root_design { parentCell } {
   set LED_FRONT [ create_bd_port -dir O -from 0 -to 0 LED_FRONT ]
   set N_TEMP_GATE [ create_bd_port -dir O -from 0 -to 0 N_TEMP_GATE ]
   set PERIPHERAL_RESET [ create_bd_port -dir O -from 0 -to 0 PERIPHERAL_RESET ]
-  set P_0 [ create_bd_port -dir O -from 0 -to 0 P_0 ]
   set P_4_3 [ create_bd_port -dir O -from 1 -to 0 P_4_3 ]
   set SRSET [ create_bd_port -dir O -from 0 -to 0 SRSET ]
   set TEMP_ADC_DIN_CLK_CSN [ create_bd_port -dir O -from 2 -to 0 TEMP_ADC_DIN_CLK_CSN ]
@@ -2047,6 +2046,7 @@ proc create_root_design { parentCell } {
   # Create instance: axi_quad_spi_gradient, and set properties
   set axi_quad_spi_gradient [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_quad_spi:3.2 axi_quad_spi_gradient ]
   set_property -dict [ list \
+   CONFIG.C_NUM_SS_BITS {2} \
    CONFIG.C_SCK_RATIO {16} \
    CONFIG.C_TYPE_OF_AXI4_INTERFACE {0} \
    CONFIG.C_USE_STARTUP {0} \
@@ -2984,7 +2984,6 @@ HDL_ATTRIBUTE.MARK_DEBUG {true} \
   connect_bd_net -net TEMP_ADC_DOUT_1 [get_bd_ports TEMP_ADC_DOUT] [get_bd_pins microblaze_mcs_ppu/SPI_DIN]
   connect_bd_net -net TRIGGER_IN_0_1 [get_bd_ports TRIGGER_IN] [get_bd_pins TTL/TRIGGER_IN]
   connect_bd_net -net TTL_DDS [get_bd_pins DDS_AD9951/DDS_TTL] [get_bd_pins TTL/DDS]
-  connect_bd_net -net TTL_Dout_0 [get_bd_ports P_0] [get_bd_pins TTL/P_0]
   connect_bd_net -net TTL_Dout_1 [get_bd_ports LED_FRONT] [get_bd_pins TTL/LED_FRONT]
   connect_bd_net -net TTL_Dout_2 [get_bd_ports P_4_3] [get_bd_pins TTL/P_4_3]
   connect_bd_net -net TTL_IO [get_bd_ports IO] [get_bd_pins TTL/IO]
