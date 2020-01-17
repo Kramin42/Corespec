@@ -147,7 +147,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             }}
 
     def plot_KSpace(self):
-        data = self.autophase(self.raw_data())
+        data = self.raw_data()
         samples = int(self.par['samples'])
         dwell_time = self.par['dwell_time']
         phase_steps = int(self.par['phase_steps'])
@@ -173,7 +173,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             }}
 
     def plot_Image(self):
-        data = self.autophase(self.raw_data())
+        data = self.raw_data()
         samples = int(self.par['samples'])
         phase_steps = int(self.par['phase_steps'])
         # interp_ratio = int(self.par['interpolation'])
@@ -184,7 +184,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         #     P_pad = np.zeros((((interp_ratio - 1) * echo_count) // 2, data.shape[1]))
         #     data = np.concatenate((P_pad, data, P_pad), axis=0)
         image_data = np.abs(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(data))))
-        image_data/= np.max(image_data)
+        image_data = (image_data - np.min(image_data))/(np.max(image_data) - np.min(image_data))
         # TODO: calibrate x/y scale
         x = np.linspace(0, 1, samples*interp_ratio)
         y = np.linspace(0, 1, phase_steps*interp_ratio)
