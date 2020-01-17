@@ -1,0 +1,19 @@
+# 1D Spin Echo MRI experiment configuration
+description:
+  A 1D Spin Echo MRI experiment.
+programs:
+  - MRI_1D
+parameters:
+  sample_shift:
+    dtype: float
+    unit: us
+    group: acquisition
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
+defaults:
+  plots:
+    - Raw
+    - FT
+  order: 10
