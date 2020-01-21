@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.18] - 2019-01-21
+### Added
+- 1D & 2D Spin Echo MRI experiments, using MRI gradient board.
+- PGSE experiment using X channel of MRI gradient board (named "MRI PGSE").
+
 ## [1.1.17] - 2019-09-26
 ### Fixed
 - Changed heating to only gate off during acquisition, not entire pulse program.
