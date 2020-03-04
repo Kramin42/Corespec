@@ -1,6 +1,10 @@
 # Changelog
 
-## [1.1.18] - 2019-01-21
+## [1.1.18b] - 2020-03-05
+### Fixed
+- Fixed heater PWM signal.
+
+## [1.1.18] - 2020-01-21
 ### Added
 - 1D & 2D Spin Echo MRI experiments, using MRI gradient board.
 - PGSE experiment using X channel of MRI gradient board (named "MRI PGSE").
