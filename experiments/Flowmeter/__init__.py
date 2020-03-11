@@ -11,7 +11,7 @@ import numpy as np
 from time import time
 import asyncio
 
-FLOW_DATA_SIZE_LIMIT = 1000
+FLOW_DATA_SIZE_LIMIT = 100000
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
@@ -237,7 +237,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Content(self):
         data = self.export_Raw()
-        t = data['prop_t']
+        t = data['prop_t'][-10000:]
         t_unit = 's'
         if t[-1] > 300:
             t /= 60
@@ -249,15 +249,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Water',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['prop_water']}, {
+                    'y': data['prop_water'][-10000:]}, {
                     'name': 'Oil',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['prop_oil']}, {
+                    'y': data['prop_oil'][-10000:]}, {
                     'name': 'Gas',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['prop_gas']}],
+                    'y': data['prop_gas'][-10000:]}],
                 'layout': {
                     'title': 'Static Readings',
                     'yaxis': {'title': 'Relative Content (%s)' % data['prop_unit']},
@@ -266,7 +266,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Flow(self):
         data = self.export_Raw()
-        t = data['flow_t']
+        t = data['flow_t'][-10000:]
         t_unit = 's'
         if t[-1] > 300:
             t /= 60
@@ -278,15 +278,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Water',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['flow_water']}, {
+                    'y': data['flow_water'][-10000:]}, {
                     'name': 'Oil',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['flow_oil']}, {
+                    'y': data['flow_oil'][-10000:]}, {
                     'name': 'Gas',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['flow_gas']}],
+                    'y': data['flow_gas'][-10000:]}],
                 'layout': {
                     'title': 'Flow Readings',
                     'yaxis': {'title': 'Flow Mass (%s)' % data['flow_unit']},
