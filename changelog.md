@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.18c] - 2020-03-16
+### Fixed
+- MRI_1D program Z gradient enable TTL issue.
+
 ## [1.1.18b] - 2020-03-05
 ### Fixed
 - Fixed heater PWM signal.
