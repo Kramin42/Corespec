@@ -35,7 +35,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         N_exp = int(self.par['N_exp'])
         if N_exp>0:
             echo_int_data = self.export_Echo_Integrals()
-            self.fit_par, stderr = fit_multi_exp(echo_int_data['x'], echo_int_data['y_real'], N_exp=N_exp)
+            try:
+                self.fit_par, stderr = fit_multi_exp(echo_int_data['x'], echo_int_data['y_real'], N_exp=N_exp)
+            except:
+                raise Exception('Could not fit multi-exponential')
             with open(os.path.join(self._dir, 'multi_exp_fit_par.yaml'), 'w') as f:
                 yaml.dump(self.fit_par.tolist(), f)
             message_handler('multi-exp fit S.E.: %f' % stderr)

@@ -43,6 +43,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.aborted = False
         flow_num = int(self.par['flow_num'])
         baseline_N_exp = int(self.par['N_exp'])
+        self.baseline_fit_par = None
         while not self.aborted:
             progress_handler(0, flow_num + 1)
             if len(self.flow_t) > FLOW_DATA_SIZE_LIMIT:
@@ -112,7 +113,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
 
             if baseline_N_exp > 0:
-                self.baseline_fit_par, stderr = fit_multi_exp(t, Y.real, N_exp=baseline_N_exp)
+                try:
+                    self.baseline_fit_par, stderr = fit_multi_exp(t, Y.real, N_exp=baseline_N_exp)
+                except:
+                    self.baseline_fit_par = None
+                    message_handler('Warning: Could not fit multi-exponential to static measurement', type='warning')
 
             T2 = np.logspace(-5, 2, 200, endpoint=False)
             S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=10)
@@ -180,7 +185,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
 
                 # baseline correction
-                if baseline_N_exp > 0:
+                if baseline_N_exp > 0 and self.baseline_fit_par is not None:
                     self.flow_intdata /= multi_exp(t, *self.baseline_fit_par)
 
                 calibration = float(self.par['flow_calibration'])
