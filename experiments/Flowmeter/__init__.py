@@ -1,6 +1,7 @@
 from experiment import BaseExperiment # required
 from libraries.invlaplace import getT2Spectrum
 from hardware.system import set_flow_enabled
+from libraries.expfitting import fit_multi_exp, multi_exp
 
 # for debugging
 import logging
@@ -41,6 +42,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.flow_gas = []
         self.aborted = False
         flow_num = int(self.par['flow_num'])
+        baseline_N_exp = int(self.par['N_exp'])
         while not self.aborted:
             progress_handler(0, flow_num + 1)
             if len(self.flow_t) > FLOW_DATA_SIZE_LIMIT:
@@ -108,6 +110,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             echo_time = self.par['static_echo_time'] / 1000000.0  # μs -> s
             Y = self.static_intdata
             t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
+
+            if baseline_N_exp > 0:
+                self.baseline_fit_par, stderr = fit_multi_exp(t, Y.real, N_exp=baseline_N_exp)
+
             T2 = np.logspace(-5, 2, 200, endpoint=False)
             S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=10)
             oil_rel_proton_density = float(self.par['oil_HI'])
@@ -172,6 +178,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 echo_count = int(self.par['flow_echo_count'])
                 echo_time = self.par['flow_echo_time'] / 1000000.0
                 t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
+
+                # baseline correction
+                if baseline_N_exp > 0:
+                    self.flow_intdata /= multi_exp(t, *self.baseline_fit_par)
+
                 calibration = float(self.par['flow_calibration'])
                 flow_crop = int(self.par['flow_crop'])
                 # only fit points between thresh_l and thresh_h (proportions relative to sigmax)

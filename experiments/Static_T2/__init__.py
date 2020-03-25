@@ -1,5 +1,6 @@
 from experiment import BaseExperiment # required
 from libraries.invlaplace import getT2Spectrum
+from libraries.expfitting import fit_multi_exp, multi_exp
 from hardware.system import set_flow_enabled
 
 # for debugging
@@ -9,6 +10,8 @@ logger.setLevel(logging.ERROR)
 
 import numpy as np
 import asyncio
+import yaml
+import os
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
@@ -17,6 +20,7 @@ import asyncio
 class Experiment(BaseExperiment): # must be named 'Experiment'
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
+        self.fit_par = None
         message_handler('Switching flow OFF')
         set_flow_enabled(False)
         await asyncio.sleep(self.par['flow_delay'])  # wait for flow to stabilise, in seconds
@@ -28,6 +32,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         if y.size >= 10:
             SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
             message_handler('SNR estimate: %d' % SNR)
+        N_exp = int(self.par['N_exp'])
+        if N_exp>0:
+            echo_int_data = self.export_Echo_Integrals()
+            self.fit_par, stderr = fit_multi_exp(echo_int_data['x'], echo_int_data['y_real'], N_exp=N_exp)
+            with open(os.path.join(self._dir, 'multi_exp_fit_par.yaml'), 'w') as f:
+                yaml.dump(self.fit_par.tolist(), f)
+            message_handler('multi-exp fit S.E.: %f' % stderr)
+
 
     # start a function name with "export_" for it to be listed as an export format
     # it must take no arguments and return a JSON serialisable dict
@@ -126,7 +138,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     def plot_Echo_Integrals(self):
         data = self.export_Echo_Integrals()
-        return {'data': [{
+        plot_data = {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
                     'x': data['x'],
@@ -144,6 +156,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
+        if self.fit_par is not None:
+            fit_y = multi_exp(data['x'], *self.fit_par)
+            plot_data['data'].append({
+                'name': 'Fit',
+                'type': 'scatter',
+                'x': data['x'],
+                'y': fit_y
+            })
+        return plot_data
 
     def plot_Echo_Envelope(self):
         data = self.export_Echo_Envelope()

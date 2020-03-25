@@ -20,6 +20,11 @@ parameters:
     dtype: float
     unit: 's'
     group: calibration
+  N_exp:
+    dtype: int
+    min: 0
+    max: 10
+    group: baseline_fit
 defaults:
   plots:
     - Echo_Integrals

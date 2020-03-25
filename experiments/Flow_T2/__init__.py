@@ -1,6 +1,7 @@
 from experiment import BaseExperiment # required
 from libraries.invlaplace import getT2Spectrum
 from hardware.system import set_flow_enabled
+from libraries.expfitting import multi_exp
 
 # for debugging
 import logging
@@ -9,6 +10,8 @@ logger.setLevel(logging.ERROR)
 
 import numpy as np
 import asyncio
+import os
+import yaml
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
@@ -34,6 +37,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         echo_count = int(self.par['echo_count'])
         echo_time = self.par['echo_time'] / 1000000.0
         t = np.linspace(0, echo_count * echo_time, echo_count, endpoint=False)
+
+        if self.par['remove_baseline'] == 1:
+            y = self.remove_baseline(t, y)
+
         calibration = float(self.par['flow_calibration'])
         flow_crop = int(self.par['flow_crop'])
         # only fit points between thresh_l and thresh_h (proportions relative to sigmax)
@@ -155,7 +162,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     
     def plot_Echo_Integrals(self):
         data = self.export_Echo_Integrals()
-        return {'data': [{
+        plot_data = {'data': [{
                     'name': 'Real',
                     'type': 'scatter',
                     'x': data['x'],
@@ -173,6 +180,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'xaxis': {'title': data['x_unit']},
                     'yaxis': {'title': data['y_unit']}
                 }}
+        if self.par['remove_baseline'] == 1:
+            baseline_corr_y_real = self.remove_baseline(data['x'], data['y_real'])
+            plot_data['data'].append({
+                'name': 'Baseline Corrected',
+                'type': 'scatter',
+                'x': data['x'],
+                'y': baseline_corr_y_real})
+        return plot_data
 
     def plot_Echo_Envelope(self):
         data = self.export_Echo_Envelope()
@@ -222,3 +237,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def autophase(self, data):
         phase = np.angle(np.sum(data)) # get average phase
         return data * np.exp(1j * -phase) # rotate
+
+    def remove_baseline(self, x, y):
+        with open(os.path.join(self._dir, '../Static_T2/multi_exp_fit_par.yaml'), 'r') as f:
+            fit_par = yaml.load(f)
+        baseline = multi_exp(x, *fit_par)
+        return y/baseline
