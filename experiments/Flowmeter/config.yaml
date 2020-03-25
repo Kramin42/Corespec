@@ -116,6 +116,10 @@ parameters:
     min: 0
     max: 10
     group: baseline_fit
+  baseline_clip:
+    dtype: float
+    min: 0
+    group: baseline_fit
 defaults:
   plots:
     - Content

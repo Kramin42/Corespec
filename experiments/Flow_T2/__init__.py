@@ -241,5 +241,5 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def remove_baseline(self, x, y):
         with open(os.path.join(self._dir, '../Static_T2/multi_exp_fit_par.yaml'), 'r') as f:
             fit_par = yaml.load(f)
-        baseline = multi_exp(x, *fit_par)
+        baseline = np.clip(multi_exp(x, *fit_par), self.par['baseline_clip'], None)  # clip to avoid explosion
         return y/baseline

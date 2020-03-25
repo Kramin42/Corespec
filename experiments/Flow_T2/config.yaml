@@ -33,6 +33,10 @@ parameters:
     min: 0
     max: 1
     group: calibration
+  baseline_clip:
+    dtype: float
+    min: 0
+    group: calibration
 defaults:
   plots:
     - Echo_Integrals

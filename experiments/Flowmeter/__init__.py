@@ -186,7 +186,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
                 # baseline correction
                 if baseline_N_exp > 0 and self.baseline_fit_par is not None:
-                    self.flow_intdata /= multi_exp(t, *self.baseline_fit_par)
+                    self.flow_intdata /= np.clip(multi_exp(t, *self.baseline_fit_par), self.par['baseline_clip'], None)
 
                 calibration = float(self.par['flow_calibration'])
                 flow_crop = int(self.par['flow_crop'])
