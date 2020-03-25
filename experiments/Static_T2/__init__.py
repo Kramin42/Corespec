@@ -41,7 +41,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 raise Exception('Could not fit multi-exponential')
             with open(os.path.join(self._dir, 'multi_exp_fit_par.yaml'), 'w') as f:
                 yaml.dump(self.fit_par.tolist(), f)
-            message_handler('multi-exp fit S.E.: %f' % stderr)
+            message_handler('multi-exp fit S.E.: %.2e' % stderr)
 
 
     # start a function name with "export_" for it to be listed as an export format
