@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.15] - 2020-03-11
+### changed
+- Increased Flowmeter experiment buffer size to 100,000 flow measurements.
+
 ## [1.1.14] - 2019-09-26
 ### fixed
 - Changed heating to only gate off during acquisition, not entire pulse program.
