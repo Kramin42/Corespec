@@ -16,6 +16,7 @@ export default class Plot extends React.Component {
 
     this.svgid = generateId();
     this.plotId = 0;
+    this.dirtyRender = false;
 
     let activePlotIndex = undefined;
     if (props.experiment && props.experiment.plots && this.props.defaultPlot) {
@@ -87,17 +88,27 @@ export default class Plot extends React.Component {
     //console.log('Plot componentDidUpdate', prevProps, this.props, prevState, this.state);
     if (this.props.plotMethod === 'direct') {
       if (this.props.plot.id !== prevProps.plot.id) {
-        //console.log('rerendering plot: temperature, plot id:', this.props.plot.id);
-        var svg = document.getElementById(this.svgid);
-        this._plot(svg, this.props.plot);
+        this.dirtyRender = true;
       }
     }
     if (this.props.plotMethod === 'query') {
       if (this.state.plot.id !== prevState.plot.id && this.state.plot.id !==-1) {
+        this.dirtyRender = true;
+      }
+    }
+
+    if (this.props.visible && this.dirtyRender) {
+      if (this.props.plotMethod === 'direct') {
+        //console.log('rerendering plot: temperature, plot id:', this.props.plot.id);
+        var svg = document.getElementById(this.svgid);
+        this._plot(svg, this.props.plot);
+      }
+      if (this.props.plotMethod === 'query') {
         //console.log('rerendering plot:', this.props.experiment.name, this.props.experiment.plots[this.state.activePlotIndex], 'plot id:', this.state.plot.id);
         var svg = document.getElementById(this.svgid);
         this._plot(svg, this.state.plot);
       }
+      this.dirtyRender = false;
     }
   }
 

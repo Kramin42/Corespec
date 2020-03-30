@@ -212,6 +212,7 @@ export default class Experiment extends React.Component {
       plots.push(
         <Plot key={i}
           ref={this.plotrefs[i]}
+          visible={active}
           plotMethod={'query'}
           defaultPlot={plotName}
           experiment={experiment}
