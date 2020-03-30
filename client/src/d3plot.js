@@ -7,10 +7,10 @@ d3.xyzoom = xyzoom;
 d3.xyzoomTransform = xyzoomTransform;
 d3.xyzoomIdentity = xyzoomIdentity;
 
-export default function d3plot(svg, plotDef) {
+export default function d3plot(svg, plotDef, width, height) {
   var MAX_DISPLAY_POINTS = 1000
-  var width = 600
-  var height = 400
+  var width = width || 600
+  var height = height || 400
   var margin = {left: 60, right: 20, top: 30, bottom: 40}
   var f_w = 60
   var f_h = 13
@@ -20,7 +20,7 @@ export default function d3plot(svg, plotDef) {
   var w = width-margin.left-margin.right
   var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()
-  svg.attr('viewBox', '0 0 '+width+' '+height)
+  //svg.attr('viewBox', '0 0 '+width+' '+height)
   var plotColors = ['#0072bd', '#d95319', '#edb120', '#7e2f8e', '#77ac30','#4dbeee','#a2142f']
   var numPlotColors = 7
 
@@ -28,6 +28,9 @@ export default function d3plot(svg, plotDef) {
   var dataLabels = []
   var domain = {}
   plotDef.data.forEach(d => {
+    // ensure they have the same length
+    d.x = d.x.slice(0, Math.min(d.x.length, d.y.length));
+    d.y = d.y.slice(0, d.x.length);
     if (domain.left) domain.left = Math.min(domain.left, d3.min(d.x))
     else domain.left = d3.min(d.x)
     if (domain.right) domain.right = Math.max(domain.right, d3.max(d.x))

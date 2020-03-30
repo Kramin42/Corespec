@@ -1,7 +1,7 @@
 .export-controls {
   display: flex;
   flex-direction: row;
-  margin-top: 5px;
+  margin-top: 2px;
 }
 
 .export-controls>.Select {
