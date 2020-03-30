@@ -20,6 +20,7 @@ export default class Experiment extends React.Component {
 
     this.plotrefs = [];
     this.replotting = false;
+    this.plots_initialised = false;
 
     this.state = {
       activeParameterGroupIndex: 0,
@@ -169,9 +170,30 @@ export default class Experiment extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.experiment.progress.value != prevProps.experiment.progress.value &&
-        !this.replotting && !this.props.experiment.progress.finished) {
-      this.replot();
+    if (!this.plots_initialised && this.props.active) {
+      this.plots_initialised = true;
+      this.replotting = true;
+      this.replot().then(() => {
+        this.replotting = false;
+      });
+    }
+
+    if (this.props.experiment.progress.value != prevProps.experiment.progress.value) {
+      if (this.props.experiment.canrun && !this.props.experiment.progress.finished) {
+        this.props.setRunning(true);
+      }
+      else if (!this.props.experiment.canrun && this.props.experiment.progress.finished) {
+        this.props.setRunning(false);
+      }
+    }
+
+    if (this.props.experiment.progress.value > prevProps.experiment.progress.value) {
+      if  (!this.replotting || this.props.experiment.progress.finished) {
+        this.replotting = true;
+        this.replot().then(() => {
+          this.replotting = false;
+        });
+      }
     }
   }
 
@@ -221,56 +243,59 @@ export default class Experiment extends React.Component {
         <div className={classNames('plots-container')}>
           {plots}
         </div>
-        <div className={classNames('parameters-block')}>
-          <div className={classNames('own-parameters')}>
-            <div className="title-tab-bar">
-              <div className="par-box-title">Parameters</div>
-              <Tabs
-                tabNames={parameterGroups.map(g => g.name)}
-                activeIndex={this.state.activeParameterGroupIndex}
-                onTabChange={this.handleTabChange}
+        <div className={classNames('parameters-controls-row')}>
+          <div className={classNames('parameters-block')}>
+            <div className={classNames('own-parameters-parcontrols-row')}>
+              <div className={classNames('own-parameters')}>
+                <div className="title-tab-bar">
+                  <div className="par-box-title">Parameters</div>
+                  <Tabs
+                    tabNames={parameterGroups.map(g => g.name)}
+                    activeIndex={this.state.activeParameterGroupIndex}
+                    onTabChange={this.handleTabChange}
+                  />
+                </div>
+                <ParameterPanes
+                  parameterGroups={parameterGroups}
+                  parameterValues={this.props.parValues[experiment.name] || {}}
+                  activeParameterGroupIndex={this.state.activeParameterGroupIndex}
+                  language={this.props.language}
+                  onValueChange={this.setOwnPar}
+                />
+              </div>
+              <ParameterControls
+                parSetNames={this.state.parSetNames}
+                parSetLoad={this.parSetLoad}
+                parSetSave={this.parSetSave}
               />
             </div>
-            <ParameterPanes
-              parameterGroups={parameterGroups}
-              parameterValues={this.props.parValues[experiment.name] || {}}
-              activeParameterGroupIndex={this.state.activeParameterGroupIndex}
-              language={this.props.language}
-              onValueChange={this.setOwnPar}
-            />
+            <div className={classNames('shared-parameters')}>
+              <div className="par-box-title">Shared</div>
+              <ParameterBox
+                parameters={sharedParameters}
+                parameterValues={this.props.parValues['shared'] || {}}
+                active={true}
+                language={this.props.language}
+                onValueChange={this.setSharedPar}
+              />
+            </div>
           </div>
-          <ParameterControls
-            parSetNames={this.state.parSetNames}
-            parSetLoad={this.parSetLoad}
-            parSetSave={this.parSetSave}
-          />
-          <div className={classNames('shared-parameters')}>
-            <div className="par-box-title">Shared</div>
-            <ParameterBox
-              parameters={sharedParameters}
-              parameterValues={this.props.parValues['shared'] || {}}
-              active={true}
-              language={this.props.language}
-              onValueChange={this.setSharedPar}
+          <div className={classNames('controls-block')}>
+            <RunControls
+              running={experiment.running}
+              canrun={experiment.canrun}
+              commandHandler={this.handleCommand}
             />
+            <Progress
+              progress={experiment.progress.value}
+              progressMax={experiment.progress.max}
+            />
+            <ExportControls
+              experimentName={experiment.name}
+              deviceQuery={this.props.deviceQuery}
+            />
+            <MessageBox messages={this.props.messages} />
           </div>
-        </div>
-        <div className={classNames('controls-block')}>
-          <RunControls
-            running={experiment.running}
-            canrun={experiment.canrun}
-            commandHandler={this.handleCommand}
-          />
-          <Progress
-            progress={experiment.progress.value}
-            progressMax={experiment.progress.max}
-          />
-          <ExportControls
-            experimentName={experiment.name}
-            deviceQuery={this.props.deviceQuery}
-            exports={experiment.exports}
-          />
-          <MessageBox messages={this.props.messages} />
         </div>
       </div>
     );

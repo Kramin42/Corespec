@@ -15,6 +15,7 @@ export default class Plot extends React.Component {
     super(props);
 
     this.svgid = generateId();
+    this.plotId = 0;
 
     let activePlotIndex = undefined;
     if (props.experiment && props.experiment.plots && this.props.defaultPlot) {
@@ -24,7 +25,7 @@ export default class Plot extends React.Component {
     this.state = {
       activePlotIndex: activePlotIndex,
       activeFormatIndex: 0,
-      data: {}
+      plot: {id: -1}
     }
 
     this.handlePlotChange = this.handlePlotChange.bind(this);
@@ -37,6 +38,7 @@ export default class Plot extends React.Component {
     if (plotIndex===null || plotIndex===undefined) {
       plotIndex = this.state.activePlotIndex;
     }
+    console.log(`refetching plot: ${plotIndex}`);
     if (this.props.plotMethod==='query') {
       return this.props.deviceQuery('plot', {
         experiment_name: this.props.experiment.name,
@@ -44,13 +46,10 @@ export default class Plot extends React.Component {
       })
       .then(result => {
         result.data = decode_plot_data(result.data);
-        if (result.data[0].type === 'contour') {
-          d3plot_contour(d3.select('#'+this.svgid), result);
-        } else if (result.data[0].type === 'image') {
-          d3plot_image(d3.select('#'+this.svgid), result);
-        } else {
-          d3plot(d3.select('#'+this.svgid), result);
-        }
+        result.id = this.plotId++;
+        this.setState({
+          plot: result
+        });
       })
       .catch(err => {
         console.log(err);
@@ -74,10 +73,30 @@ export default class Plot extends React.Component {
     });
   }
 
-  componentDidUpdate(prevProps) {
+  _plot(svg, plot) {
+    if (plot.data[0].type === 'contour') {
+      d3plot_contour(d3.select(svg), plot, svg.clientWidth, svg.clientHeight);
+    } else if (plot.data[0].type === 'image') {
+      d3plot_image(d3.select(svg), plot, svg.clientWidth, svg.clientHeight);
+    } else {
+      d3plot(d3.select(svg), plot, svg.clientWidth, svg.clientHeight);
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    //console.log('Plot componentDidUpdate', prevProps, this.props, prevState, this.state);
     if (this.props.plotMethod === 'direct') {
       if (this.props.plot.id !== prevProps.plot.id) {
-        d3plot(d3.select('#'+this.svgid), this.props.plot);
+        //console.log('rerendering plot: temperature, plot id:', this.props.plot.id);
+        var svg = document.getElementById(this.svgid);
+        this._plot(svg, this.props.plot);
+      }
+    }
+    if (this.props.plotMethod === 'query') {
+      if (this.state.plot.id !== prevState.plot.id && this.state.plot.id !==-1) {
+        //console.log('rerendering plot:', this.props.experiment.name, this.props.experiment.plots[this.state.activePlotIndex], 'plot id:', this.state.plot.id);
+        var svg = document.getElementById(this.svgid);
+        this._plot(svg, this.state.plot);
       }
     }
   }

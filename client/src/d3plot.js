@@ -37,10 +37,10 @@ function interpolateCividis(x) {
   ].map(Math.floor).join(", ")})`;
 }
 
-export function d3plot_image(svg, plotDef) {
+export function d3plot_image(svg, plotDef, width, height) {
   var MAX_DISPLAY_POINTS = 1000
-  var width = 600
-  var height = 400
+  var width = width || 600
+  var height = height || 400
   var margin = {left: 60, right: 20, top: 30, bottom: 40}
   var f_w = 60
   var f_h = 13
@@ -50,7 +50,7 @@ export function d3plot_image(svg, plotDef) {
   var w = width-margin.left-margin.right
   var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()
-  svg.attr('viewBox', '0 0 '+width+' '+height)
+  //svg.attr('viewBox', '0 0 '+width+' '+height)
 
   var x = plotDef.data[0].x
   var y = plotDef.data[0].y
@@ -169,10 +169,10 @@ export function d3plot_image(svg, plotDef) {
   }
 }
 
-export function d3plot_contour(svg, plotDef) {
+export function d3plot_contour(svg, plotDef, width, height) {
   var MAX_DISPLAY_POINTS = 1000
-  var width = 600
-  var height = 400
+  var width = width || 600
+  var height = height || 400
   var margin = {left: 60, right: 20, top: 30, bottom: 40}
   var f_w = 60
   var f_h = 13
@@ -182,7 +182,7 @@ export function d3plot_contour(svg, plotDef) {
   var w = width-margin.left-margin.right
   var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()
-  svg.attr('viewBox', '0 0 '+width+' '+height)
+  //svg.attr('viewBox', '0 0 '+width+' '+height)
 
   var x = plotDef.data[0].x
   var y = plotDef.data[0].y
@@ -294,21 +294,12 @@ export function d3plot_contour(svg, plotDef) {
     .style('text-anchor', 'middle')
     .text(plotDef.layout.yaxis.title)
   }
-  // g.append('g')
-  //     .attr('fill', 'none')
-  //     .attr('stroke', '#fff')
-  //     .attr('stroke-opacity', 0.5)
-  //   .selectAll('path')
-  //   .data(contours)
-  //   .join('path')
-  //     .attr('fill', d => colour(d.value))
-  //     .attr('d', d3.geoPath())
 }
 
-export function d3plot(svg, plotDef) {
+export function d3plot(svg, plotDef, width, height) {
   var MAX_DISPLAY_POINTS = 1000
-  var width = 600
-  var height = 400
+  var width = width || 600
+  var height = height || 400
   var margin = {left: 60, right: 20, top: 30, bottom: 40}
   var f_w = 60
   var f_h = 13
@@ -318,7 +309,7 @@ export function d3plot(svg, plotDef) {
   var w = width-margin.left-margin.right
   var h = height-margin.top-margin.bottom
   svg.selectAll('*').remove()
-  svg.attr('viewBox', '0 0 '+width+' '+height)
+  //svg.attr('viewBox', '0 0 '+width+' '+height)
   var plotColors = ['#0072bd', '#d95319', '#edb120', '#7e2f8e', '#77ac30','#4dbeee','#a2142f']
   var numPlotColors = 7
 
@@ -326,6 +317,9 @@ export function d3plot(svg, plotDef) {
   var dataLabels = []
   var domain = {}
   plotDef.data.forEach(d => {
+    // ensure they have the same length
+    d.x = d.x.slice(0, Math.min(d.x.length, d.y.length));
+    d.y = d.y.slice(0, d.x.length);
     if (domain.left) domain.left = Math.min(domain.left, d3.min(d.x))
     else domain.left = d3.min(d.x)
     if (domain.right) domain.right = Math.max(domain.right, d3.max(d.x))

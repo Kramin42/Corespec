@@ -14,8 +14,6 @@ export default class Temperature extends React.Component {
   constructor(props) {
     super(props);
 
-    this.plotId = 0;
-
     this.state = {
       activeParameterGroupIndex: 0
     };
@@ -52,7 +50,7 @@ export default class Temperature extends React.Component {
         ref={this.plotref}
         plotMethod={'direct'}
         plot={{
-          id: this.plotId++,
+          id: this.props.temperature.count + (active ? 10 : 0),
           data: [{
             name: '',
             type: 'scatter',
@@ -90,30 +88,34 @@ export default class Temperature extends React.Component {
         <div className={classNames('plots-container')}>
           {plots}
         </div>
-        <div className={classNames('parameters-block')}>
-          <div className={classNames('own-parameters')}>
-            <div className="title-tab-bar">
-              <div className="par-box-title">Parameters</div>
-              <Tabs
-                tabNames={parameterGroups.map(g => g.name)}
-                activeIndex={this.state.activeParameterGroupIndex}
-                onTabChange={this.handleTabChange}
-              />
+        <div className={classNames('parameters-controls-row')}>
+          <div className={classNames('parameters-block')}>
+            <div className={classNames('own-parameters-parcontrols-row')}>
+              <div className={classNames('own-parameters')}>
+                <div className="title-tab-bar">
+                  <div className="par-box-title">Parameters</div>
+                  <Tabs
+                    tabNames={parameterGroups.map(g => g.name)}
+                    activeIndex={this.state.activeParameterGroupIndex}
+                    onTabChange={this.handleTabChange}
+                  />
+                </div>
+                <ParameterPanes
+                  parameterGroups={parameterGroups}
+                  parameterValues={this.props.parValues[data.name] || {}}
+                  activeParameterGroupIndex={this.state.activeParameterGroupIndex}
+                  language={this.props.language}
+                  onValueChange={this.setOwnPar}
+                />
+              </div>
             </div>
-            <ParameterPanes
-              parameterGroups={parameterGroups}
-              parameterValues={this.props.parValues[data.name] || {}}
-              activeParameterGroupIndex={this.state.activeParameterGroupIndex}
-              language={this.props.language}
-              onValueChange={this.setOwnPar}
-            />
           </div>
-        </div>
-        <div className={classNames('controls-block')}>
-          <div className="run-controls">
-            <div className="button set" onClick={this.setTempControl}>Set Parameters</div>
+          <div className={classNames('controls-block')}>
+            <div className="run-controls">
+              <div className="button set" onClick={this.setTempControl}>Set Parameters</div>
+            </div>
+            <MessageBox messages={this.props.messages}/>
           </div>
-          <MessageBox messages={this.props.messages}/>
         </div>
       </div>
     );

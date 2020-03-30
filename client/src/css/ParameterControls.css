@@ -1,4 +1,5 @@
 .parameter-controls {
+  flex-basis: 25%;
   display: flex;
   flex-direction: column;
 }
@@ -17,4 +18,8 @@
   //box-shadow: 0.5px 0.5px 3px 0px #aaa;
   margin: 0px 3px 3px;
   padding: 5px 2px 5px;
+}
+
+.parameter-controls-container > *:not(:last-child) {
+  margin-bottom: 2px;
 }
