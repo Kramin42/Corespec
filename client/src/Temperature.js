@@ -48,6 +48,7 @@ export default class Temperature extends React.Component {
       (<Plot
         key={0}
         ref={this.plotref}
+        visible={active}
         plotMethod={'direct'}
         plot={{
           id: this.props.temperature.count + (active ? 10 : 0),

@@ -138,7 +138,7 @@ export default class App extends React.Component {
       for (;index>=0; index--) {
         if (this.state.experiments[index].name === data.experiment) break;
       }
-      console.log(index);
+      //console.log(index);
       if (index>=0) {
         let new_progress = {
           value: data.progress,

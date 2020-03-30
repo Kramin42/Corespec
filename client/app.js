@@ -49785,7 +49785,7 @@ var App = function (_React$Component) {
         for (; index >= 0; index--) {
           if (this.state.experiments[index].name === data.experiment) break;
         }
-        console.log(index);
+        //console.log(index);
         if (index >= 0) {
           var new_progress = {
             value: data.progress,
@@ -50175,6 +50175,7 @@ var Experiment = function (_React$Component) {
         }
         plots.push(_react2.default.createElement(_Plot2.default, { key: i,
           ref: _this7.plotrefs[i],
+          visible: active,
           plotMethod: 'query',
           defaultPlot: plotName,
           experiment: experiment,
@@ -50904,6 +50905,7 @@ var Plot = function (_React$Component) {
 
     _this.svgid = (0, _generateId2.default)();
     _this.plotId = 0;
+    _this.dirtyRender = false;
 
     var activePlotIndex = undefined;
     if (props.experiment && props.experiment.plots && _this.props.defaultPlot) {
@@ -50972,17 +50974,27 @@ var Plot = function (_React$Component) {
       //console.log('Plot componentDidUpdate', prevProps, this.props, prevState, this.state);
       if (this.props.plotMethod === 'direct') {
         if (this.props.plot.id !== prevProps.plot.id) {
-          //console.log('rerendering plot: temperature, plot id:', this.props.plot.id);
-          var svg = document.getElementById(this.svgid);
-          (0, _d3plot2.default)(d3.select(svg), this.props.plot, svg.clientWidth, svg.clientHeight);
+          this.dirtyRender = true;
         }
       }
       if (this.props.plotMethod === 'query') {
         if (this.state.plot.id !== prevState.plot.id && this.state.plot.id !== -1) {
+          this.dirtyRender = true;
+        }
+      }
+
+      if (this.props.visible && this.dirtyRender) {
+        if (this.props.plotMethod === 'direct') {
+          //console.log('rerendering plot: temperature, plot id:', this.props.plot.id);
+          var svg = document.getElementById(this.svgid);
+          (0, _d3plot2.default)(d3.select(svg), this.props.plot, svg.clientWidth, svg.clientHeight);
+        }
+        if (this.props.plotMethod === 'query') {
           //console.log('rerendering plot:', this.props.experiment.name, this.props.experiment.plots[this.state.activePlotIndex], 'plot id:', this.state.plot.id);
           var svg = document.getElementById(this.svgid);
           (0, _d3plot2.default)(d3.select(svg), this.state.plot, svg.clientWidth, svg.clientHeight);
         }
+        this.dirtyRender = false;
       }
     }
   }, {
@@ -51431,6 +51443,7 @@ var Temperature = function (_React$Component) {
       var plots = [_react2.default.createElement(_Plot2.default, {
         key: 0,
         ref: this.plotref,
+        visible: active,
         plotMethod: 'direct',
         plot: {
           id: this.props.temperature.count + (active ? 10 : 0),
