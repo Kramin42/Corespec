@@ -8,6 +8,7 @@ The baseline is determined by a multi-exponential (number set by "N_exp", 0 to d
 The "Static T2" experiment will internally save the baseline fit parameters, to be loaded by "Flow T2" (set "remove_baseline" to 1 to enable).
 Set "baseline_clip" to a small fraction (e.g. 0.1) to prevent over-amplification of noise with a rapidly decaying baseline.
 - Improved disconnect/reconnect behaviour to allow operation without a client computer always connected.
+
 ### Fixed
 - Flowmeter experiment CSV data export.
 
