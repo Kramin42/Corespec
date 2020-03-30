@@ -74,12 +74,7 @@ async def export_csv(experiment_name, export_name):
         done = True
         row = []
         for k, v in data.items():
-            if type(v) is str:
-                if rownum==0:
-                    row.append(v)
-                else:
-                    row.append('')
-            elif type(v) is float or type(v) is int:
+            if np.isscalar(v):
                 if rownum==0:
                     row.append(str(v))
                 else:
