@@ -17,7 +17,7 @@ try:
 except:
     logger.warning('Could not run init.sh!')
 
-VERSION = 'flowmeter2-1.1.15'
+VERSION = 'flowmeter2-1.2.1'
 
 changelog_html = ''
 with open(os.path.join(dir_path, 'changelog.html')) as f:

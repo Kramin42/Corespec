@@ -1,11 +1,22 @@
 # Changelog
 
+## [1.2.1] - 2020-03-30
+### Changed
+- Reworked GUI to better fit into various screen sizes.
+- Implemented T2 decay baseline correction for flow rate calculations.
+The baseline is determined by a multi-exponential (number set by "N_exp", 0 to disable) fit of the static decay CPMG curve.
+The "Static T2" experiment will internally save the baseline fit parameters, to be loaded by "Flow T2" (set "remove_baseline" to 1 to enable).
+Set "baseline_clip" to a small fraction (e.g. 0.1) to prevent over-amplification of noise with a rapidly decaying baseline.
+- Improved disconnect/reconnect behaviour to allow operation without a client computer always connected.
+### Fixed
+- Flowmeter experiment CSV data export.
+
 ## [1.1.15] - 2020-03-11
-### changed
+### Changed
 - Increased Flowmeter experiment buffer size to 100,000 flow measurements.
 
 ## [1.1.14] - 2019-09-26
-### fixed
+### Fixed
 - Changed heating to only gate off during acquisition, not entire pulse program.
 
 ## [1.1.13] - 2019-03-12

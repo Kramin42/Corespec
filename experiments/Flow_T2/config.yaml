@@ -30,6 +30,7 @@ parameters:
     group: calibration
   remove_baseline:
     dtype: int
+    unit: '0|1'
     min: 0
     max: 1
     group: calibration
