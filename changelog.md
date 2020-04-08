@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.18d] - 2020-04-09
+### Fixed
+- Fixed inversion recovery CPMG program gating heater off longer than needed.
+
 ## [1.1.18c] - 2020-03-16
 ### Fixed
 - MRI_1D program Z gradient enable TTL issue.
