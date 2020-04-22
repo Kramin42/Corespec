@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1] - 2020-04-22
+### Changed
+- Added MRI shim parameters to most experiments (only applicable with 3-channel MRI board).
+- Reworked UI layout.
+
 ## [1.1.18d] - 2020-04-09
 ### Fixed
 - Fixed inversion recovery CPMG program gating heater off longer than needed.
