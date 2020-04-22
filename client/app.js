@@ -59152,7 +59152,8 @@ var Experiment = function (_React$Component) {
             }),
             _react2.default.createElement(_ExportControls2.default, {
               experimentName: experiment.name,
-              deviceQuery: this.props.deviceQuery
+              deviceQuery: this.props.deviceQuery,
+              exports: experiment.exports
             }),
             _react2.default.createElement(_MessageBox2.default, { messages: this.props.messages })
           )

@@ -294,6 +294,7 @@ export default class Experiment extends React.Component {
             <ExportControls
               experimentName={experiment.name}
               deviceQuery={this.props.deviceQuery}
+              exports={experiment.exports}
             />
             <MessageBox messages={this.props.messages} />
           </div>
