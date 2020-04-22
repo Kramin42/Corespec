@@ -119,8 +119,28 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
+  MRI_shim_X:
+    offset: 0xec
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  MRI_shim_Y:
+    offset: 0xf0
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  MRI_shim_Z:
+    offset: 0xf4
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
   phase_grad:
-    offset: 0x10c
     dtype: int32
     min: -32768
     max: 32767
@@ -140,6 +160,12 @@ parameters:
     scaling: 1000
     group: gradient
 derived_parameters:
+  GX1:
+    offset: 0x10c
+    dtype: int32
+    value: ${{MRI_shim_X} + {phase_grad}}
+    min: -32768
+    max: 32767
   T1:
     offset: 0xb0
     dtype: uint32

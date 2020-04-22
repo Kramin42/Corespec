@@ -119,21 +119,21 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
-  shim_X:
+  MRI_shim_X:
     offset: 0xec
     dtype: int32
     min: -32768
     max: 32767
     shared: true
     group: shim
-  shim_Y:
+  MRI_shim_Y:
     offset: 0xf0
     dtype: int32
     min: -32768
     max: 32767
     shared: true
     group: shim
-  shim_Z:
+  MRI_shim_Z:
     offset: 0xf4
     dtype: int32
     min: -32768
@@ -174,37 +174,37 @@ derived_parameters:
   GX1:
     offset: 0x10c
     dtype: int32
-    value: ${{shim_X} + {read_GX} + {phase_GX}}
+    value: ${{MRI_shim_X} + {read_GX} + {phase_GX}}
     min: -32768
     max: 32767
   GY1:
     offset: 0x110
     dtype: int32
-    value: ${{shim_Y} + {read_GY} + {phase_GY}}
+    value: ${{MRI_shim_Y} + {read_GY} + {phase_GY}}
     min: -32768
     max: 32767
   GZ1:
     offset: 0x114
     dtype: int32
-    value: ${{shim_Z} + {read_GZ} + {phase_GZ}}
+    value: ${{MRI_shim_Z} + {read_GZ} + {phase_GZ}}
     min: -32768
     max: 32767
   GX2:
     offset: 0x118
     dtype: int32
-    value: ${{shim_X} + {read_GX}}
+    value: ${{MRI_shim_X} + {read_GX}}
     min: -32768
     max: 32767
   GY2:
     offset: 0x11c
     dtype: int32
-    value: ${{shim_Y} + {read_GY}}
+    value: ${{MRI_shim_Y} + {read_GY}}
     min: -32768
     max: 32767
   GZ2:
     offset: 0x120
     dtype: int32
-    value: ${{shim_Z} + {read_GZ}}
+    value: ${{MRI_shim_Z} + {read_GZ}}
     min: -32768
     max: 32767
   T1:

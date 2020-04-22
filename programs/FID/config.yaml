@@ -99,6 +99,27 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
+  MRI_shim_X:
+    offset: 0xec
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  MRI_shim_Y:
+    offset: 0xf0
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
+  MRI_shim_Z:
+    offset: 0xf4
+    dtype: int32
+    min: -32768
+    max: 32767
+    shared: true
+    group: shim
 derived_parameters:
   ignore_samples:
     offset: 0xc8
