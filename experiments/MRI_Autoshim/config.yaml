@@ -1,0 +1,27 @@
+# MRI_Autoshim helper experiment configuration
+description:
+  An autoshim helper experiment.
+programs:
+  - FID
+parameters:
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
+  max_iterations:
+    dtype: int
+    unit: ''
+    group: autoshim
+  shim_step:
+    dtype: int
+    unit: ''
+    group: autoshim
+  precision:
+    dtype: int
+    unit: ''
+    group: autoshim
+defaults:
+  plots:
+    - SumSq
+    - FT
+  order: 40
