@@ -71,8 +71,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         y = self.autophase(self.raw_data())
         y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         x = np.linspace(0, self.par['dwell_time'] * len(y), len(y), endpoint=False)
-        y /= 1e6  # uV->V
-        x /= 1e6  # us->s
+        y /= 1000000  # μV->V
+        x /= 1000000  # μs->s
         return {
             'x': x,
             'y_real': y.real,
@@ -128,7 +128,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
     def plot_Phase(self):
         y = self.autophase(self.raw_data())
         x = np.linspace(0, self.par['dwell_time'] * len(y), len(y), endpoint=False)
-        x /= 1000000  # Î¼s->s
+        x /= 1000000  # us->s
 
         # return object according to plotly schema
         return {'data': [{

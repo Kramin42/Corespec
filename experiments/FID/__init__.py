@@ -22,6 +22,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     # it must take no arguments and return a JSON serialisable dict
     def export_Raw(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         x = np.linspace(0, self.par['dwell_time']*len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
@@ -36,6 +37,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_FT(self):
         y = self.autophase(self.raw_data())
+        y = self.gaussian_apodize(y, self.par['gaussian_lb'])
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
         fft = np.fft.fft(y)
         freq = np.fft.fftfreq(y.size, d=dwell_time)
@@ -100,12 +102,22 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def plot_FT(self):
         data = self.export_FT()
         peak_index = np.argmax(data['fft_mag'])
-        peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
-        avg_start = peak_index - int(len(data['freq'])/20)
-        avg_end = peak_index + int(len(data['freq'])/20) + 1
-        if avg_start>0 and avg_end<=len(data['freq']):
-            peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
+        peak_freq_offset = data['freq'][peak_index] / 1000000  # in MHz
+        avg_start = peak_index - int(len(data['freq']) / 20)
+        avg_end = peak_index + int(len(data['freq']) / 20) + 1
+        if avg_start > 0 and avg_end <= len(data['freq']):
+            peak_freq_offset = np.average(data['freq'][avg_start:avg_end],
+                                          weights=np.square(data['fft_mag'][avg_start:avg_end])) / 1000000  # in MHz
         peak_freq = self.par['freq'] + peak_freq_offset
+        height = data['fft_real'].max()
+        left_hw_index = -1
+        right_hw_index = -1
+        for i, x in enumerate(data['fft_real']):
+            if x > height / 2:
+                if left_hw_index == -1:
+                    left_hw_index = i
+                right_hw_index = i
+        half_width = data['freq'][right_hw_index] - data['freq'][left_hw_index]
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
@@ -120,7 +132,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT (peak@{:0.4f}{})'.format(peak_freq, 'M'+data['freq_unit']),
+                'title': 'FFT (peak@{:0.4f}{}, height: {:0.4f} uV, 50% width: {:.0f} Hz)'.format(peak_freq, 'M' + data[
+                    'freq_unit'], height * 1000000, half_width),
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}
@@ -133,3 +146,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def autophase(self, data):
         phase = get_autophase(data)
         return data * np.exp(1j * phase) # rotate
+
+    def gaussian_apodize(self, data, lb):
+        t = np.linspace(0, 1, len(data))
+        return data * np.exp(-lb * lb * t * t)

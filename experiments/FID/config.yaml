@@ -3,6 +3,11 @@ description:
   A FID experiment.
 programs:
   - FID
+parameters:
+  gaussian_lb:
+    dtype: float
+    unit: ''
+    group: acquisition
 defaults:
   plots:
     - Raw
