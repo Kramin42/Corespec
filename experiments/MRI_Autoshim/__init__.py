@@ -45,8 +45,8 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             logger.debug('SumSq: %d' % result)
             return -result
 
-        lower_bounds = [-32768] * 8
-        upper_bounds = [32767] * 8
+        lower_bounds = [-32768] * 3
+        upper_bounds = [32767] * 3
         self.opt_res = []
         try:
             iter = 0
