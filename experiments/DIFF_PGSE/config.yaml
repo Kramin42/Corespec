@@ -24,4 +24,4 @@ defaults:
   plots:
     - Raw
     - FT
-  order: 6
+  order: 31

@@ -16,4 +16,4 @@ defaults:
   plots:
     - Raw
     - FT
-  order: 10
+  order: 41

@@ -28,4 +28,4 @@ defaults:
   plots:
     - Echo
     - T2
-  order: 7
+  order: 12

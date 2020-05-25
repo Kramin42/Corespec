@@ -19,4 +19,4 @@ defaults:
   plots:
     - CPMG
     - T1
-  order: 8
+  order: 22
