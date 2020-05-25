@@ -125,56 +125,56 @@ async def get_tempcontrol():
 #
 
 
-async def run(ws, experiment_name):
+async def run(experiment_name):
     experiment = experiments[experiment_name]
     def progress_handler(progress, limit=0):
         # fire and forget
-        asyncio.ensure_future(ws.send(json.dumps({
+        broadcast(json.dumps({
             'type': 'progress',
             'experiment': experiment_name,
             'finished': False,
             'progress': int(progress),
             'max': int(limit)
-        })))
+        }))
     def message_handler(message, type='message'):
-        asyncio.ensure_future(ws.send(json.dumps({'type': type, 'message': message})))
+        broadcast(json.dumps({'type': type, 'message': message}))
     await experiment.run(progress_handler=progress_handler, message_handler=message_handler)
     #if experiment.name in ['FID', 'CPMG']:
     #    experiment.save(workspace.new_data_dir(experiment.name))
-    await ws.send(json.dumps({'type': 'progress', 'experiment': experiment_name, 'finished': True}))
-    await ws.send(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
+    broadcast(json.dumps({'type': 'progress', 'experiment': experiment_name, 'finished': True}))
+    broadcast(json.dumps({'type': 'message', 'message': '%s experiment finished.' % experiment_name}))
 
 
-async def abort(ws, experiment_name):
+async def abort(experiment_name):
     experiments[experiment_name].abort()
 
 
-async def set_parameters(ws, experiment_name, parameters):
+async def set_parameters(experiment_name, parameters):
     experiments[experiment_name].set_parameters(parameters)
     # save parameters to workspace default par file
     workspace.save_default_pars(experiment_name, parameters, experiments[experiment_name].par_def)
     #await ws.send(json.dumps({'type': 'message', 'message': '%s parameters set.' % program_name}))
 
 
-async def save_parameter_set(ws, experiment_name, par_set_name, parameters):
+async def save_parameter_set(experiment_name, par_set_name, parameters):
     workspace.save_par_set(experiment_name, par_set_name, parameters)
-    await ws.send(json.dumps({'type': 'message', 'message': 'Saved parameter set %s.' % par_set_name}))
+    broadcast(json.dumps({'type': 'message', 'message': 'Saved parameter set %s.' % par_set_name}))
 
 
-async def set_workspace(ws, workspace_name):
+async def set_workspace(workspace_name):
     global workspace
     workspace = Workspace(workspace_name)
-    await ws.send(json.dumps({'type': 'message', 'message': 'Switched to workspace %s.' % workspace.name}))
+    broadcast(json.dumps({'type': 'message', 'message': 'Switched to workspace %s.' % workspace.name}))
 
 
-async def set_amp(ws, on):
+async def set_amp(on):
     if on:
         tempcontrol.amp_on()
     else:
         tempcontrol.amp_off()
 
 
-async def set_tempcontrol(ws, **parameters):
+async def set_tempcontrol(**parameters):
     tempcontrol.set_parameters(**parameters)
 
 #
@@ -211,7 +211,7 @@ async def consumer(websocket, message):
             logger.exception(e)
     elif data['type'] == 'command':
         try:
-            await globals()[data['command']](websocket, **data['args'])
+            await globals()[data['command']](**data['args'])
             logger.debug('executed command in %s seconds' % (time.time() - t_i))
             await websocket.send(json.dumps({
                 'type': 'finished',
@@ -228,11 +228,13 @@ connected = set()
 
 async def consumer_handler(websocket, path):
     connected.add(websocket)
+    logger.debug('websocket connected: %s' % str(websocket))
     try:
         async for message in websocket:
             asyncio.ensure_future(consumer(websocket, message))
     finally:
         connected.remove(websocket)
+        logger.debug('websocket disconnected: %s' % str(websocket))
 
 
 def broadcast(msg):
