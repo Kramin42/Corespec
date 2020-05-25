@@ -1,4 +1,5 @@
 # 1D MRI experiment configuration
+hidden: True
 description:
   A 1D MRI experiment.
 programs:

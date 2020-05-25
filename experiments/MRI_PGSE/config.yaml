@@ -1,4 +1,5 @@
 # PGSE experiment configuration
+hidden: True
 description:
   A PGSE experiment using X Channel of MRI board.
 programs:
