@@ -124,11 +124,6 @@ class Program:
             final_run_done = self.status==self.config_get('status.values.finished')
             if self._aborted:
                 raise Exception('Aborted')
-            if self.has_progress:
-                cur_progress = self.progress
-                if progress_handler is not None and cur_progress!=prev_progress:
-                    progress_handler(cur_progress, self.config_get('progress.limit')+1)
-                    prev_progress = cur_progress
 
             if rotbuf:
                 rotbuf_write_index = system.read_par(
@@ -165,6 +160,12 @@ class Program:
                     rotbuf_read_index%=rotbuf_length
                     system.write_par(int(self.config_get('output.rotbuf_read_index_offset')), rotbuf_read_index, 'uint32')
                     rotbuf_finished = (rotbuf_counter == rotbuf_total)
+
+            if self.has_progress:
+                cur_progress = self.progress
+                if progress_handler is not None and cur_progress!=prev_progress:
+                    progress_handler(cur_progress, self.config_get('progress.limit')+1)
+                    prev_progress = cur_progress
 
             await asyncio.sleep(0.1)
 
