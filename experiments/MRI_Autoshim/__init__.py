@@ -39,7 +39,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
             self.programs['FID'].set_par('MRI_shim_Z', try_shims[2])
             await self.programs['FID'].run(progress_handler=None,
                                            message_handler=message_handler)
-            self.data = self.programs['FID'].data
+            self.data = self.programs['FID'].data.view(np.complex64)
             y = self.gaussian_apodize(self.data, self.par['gaussian_lb'])
             result = np.sum(np.abs(y) ** 2)
             logger.debug('SumSq: %d' % result)
@@ -202,7 +202,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
     def raw_data(self):
         if self.data is None:
             raise Exception('Data is not ready to be read!')
-        return self.data
+        return self.data.view(np.complex64)
 
     def autophase(self, data):
         phase = get_autophase(data)
