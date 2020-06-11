@@ -1,5 +1,5 @@
 from experiment import BaseExperiment # required
-from libraries.invlaplace import getT2Spectrum
+from libraries.invlaplace import getT2Spectrum, compress
 from hardware.system import set_flow_enabled
 from libraries.expfitting import fit_multi_exp, multi_exp
 
@@ -43,6 +43,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.aborted = False
         flow_num = int(self.par['flow_num'])
         baseline_N_exp = int(self.par['N_exp'])
+        baseline_N_ignore = int(self.par['N_ignore'])
+        baseline_N_compress = int(self.par['N_compress'])
         self.baseline_fit_par = None
         while not self.aborted:
             progress_handler(0, flow_num + 1)
@@ -114,9 +116,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
             if baseline_N_exp > 0:
                 try:
-                    self.baseline_fit_par, stderr = fit_multi_exp(t, Y.real, N_exp=baseline_N_exp)
+                    com_t, com_r, com_i, com_w = compress(t[baseline_N_ignore:], Y.real[baseline_N_ignore:],
+                                                          Y.imag[baseline_N_ignore:], baseline_N_compress)
+                    self.baseline_fit_par, stderr = fit_multi_exp(com_t, com_r, weights=com_w, N_exp=baseline_N_exp)
+                    #self.baseline_fit_par, stderr = fit_multi_exp(t, Y.real, N_exp=baseline_N_exp)
                 except:
-                    self.baseline_fit_par = None
+                    #self.baseline_fit_par = None
                     message_handler('Warning: Could not fit multi-exponential to static measurement', type='warning')
 
             T2 = np.logspace(-5, 2, 200, endpoint=False)

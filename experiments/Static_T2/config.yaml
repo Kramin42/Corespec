@@ -23,7 +23,15 @@ parameters:
   N_exp:
     dtype: int
     min: 0
-    max: 10
+    max: 20
+    group: baseline_fit
+  N_compress:
+    dtype: int
+    min: 10
+    group: baseline_fit
+  N_ignore:
+    dtype: int
+    min: 0
     group: baseline_fit
 defaults:
   plots:

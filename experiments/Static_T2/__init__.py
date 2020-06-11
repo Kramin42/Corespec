@@ -1,5 +1,5 @@
 from experiment import BaseExperiment # required
-from libraries.invlaplace import getT2Spectrum
+from libraries.invlaplace import getT2Spectrum, compress
 from libraries.expfitting import fit_multi_exp, multi_exp
 from hardware.system import set_flow_enabled
 
@@ -33,10 +33,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             SNR = np.mean(y.real[:2]).item() / np.sqrt(np.mean(y.imag[int(y.size/2):] * y.imag[int(y.size/2):])).item()
             message_handler('SNR estimate: %d' % SNR)
         N_exp = int(self.par['N_exp'])
+        N_skip = int(self.par['N_ignore'])
+        N_com = int(self.par['N_compress'])
         if N_exp>0:
             echo_int_data = self.export_Echo_Integrals()
             try:
-                self.fit_par, stderr = fit_multi_exp(echo_int_data['x'], echo_int_data['y_real'], N_exp=N_exp)
+                com_t, com_r, com_i, com_w = compress(echo_int_data['x'][N_skip:], echo_int_data['y_real'][N_skip:], echo_int_data['y_imag'][N_skip:], N_com)
+                self.fit_par, stderr = fit_multi_exp(com_t, com_r, weights=com_w, N_exp=N_exp)
             except:
                 raise Exception('Could not fit multi-exponential')
             with open(os.path.join(self._dir, 'multi_exp_fit_par.yaml'), 'w') as f:
