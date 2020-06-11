@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2] - 2020-06-11
+### Changed
+- Optimised T2 decay baseline fitting in "Static T2" and "Flowmeter" experiments. New parameters:
+"N\_compress" sets the number of points for exponential decimation (e.g. 100),
+"N\_ignore" sets the number of data points to skip, used to avoid fitting CPMG oscillations (e.g. 10).
+
 ## [1.2.1] - 2020-03-30
 ### Changed
 - Reworked GUI to better fit into various screen sizes.
