@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.2] - 2020-06-22
+### Added
+- Autoshim experiment for MRI gradient board
+
+### Changed
+- Improved reconnection behaviour to prevent data loss
+- Linewidth calculation added to FID experiment
+
+### Removed
+- MRI_PGSE, use DIFF_PGSE with diffusion board instead
+- DIFF_1D, use MRI_1D with MRI board instead
+
 ## [1.2.1] - 2020-04-22
 ### Changed
 - Added MRI shim parameters to most experiments (only applicable with 3-channel MRI board).
