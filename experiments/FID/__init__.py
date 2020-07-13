@@ -3,7 +3,7 @@ from experiment import BaseExperiment # required
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 import numpy as np
 
@@ -96,7 +96,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         peak_index = np.searchsorted(fft_abs_sumsq, fft_abs_sumsq[-1] / 2.0)
         # interpolate
         peak_index_interp = (fft_abs_sumsq[-1] / 2.0 - fft_abs_sumsq[peak_index - 1]) / (fft_abs_sumsq[peak_index] - fft_abs_sumsq[peak_index - 1]) - 1
-        logger.debug('peak_index: %f' % (peak_index+peak_index_interp))
         peak_freq = self.par['freq'] + 1e-6*(data['freq'][peak_index] + peak_index_interp/self.par['dwell_time'])
         return {'data': [{
             'name': 'Real',
@@ -112,7 +111,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'x': data['freq'],
             'y': data['fft_mag']}],
             'layout': {
-                'title': 'FFT (peak@{:0.4f}{})'.format(peak_freq, 'M'+data['freq_unit']),
+                'title': 'FFT (peak@{:0.5f}{})'.format(peak_freq, 'M'+data['freq_unit']),
                 'xaxis': {'title': data['freq_unit']},
                 'yaxis': {'title': data['fft_unit']}
             }}

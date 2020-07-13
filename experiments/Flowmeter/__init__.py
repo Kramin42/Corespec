@@ -32,6 +32,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     async def run(self, progress_handler=None, message_handler=None):
         t_init = time()
         t_last = t_init
+        self.freq_t = []
+        self.freq_values = []
         self.prop_t = []
         self.prop_water = []
         self.prop_oil = []
@@ -65,6 +67,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             message_handler('Starting static measurement')
 
             # run FID first to set the frequency automatically
+            self.freq_t.append(time() - t_init)
             self.programs['FID'].set_par('rep_time', float(self.par['FID_rep_time']))
             self.programs['FID'].set_par('scans', float(self.par['FID_scans']))
             self.programs['FID'].set_par('samples', float(self.par['FID_samples']))
@@ -74,21 +77,17 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             # determine location of peak
             y = self.programs['FID'].data.view(np.complex64)
             dwell_time = self.par['FID_dwell_time']  # μs
-            fft = np.fft.fft(y)
-            freq = np.fft.fftfreq(y.size, d=dwell_time)
-            # sort the frequency axis
-            p = freq.argsort()
-            freq = freq[p]
-            fft = fft[p]
+            fft = np.fft.fftshift(np.fft.fft(y))
+            freq = np.fft.fftshift(np.fft.fftfreq(y.size, d=dwell_time))
             fft_mag = np.abs(fft)
-            peak_index = np.argmax(fft_mag)
-            peak_freq_offset = freq[peak_index]  # in MHz
-            avg_start = peak_index - int(len(freq) / 20)
-            avg_end = peak_index + int(len(freq) / 20) + 1
-            if avg_start > 0 and avg_end <= len(freq):
-                peak_freq_offset = np.average(freq[avg_start:avg_end],
-                                              weights=np.square(fft_mag[avg_start:avg_end]))  # in MHz
+            fft_abs_sumsq = np.cumsum(fft_mag * fft_mag)
+            peak_index = np.searchsorted(fft_abs_sumsq, fft_abs_sumsq[-1] / 2.0)
+            peak_index_interp = (fft_abs_sumsq[-1] / 2.0 - fft_abs_sumsq[peak_index - 1]) / (
+                        fft_abs_sumsq[peak_index] - fft_abs_sumsq[peak_index - 1]) - 1
+            peak_freq_offset = 1e-6 * (freq[peak_index] + peak_index_interp / dwell_time)
+
             self.par['freq'] += peak_freq_offset
+            self.freq_values.append(self.par['freq'])
             self.programs['CPMG'].set_par('freq', float(self.par['freq']))
             self.programs['FID'].set_par('freq', float(self.par['freq']))
             logger.debug('Setting frequency to %s' % self.par['freq'])
@@ -230,6 +229,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_Raw(self):
         try:
             return {
+                'freq_t': np.array(self.freq_t, dtype=np.float32),
+                'freq_values': np.array(self.freq_values, dtype=np.float32),
+                'freq_unit': 'MHz',
                 'prop_t': np.array(self.prop_t, dtype=np.float32),
                 'prop_water': np.array(self.prop_water, dtype=np.float32),
                 'prop_oil': np.array(self.prop_oil, dtype=np.float32),
@@ -313,6 +315,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'layout': {
                     'title': 'Flow Readings',
                     'yaxis': {'title': 'Flow Mass (%s)' % data['flow_unit']},
+                    'xaxis': {'title': 'Time (%s)' % t_unit}
+                }}
+
+    def plot_Freq(self):
+        t = self.freq_t[-10000:]
+        t_unit = 's'
+        if t[-1] > 300:
+            t /= 60
+            t_unit = 'min'
+            if t[-1] > 120:
+                t /= 60
+                t_unit = 'hours'
+        return {'data': [{
+                    'name': 'Freq.',
+                    'type': 'scatter',
+                    'x': t,
+                    'y': self.freq_values[-10000:]}],
+                'layout': {
+                    'title': 'Static Readings',
+                    'yaxis': {'title': 'NMR Frequency (MHz)'},
                     'xaxis': {'title': 'Time (%s)' % t_unit}
                 }}
 
