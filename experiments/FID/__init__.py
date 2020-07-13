@@ -95,9 +95,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         # find centre point
         peak_index = np.searchsorted(fft_abs_sumsq, fft_abs_sumsq[-1] / 2.0)
         # interpolate
-        peak_index += (fft_abs_sumsq[-1] / 2.0 - fft_abs_sumsq[peak_index - 1]) / (fft_abs_sumsq[peak_index] - fft_abs_sumsq[peak_index - 1]) - 1
-        logger.debug('half_index: %f' % peak_index)
-        peak_freq = self.par['freq'] + data['freq'][peak_index]/1000000
+        peak_index_interp = (fft_abs_sumsq[-1] / 2.0 - fft_abs_sumsq[peak_index - 1]) / (fft_abs_sumsq[peak_index] - fft_abs_sumsq[peak_index - 1]) - 1
+        logger.debug('peak_index: %f' % (peak_index+peak_index_interp))
+        peak_freq = self.par['freq'] + 1e-6*(data['freq'][peak_index] + peak_index_interp/self.par['dwell_time'])
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
