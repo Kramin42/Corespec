@@ -3,7 +3,7 @@ from experiment import BaseExperiment # required
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 import numpy as np
 
@@ -36,12 +36,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
     def export_FT(self):
         y = self.autophase(self.raw_data())
         dwell_time = self.par['dwell_time']*0.000001  # μs->s
-        fft = np.fft.fft(y)
-        freq = np.fft.fftfreq(y.size, d=dwell_time)
-        # sort the frequency axis
-        p = freq.argsort()
-        freq = freq[p]
-        fft = fft[p]
+        fft = np.fft.fftshift(np.fft.fft(y))
+        freq = np.fft.fftshift(np.fft.fftfreq(y.size, d=dwell_time))
         fft /= 1000000  # μV->V
         fft *= dwell_time*1000  # V->V/kHz
         return {
@@ -95,13 +91,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_FT(self):
         data = self.export_FT()
-        peak_index = np.argmax(data['fft_mag'])
-        peak_freq_offset = data['freq'][peak_index]/1000000  # in MHz
-        avg_start = peak_index - int(len(data['freq'])/20)
-        avg_end = peak_index + int(len(data['freq'])/20) + 1
-        if avg_start>0 and avg_end<=len(data['freq']):
-            peak_freq_offset = np.average(data['freq'][avg_start:avg_end], weights=np.square(data['fft_mag'][avg_start:avg_end]))/1000000  # in MHz
-        peak_freq = self.par['freq'] + peak_freq_offset
+        fft_abs_sumsq = np.cumsum(data['fft_mag']*data['fft_mag'])
+        # find centre point
+        peak_index = np.searchsorted(fft_abs_sumsq, fft_abs_sumsq[-1] / 2.0)
+        # interpolate
+        peak_index += (fft_abs_sumsq[-1] / 2.0 - fft_abs_sumsq[peak_index - 1]) / (fft_abs_sumsq[peak_index] - fft_abs_sumsq[peak_index - 1]) - 1
+        logger.debug('half_index: %f' % peak_index)
+        peak_freq = self.par['freq'] + data['freq'][peak_index]/1000000
         return {'data': [{
             'name': 'Real',
             'type': 'scatter',
