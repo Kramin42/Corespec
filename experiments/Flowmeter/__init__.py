@@ -319,7 +319,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 }}
 
     def plot_Freq(self):
-        t = np.array(self.freq_t[-10000:])
+        t = np.array(self.freq_t[-10000:], dtype=np.float32)
         t_unit = 's'
         if t[-1] > 300:
             t /= 60
@@ -331,7 +331,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Freq.',
                     'type': 'scatter',
                     'x': t,
-                    'y': np.array(self.freq_values[-10000:])}],
+                    'y': np.array(self.freq_values[-10000:], dtype=np.float32)}],
                 'layout': {
                     'title': 'Frequency Log',
                     'yaxis': {'title': 'NMR Frequency (MHz)'},
