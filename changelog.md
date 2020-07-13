@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.3] - 2020-07-13
+### Changed
+- Improved algorithm for determining centre frequency in FID and Flowmeter experiments.
+- Added Frequency Log plot to Flowmeter experiment.
+
 ## [1.2.2] - 2020-06-11
 ### Changed
 - Optimised T2 decay baseline fitting in "Static T2" and "Flowmeter" experiments. New parameters:
