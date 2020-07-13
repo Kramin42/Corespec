@@ -333,7 +333,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'x': t,
                     'y': np.array(self.freq_values[-10000:])}],
                 'layout': {
-                    'title': 'Static Readings',
+                    'title': 'Frequency Log',
                     'yaxis': {'title': 'NMR Frequency (MHz)'},
                     'xaxis': {'title': 'Time (%s)' % t_unit}
                 }}
