@@ -84,7 +84,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             peak_index = np.searchsorted(fft_abs_sumsq, fft_abs_sumsq[-1] / 2.0)
             peak_index_interp = (fft_abs_sumsq[-1] / 2.0 - fft_abs_sumsq[peak_index - 1]) / (
                         fft_abs_sumsq[peak_index] - fft_abs_sumsq[peak_index - 1]) - 1
-            peak_freq_offset = freq[peak_index] + peak_index_interp / dwell_time
+            peak_freq_offset = freq[peak_index] + peak_index_interp*(freq[1]-freq[0])
 
             self.par['freq'] += peak_freq_offset
             self.freq_values.append(self.par['freq'])
