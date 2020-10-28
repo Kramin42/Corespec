@@ -125,7 +125,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_CPMG(self):
         y = self.autophase(self.raw_data()[-1,:])
-        x = np.linspace(0, self.par['echo_spacing'] * len(y), len(y), endpoint=False)
+        x = np.linspace(0, self.par['echo_time'] * len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
         return {'data': [{

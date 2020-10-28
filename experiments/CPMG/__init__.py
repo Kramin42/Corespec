@@ -36,7 +36,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                                  num=samples, endpoint=False)
         for i in range(echo_count):
             t[i*samples:(i+1)*samples] = sample_times + offset
-            offset+=self.par['echo_spacing']
+            offset+=self.par['echo_time']
         t/= 1000000  # μs -> s
         data/=1000000  # μV -> V
         return {
@@ -50,8 +50,8 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         y = self.autophase(self.integrated_data(decimation=decimation))
         y/=1000000 # μV -> V
         echo_count = int(self.par['echo_count']/decimation)
-        echo_spacing = decimation*self.par['echo_spacing']/1000000.0
-        x = np.linspace(0, echo_count*echo_spacing, echo_count, endpoint=False)
+        echo_time = decimation*self.par['echo_time']/1000000.0
+        x = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
         return {
             'x': x,
             'y_real': y.real,
@@ -82,9 +82,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def export_T2_Spectrum(self):
         echo_count = int(self.par['echo_count'])
-        echo_spacing = self.par['echo_spacing'] / 1000000.0  # μs -> s
+        echo_time = self.par['echo_time'] / 1000000.0  # μs -> s
         Y = self.autophase(self.integrated_data())
-        t = np.linspace(0, echo_count*echo_spacing, echo_count, endpoint=False)
+        t = np.linspace(0, echo_count*echo_time, echo_count, endpoint=False)
         T2 = np.logspace(-5, 2, 200+1, endpoint=True)  # TODO: add parameters for T2 range/points
         S = getT2Spectrum(t, Y.real, Y.imag, T2, fixed_alpha=1)  # TODO: determine alpha automatically
         return {
