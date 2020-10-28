@@ -84,10 +84,10 @@ parameters:
     shared: true
     group: pulse
   inversion_time:
-    offset: 0xe8
-    dtype: uint32
+    dtype: uint64
     min: 10
     unit: us
+    scaling: 1000
     group: pulse
   acq_delay:
     offset: 0xb0
@@ -145,6 +145,11 @@ parameters:
     shared: true
     group: shim
 derived_parameters:
+  TInv:
+    offset: 0x188
+    dtype: uint64
+    value: ${{inversion_time} - ({width_90} + {width_180})/2 - 1000}
+    min: 20000
   ignore_samples:
     offset: 0xc8
     dtype: uint32

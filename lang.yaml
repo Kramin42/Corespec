@@ -24,6 +24,8 @@ english:
       label: Damping
     echo_time:
       label: Echo time
+    echo_spacing:
+      label: Echo spacing
     echo_shift:
       label: Echo shift
     rep_time:

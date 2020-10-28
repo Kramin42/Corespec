@@ -79,7 +79,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         phase = np.angle(np.sum(self.raw_data()[-1, :]))
         data = self.raw_data() * np.exp(1j * -phase)
         T1_axis = self.inv_times / 1000000  # us -> s
-        T2_axis = np.linspace(0, self.par['echo_time'] * data.shape[1], data.shape[1], endpoint=False) / 1000000
+        T2_axis = np.linspace(0, self.par['echo_spacing'] * data.shape[1], data.shape[1], endpoint=False) / 1000000
         return {
             'inv_time': T1_axis[:, np.newaxis],
             'cpmg_time': T2_axis,
@@ -136,7 +136,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
 
     def plot_CPMG(self):
         y = self.autophase(self.raw_data()[-1, :])
-        x = np.linspace(0, self.par['echo_time'] * len(y), len(y), endpoint=False)
+        x = np.linspace(0, self.par['echo_spacing'] * len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s
         return {'data': [{
