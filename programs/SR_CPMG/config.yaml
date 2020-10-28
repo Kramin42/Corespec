@@ -84,11 +84,10 @@ parameters:
     shared: true
     group: pulse
   recovery_time:
-    offset: 0xe8
-    dtype: uint32
-    min: 25
-    max: 2000000000
+    dtype: uint64
+    min: 10
     unit: us
+    scaling: 1000
     group: pulse
   echo_spacing:
     dtype: uint32
@@ -157,18 +156,23 @@ derived_parameters:
   T1:
     offset: 0xb0
     dtype: uint32
-    value: ${({echo_time} - {width_90} - {width_180})/2 - 1000}
+    value: ${({echo_spacing} - {width_90} - {width_180})/2 - 1000}
     min: 1000
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${({echo_time} - {width_180} - {samples}*{dwell_time}*10)/2 - {damp_time} + {echo_shift} - 7*{dwell_time}*10}
+    value: ${({echo_spacing} - {width_180} - {samples}*{dwell_time}*10)/2 - {damp_time} + {echo_shift} - 7*{dwell_time}*10}
     min: 5000
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${({echo_time} - {width_180} + {samples}*{dwell_time}*10)/2 - {echo_shift} + 7*{dwell_time}*10}
+    value: ${({echo_spacing} - {width_180} + {samples}*{dwell_time}*10)/2 - {echo_shift} + 7*{dwell_time}*10}
     min: ${({samples}+7)*{dwell_time}*10+1000}
+  TRec:
+    offset: 0x188
+    dtype: uint64
+    value: ${{recovery_time} - ({width_90} + {width_90})/2 - 1000}
+    min: 20000
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
     max: 0.1

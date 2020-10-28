@@ -44,6 +44,12 @@ english:
       label: Min Inv. time
     end_inv_time:
       label: Max Inv. time
+    recovery_time:
+      label: Rec. time
+    start_rec_time:
+      label: Min Rec. time
+    end_rec_time:
+      label: Max Rec. time
     bandwidth:
       label: Bandwidth
     steps:
