@@ -1,0 +1,22 @@
+# T1-T2 SR-CPMG experiment config
+description:
+  An experiment for measuring T1-T2 Map with saturation recovery and a CPMG readout.
+programs:
+  - SR_CPMG
+parameters:
+  start_rec_time:
+    dtype: float
+    unit: us
+    group: T1
+  end_rec_time:
+    dtype: float
+    unit: us
+    group: T1
+  steps:
+    dtype: int
+    group: T1
+defaults:
+  plots:
+    - CPMG
+    - T1
+  order: 23
