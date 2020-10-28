@@ -171,7 +171,7 @@ derived_parameters:
   TInv:
     offset: 0x188
     dtype: uint64
-    value: ${{inversion_time} - ({width_90} + {width_180})/2 - 1000}'
+    value: ${{inversion_time} - ({width_90} + {width_180})/2 - 1000}
     min: 20000
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
