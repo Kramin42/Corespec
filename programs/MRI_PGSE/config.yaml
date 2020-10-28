@@ -174,17 +174,17 @@ derived_parameters:
   T2:
     offset: 0xb4
     dtype: uint32
-    value: ${{echo_time}/2 - ({width_90} + {width_180})/2 - {damp_time} - {grad_time}}
+    value: ${{echo_time} - ({width_90} + {width_180})/2 - {damp_time} - {grad_time}}
     min: 20000
   T3:
     offset: 0xb8
     dtype: uint32
-    value: ${{diff_time} - {echo_time}/2 + ({width_90} - {width_180})/2}
+    value: ${{diff_time} - {echo_time} + ({width_90} - {width_180})/2}
     min: 2000
   T4:
     offset: 0x140
     dtype: uint32
-    value: ${{echo_time} - {diff_time} - {width_90}/2 - {damp_time} - {grad_time} - ({samples}/2 + 7)*{dwell_time}*10}
+    value: ${2*{echo_time} - {diff_time} - {width_90}/2 - {damp_time} - {grad_time} - ({samples}/2 + 7)*{dwell_time}*10}
     min: 20000
   duty_cycle:
     value: ${({width_180}+{width_90})/{rep_time}}
