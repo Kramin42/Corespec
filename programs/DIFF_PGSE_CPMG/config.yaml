@@ -175,7 +175,7 @@ derived_parameters:
     offset: 0x144
     dtype: uint32
     value: ${{diff_time} - ({width_90} + {width_180})/2 - {damp_time} - 1000 - {grad_time}}
-    min: ${grad_stab_time}
+    min: ${{grad_stab_time}}
   T6:
     offset: 0x148
     dtype: uint32
@@ -184,7 +184,7 @@ derived_parameters:
     offset: 0x14c
     dtype: uint32
     value: ${{diff_time} - {width_180}/2 - {damp_time} - 1000 - {grad_time} + {echo_shift} - 7*{dwell_time}*10 - {samples}*{dwell_time}*5}
-    min: ${grad_stab_time}
+    min: ${{grad_stab_time}}
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
     max: 0.1
