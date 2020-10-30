@@ -1,6 +1,6 @@
 # T1-T2 SR-CPMG experiment config
 description:
-  An experiment for measuring T1-T2 Map with saturation recovery and a CPMG readout.
+  An experiment for measuring IR-CPMG Map with saturation recovery and a CPMG readout.
 programs:
   - SR_CPMG
 parameters:
