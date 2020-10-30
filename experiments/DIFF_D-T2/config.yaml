@@ -1,0 +1,19 @@
+# D-T2 experiment configuration
+description:
+  A D-T2 experiment.
+programs:
+  - DIFF_PGSE_CPMG
+parameters:
+  max_grad:
+    dtype: int32
+    min: -524288
+    max: 524287
+    group: gradient
+  grad_steps:
+    dtype: int
+    group: gradient
+defaults:
+  plots:
+    - CPMG
+    - Diffusion
+  order: 21
