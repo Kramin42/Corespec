@@ -49,7 +49,7 @@ def getT2Spectrum(_t, _Z, _E, T2s, fixed_alpha=None, N_alpha=16, alpha_bounds=(-
     return S * norm_factor
 
 
-def getT1T2Spectrum(_t_inv, _t_cpmg, _Z, _E, T1, T2, alpha=1, cpmg_pts=100):
+def getT1T2Spectrum(_t_inv, _t_cpmg, _Z, _E, T1, T2, alpha=1, cpmg_pts=100, exptype='IR'):
     Z = np.zeros((_Z.shape[0], cpmg_pts))
     E = np.zeros((_E.shape[0], cpmg_pts))
     weights = np.zeros((1, cpmg_pts))
@@ -61,7 +61,12 @@ def getT1T2Spectrum(_t_inv, _t_cpmg, _Z, _E, T1, T2, alpha=1, cpmg_pts=100):
 
     tau1 = _t_inv[:, np.newaxis]
     tau2 = t[:, np.newaxis]
-    K1 = 1 - 2 * np.exp(-tau1 / T1)
+    if exptype=='IR':
+        K1 = 1 - 2 * np.exp(-tau1 / T1)
+    elif exptype=='SR':
+        K1 = 1 - np.exp(-tau1 / T1)
+    else:
+        raise Exception('Invalid exptype, must be "IR" or "SR"')
     K2 = np.exp(-tau2 / T2)
 
     S, res = flint(K1, K2, Z, alpha, fast=True)
