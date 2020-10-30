@@ -16,4 +16,4 @@ defaults:
   plots:
     - CPMG
     - Diffusion
-  order: 21
+  order: 32

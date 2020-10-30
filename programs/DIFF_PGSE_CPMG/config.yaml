@@ -138,6 +138,7 @@ parameters:
     scaling: 1000
     group: gradient
   grad_stab_time:
+    dtype: uint32
     min: 10
     max: 4000000000
     unit: us
@@ -182,7 +183,7 @@ derived_parameters:
   T7:
     offset: 0x14c
     dtype: uint32
-    value: ${{diff_time} - {width_180}/2 - {damp_time} - 1000 - {grad_time} - 7*{dwell_time}*10 - {samples}*{dwell_time}*5}
+    value: ${{diff_time} - {width_180}/2 - {damp_time} - 1000 - {grad_time} + {echo_shift} - 7*{dwell_time}*10 - {samples}*{dwell_time}*5}
     min: ${grad_stab_time}
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
