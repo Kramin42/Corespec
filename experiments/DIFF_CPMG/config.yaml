@@ -1,0 +1,10 @@
+# Diffusion constant gradient CPMG experiment configuration
+description:
+  A Diffusion constant gradient CPMG experiment.
+programs:
+  - DIFF_CPMG
+defaults:
+  plots:
+    - Echo_Integrals
+    - Echo_Envelope
+  order: 33
