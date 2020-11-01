@@ -36,7 +36,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                                  num=samples, endpoint=False)
         for i in range(echo_count):
             t[i*samples:(i+1)*samples] = sample_times + offset
-            offset+=self.par['echo_time']
+            offset += self.par['echo_time']
         t/= 1000000  # μs -> s
         data/=1000000  # μV -> V
         return {

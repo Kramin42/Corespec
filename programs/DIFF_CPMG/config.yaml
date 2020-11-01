@@ -127,8 +127,8 @@ parameters:
   gradient:
     offset: 0x10c
     dtype: int32
-    min: -524288
-    max: 524287
+    min: -50000
+    max: 50000
     group: gradient
 derived_parameters:
   T1:
