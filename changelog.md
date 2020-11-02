@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.3] - 2020-11-02
+### Added
+- 2D Saturation Recovery CPMG experiment (SR-CPMG).
+- D-T2 experiment for the diffusion gradient board. Small delta is named `grad_time` and big Delta is named `diff_time`, the echo time of the first echo will be `2*diff_time`.
+- Constant gradient CPMG experiment for the diffusion board. NOTE: Gradient amplitude limited to 10% of full range.
+
+### Changed/Fixed
+- MRI 1D SE: Echo Time now correctly defines the time from the centre of the 90 pulse to the centre of the echo.
+- T1-T2 renamed to IR-CPMG.
+- IR-CPMG, T1 FID: Inversion Time now defines the time between the *centres* of the inversion pulse and the 90 pulse, rather than the time from the end of the inversion pulse to the start of the 90 pulse.
+
 ## [1.2.2] - 2020-06-22
 ### Added
 - Autoshim experiment for MRI gradient board
@@ -9,8 +20,8 @@
 - Linewidth calculation added to FID experiment
 
 ### Removed
-- MRI_PGSE, use DIFF_PGSE with diffusion board instead
-- DIFF_1D, use MRI_1D with MRI board instead
+- MRI PGSE, use DIFF PGSE with diffusion board instead
+- DIFF 1D, use MRI 1D with MRI board instead
 
 ## [1.2.1] - 2020-04-22
 ### Changed
@@ -23,7 +34,7 @@
 
 ## [1.1.18c] - 2020-03-16
 ### Fixed
-- MRI_1D program Z gradient enable TTL issue.
+- MRI 1D program Z gradient enable TTL issue.
 
 ## [1.1.18b] - 2020-03-05
 ### Fixed
@@ -88,7 +99,7 @@ reading is detected
 
 ## [1.1.6] - 2018-10-12
 ### Added
-- T1_FID experiment using inversion recovery with FID acquisition.
+- T1 FID experiment using inversion recovery with FID acquisition.
 
 ## [1.1.5] - 2018-10-11
 ### Added
@@ -98,6 +109,6 @@ reading is detected
 ## [1.1.4] - 2018-09-28
 ### Added
 - FID Magnitude curve on time domain and frequency domain plots.
-- Estimated f_0 frequency in title of FID frequency domain plot.
+- Estimated f\_0 frequency in title of FID frequency domain plot.
 - Exported data files include parameter values.
 - CPMG SNR estimate message.

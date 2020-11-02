@@ -1,5 +1,23 @@
 <h1>Changelog</h1>
 
+<h2>[1.2.3] - 2020-11-02</h2>
+
+<h3>Added</h3>
+
+<ul>
+<li>2D Saturation Recovery CPMG experiment (SR-CPMG).</li>
+<li>D-T2 experiment for the diffusion gradient board. Small delta is named <code>grad_time</code> and big Delta is named <code>diff_time</code>, the echo time of the first echo will be <code>2*diff_time</code>.</li>
+<li>Constant gradient CPMG experiment for the diffusion board. NOTE: Gradient amplitude limited to 10% of full range.</li>
+</ul>
+
+<h3>Changed/Fixed</h3>
+
+<ul>
+<li>MRI 1D SE: Echo Time now correctly defines the time from the centre of the 90 pulse to the centre of the echo.</li>
+<li>T1-T2 renamed to IR-CPMG.</li>
+<li>IR-CPMG, T1 FID: Inversion Time now defines the time between the <em>centres</em> of the inversion pulse and the 90 pulse, rather than the time from the end of the inversion pulse to the start of the 90 pulse.</li>
+</ul>
+
 <h2>[1.2.2] - 2020-06-22</h2>
 
 <h3>Added</h3>
@@ -18,8 +36,8 @@
 <h3>Removed</h3>
 
 <ul>
-<li>MRI<em>PGSE, use DIFF</em>PGSE with diffusion board instead</li>
-<li>DIFF<em>1D, use MRI</em>1D with MRI board instead</li>
+<li>MRI PGSE, use DIFF PGSE with diffusion board instead</li>
+<li>DIFF 1D, use MRI 1D with MRI board instead</li>
 </ul>
 
 <h2>[1.2.1] - 2020-04-22</h2>
@@ -44,7 +62,7 @@
 <h3>Fixed</h3>
 
 <ul>
-<li>MRI_1D program Z gradient enable TTL issue.</li>
+<li>MRI 1D program Z gradient enable TTL issue.</li>
 </ul>
 
 <h2>[1.1.18b] - 2020-03-05</h2>
@@ -166,7 +184,7 @@ reading is detected</li>
 <h3>Added</h3>
 
 <ul>
-<li>T1_FID experiment using inversion recovery with FID acquisition.</li>
+<li>T1 FID experiment using inversion recovery with FID acquisition.</li>
 </ul>
 
 <h2>[1.1.5] - 2018-10-11</h2>
