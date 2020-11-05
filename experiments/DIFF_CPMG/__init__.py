@@ -35,19 +35,22 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             samples = int(self.par['samples'])
             echo_count = int(self.par['echo_count'])
             y = np.mean(np.reshape(run_data, (echo_count, samples)), axis=1)
-            x = np.linspace(0, TE * len(y), len(y), endpoint=False)
-            T2 = 0
-            try:
-                popt, stderr = fit_single_exp(x, y)
-                logger.debug('fit_single_exp() popt: %s' % str(popt))
-                T2 = 1/popt[1]
-            except (ValueError, RuntimeError):
-                pass
-            self.T2s.append(T2)
             if self.data is None:
                 self.data = np.array([y])
             else:
                 self.data = np.append(self.data, [y], axis=0)
+
+            # exp fitting
+            x = np.linspace(0, TE * len(y), len(y), endpoint=False)
+            T2 = 0
+            try:
+                popt, stderr = fit_single_exp(x, self.autophase(y).real)
+                logger.debug('fit_single_exp() popt: %s' % str(popt))
+                T2 = 1 / popt[1]
+            except (ValueError, RuntimeError):
+                pass
+            self.T2s.append(T2)
+
             self.last_index = i
         if progress_handler is not None:
             progress_handler(len(self.echo_times), len(self.echo_times))
