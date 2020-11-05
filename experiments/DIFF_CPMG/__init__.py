@@ -4,7 +4,7 @@ from libraries.expfitting import fit_single_exp
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 import numpy as np
 
@@ -36,8 +36,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             echo_count = int(self.par['echo_count'])
             y = np.mean(np.reshape(run_data, (echo_count, samples)), axis=1)
             x = np.linspace(0, TE * len(y), len(y), endpoint=False)
-            popt, stderr = fit_single_exp(x, y)
-            self.T2s.append(1/popt[1])
+            T2 = np.nan
+            try:
+                popt, stderr = fit_single_exp(x, y)
+                logger.debug('fit_single_exp() popt: %s' % str(popt))
+                T2 = 1/popt[1]
+            except (ValueError, RuntimeError):
+                pass
+            self.T2s.append(T2)
             if self.data is None:
                 self.data = np.array([y])
             else:
