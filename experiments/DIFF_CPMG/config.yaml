@@ -17,6 +17,6 @@ parameters:
     group: TE
 defaults:
   plots:
-    - Echo_Integrals
-    - Echo_Envelope
+    - CPMG
+    - T2
   order: 33

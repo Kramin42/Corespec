@@ -18,9 +18,6 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
-        await self.programs['DIFF_CPMG'].run(progress_handler=progress_handler,
-                                        message_handler=message_handler)
-
         self.echo_times = np.round(np.logspace(
             np.log10(self.par['TE_start']),
             np.log10(self.par['TE_end']),
@@ -85,7 +82,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def plot_T2(self):
-        y = self.T2s
+        y = np.array(self.T2s)
         x = np.array(self.echo_times[:len(y)])/1000000  # us -> s
         result = {'data': [{
             'name': 'T2',
