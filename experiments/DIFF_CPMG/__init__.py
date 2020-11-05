@@ -36,7 +36,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             echo_count = int(self.par['echo_count'])
             y = np.mean(np.reshape(run_data, (echo_count, samples)), axis=1)
             x = np.linspace(0, TE * len(y), len(y), endpoint=False)
-            T2 = np.nan
+            T2 = 0
             try:
                 popt, stderr = fit_single_exp(x, y)
                 logger.debug('fit_single_exp() popt: %s' % str(popt))
