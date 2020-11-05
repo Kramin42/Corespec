@@ -4,7 +4,7 @@ from libraries.expfitting import fit_single_exp
 # for debugging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 import numpy as np
 

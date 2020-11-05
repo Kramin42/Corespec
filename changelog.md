@@ -3,7 +3,7 @@
 ## [1.2.3b] - 2020-11-05
 ### Changed
 - DIFF CPMG experiment now runs the CPMG sequence with constant gradient at a range of echo times.
-Echo times with be log spaced from TE_start to TE_end. The 'Raw' export data is a 2D array of CPMG data at each echo time.
+Echo times with be log spaced from TE\_start to TE\_end. The Raw export data is a 2D array of CPMG data at each echo time.
 
 ## [1.2.3] - 2020-11-02
 ### Added
