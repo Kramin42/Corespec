@@ -3,6 +3,18 @@ description:
   A Diffusion constant gradient CPMG experiment.
 programs:
   - DIFF_CPMG
+parameters:
+  TE_start:
+    dtype: float
+    unit: us
+    group: TE
+  TE_end:
+    dtype: float
+    unit: us
+    group: TE
+  TE_steps:
+    dtype: int
+    group: TE
 defaults:
   plots:
     - Echo_Integrals
