@@ -41,7 +41,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.data = np.append(self.data, [y], axis=0)
 
             # exp fitting
-            x = np.linspace(0, TE * len(y), len(y), endpoint=False)
+            x = np.linspace(0, TE*1e-6 * len(y), len(y), endpoint=False)
             T2 = 0
             try:
                 popt, stderr = fit_single_exp(x, self.autophase(y).real)
