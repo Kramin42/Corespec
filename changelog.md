@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.3c] - 2020-11-13
+### Fixed
+- DIFF CPMG T2 fitting issue.
+- IR-CPMG constraint check issue.
+
 ## [1.2.3b] - 2020-11-05
 ### Changed
 - DIFF CPMG experiment now runs the CPMG sequence with constant gradient at a range of echo times.
