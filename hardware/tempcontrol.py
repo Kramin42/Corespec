@@ -7,7 +7,7 @@ from struct import pack, unpack
 import yaml
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 DEFAULT_PORT = '/dev/ttyPS1'
 DEFAULT_BAUD = 115200
@@ -69,6 +69,14 @@ def handler_raw(cmd):
             temp_sum = 0
             temp_count = 0
             logger.debug('temperature: %.3f' % data['value'])
+    if cmd[0:CMD_SIZE] == b'$IIA':
+        data['name'] = 'pipe-pressure'
+        current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        data['value'] = 1.25*current - 5
+    if cmd[0:CMD_SIZE] == b'$IIB':
+        data['name'] = 'pipe-temperature'
+        current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        data['value'] = 7.5*current - 50
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
