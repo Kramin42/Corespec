@@ -18,6 +18,8 @@ export default class TabPanes extends React.Component {
             data={d}
             active={activeIndex===i}
             temperature={this.props.temperature}
+            pipe_temperature={this.props.pipe_temperature}
+            pipe_pressure={this.props.pipe_pressure}
             parValues={this.props.parValues}
             setPar={this.props.setPar}
             deviceCommand={this.props.deviceCommand}

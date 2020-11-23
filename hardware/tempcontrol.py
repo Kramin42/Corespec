@@ -2,6 +2,7 @@ import os
 import asyncio
 import serial_asyncio
 import logging
+from time import time
 from struct import pack, unpack
 
 import yaml
@@ -47,10 +48,12 @@ temp_sum = 0
 temp_count = 0
 temp_time = 0
 
+start_time = time()
+
 ERRTMPR_reported = False
 
 def handler_raw(cmd):
-    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, ERRTMPR_reported
+    global parameters, amp_enabled, mcs_ready, temp_sum, temp_count, temp_time, start_time, ERRTMPR_reported
     #logger.debug(cmd)
     data = {'name': None, 'value': None}
     if (cmd[0:CMD_SIZE]==b'$TMP' or cmd[0:CMD_SIZE]==b'$ERR') and not mcs_ready:
@@ -72,11 +75,13 @@ def handler_raw(cmd):
     if cmd[0:CMD_SIZE] == b'$IIA':
         data['name'] = 'pipe-pressure'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        data['value'] = 1.25*current - 5
+        data['value'] = (1.25*current - 5)*1000000  # MPa -> Pa
+        data['time'] = int(time() - start_time)
     if cmd[0:CMD_SIZE] == b'$IIB':
         data['name'] = 'pipe-temperature'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
         data['value'] = 7.5*current - 50
+        data['time'] = int(time() - start_time)
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]

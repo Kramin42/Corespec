@@ -22,7 +22,9 @@ export default class App extends React.Component {
       runningExperimentIndex: 0,
       activeTabIndex: 0,
       messages: [],
-      temperature: {count: 0, limit: 1000, times: [], values: []}
+      temperature: {count: 0, limit: 1000, times: [], values: []},
+      pipe_temperature: {count: 0, limit: 1000, times: [], values: []},
+      pipe_pressure: {count: 0, limit: 1000, times: [], values: []}
     };
 
     // bind 'this' as context
@@ -168,14 +170,32 @@ export default class App extends React.Component {
         this.setState(update(this.state, {
           temperature: {$set: newTemp}
         }));
+      } else if (data.data.name=='pipe-temperature') {
+        let newPipeTemp = this.state.pipe_temperature;
+  	    newPipeTemp.values.push(data.data.value);
+        newPipeTemp.times.push(data.data.time);
+        if (newPipeTemp.values.length > newPipeTemp.limit) {newPipeTemp.values.unshift();}
+        if (newPipeTemp.times.length > newPipeTemp.limit) {newPipeTemp.times.unshift();}
+        newPipeTemp.count++;
+        this.setState(update(this.state, {
+          pipe_temperature: {$set: newPipeTemp}
+        }));
+      } else if (data.data.name=='pipe-pressure') {
+        let newPipePres = this.state.pipe_pressure;
+  	    newPipePres.values.push(data.data.value);
+        newPipePres.times.push(data.data.time);
+        if (newPipePres.values.length > newPipePres.limit) {newPipePres.values.unshift();}
+        if (newPipePres.times.length > newPipePres.limit) {newPipePres.times.unshift();}
+        newPipePres.count++;
+        this.setState(update(this.state, {
+          pipe_pressure: {$set: newPipePres}
+        }));
   	  } else if (data.data.name=='error') {
         this.message(`${data.data.value}`, 'error');
-      } else {
-  	    if (data.data.name === 'amp-power') {
-          this.message('Amplifier powered');
-  	    } else {
-          this.message(`temp control ${data.data.name} set to ${data.data.value}`);
-  	    }
+      } else if (data.data.name === 'amp-power') {
+        this.message('Amplifier powered');
+  	  } else if (['setpoint', 'P', 'I'].indexOf(data.data.name) >= 0) {
+        this.message(`temp control ${data.data.name} set to ${data.data.value}`);
   	  }
   	}
   }
@@ -221,6 +241,8 @@ export default class App extends React.Component {
         <TabPanes
           data={allTabs}
           temperature={this.state.temperature}
+          pipe_temperature={this.state.pipe_temperature}
+          pipe_pressure={this.state.pipe_pressure}
           parValues={this.state.parValues}
           setPar={this.setPar}
           setRunning={this.setRunning}

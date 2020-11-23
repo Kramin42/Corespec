@@ -14,6 +14,8 @@ export default class Temperature extends React.Component {
   constructor(props) {
     super(props);
 
+    self.plotrefs = [React.createRef(), React.createRef(), React.createRef()];
+
     this.state = {
       activeParameterGroupIndex: 0
     };
@@ -47,7 +49,7 @@ export default class Temperature extends React.Component {
     const plots = [
       (<Plot
         key={0}
-        ref={this.plotref}
+        ref={self.plotrefs[0]}
         visible={active}
         plotMethod={'direct'}
         plot={{
@@ -58,9 +60,47 @@ export default class Temperature extends React.Component {
             x: this.props.temperature.times,
             y: this.props.temperature.values}],
           layout: {
-            title: 'Temperature',
+            title: 'Magnet Temperature',
             xaxis: {title: 'time (s)'},
             yaxis: {title: 'Temperature (\u00b0C)'}
+          }
+        }}
+      />),
+      (<Plot
+        key={1}
+        ref={self.plotrefs[1]}
+        visible={active}
+        plotMethod={'direct'}
+        plot={{
+          id: this.props.pipe_temperature.count + (active ? 10 : 0),
+          data: [{
+            name: '',
+            type: 'scatter',
+            x: this.props.pipe_temperature.times,
+            y: this.props.pipe_temperature.values}],
+          layout: {
+            title: 'Pipe Temperature',
+            xaxis: {title: 'time (s)'},
+            yaxis: {title: 'Temperature (\u00b0C)'}
+          }
+        }}
+      />),
+      (<Plot
+        key={2}
+        ref={self.plotrefs[2]}
+        visible={active}
+        plotMethod={'direct'}
+        plot={{
+          id: this.props.pipe_pressure.count + (active ? 10 : 0),
+          data: [{
+            name: '',
+            type: 'scatter',
+            x: this.props.pipe_pressure.times,
+            y: this.props.pipe_pressure.values}],
+          layout: {
+            title: 'Pipe Pressure',
+            xaxis: {title: 'time (s)'},
+            yaxis: {title: 'Pressure (Pa)'}
           }
         }}
       />)
