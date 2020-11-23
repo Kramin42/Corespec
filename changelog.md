@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.4] - 2020-11-23
+### Added
+- Support for external pipe temperature/pressure sensor, and monitoring plots in the Temperature tab.
+
 ## [1.2.3] - 2020-07-13
 ### Changed
 - Improved algorithm for determining centre frequency in FID and Flowmeter experiments.
