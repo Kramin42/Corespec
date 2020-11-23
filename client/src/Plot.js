@@ -1,8 +1,11 @@
 import React from 'react';
 import * as d3 from 'd3';
+import moment from 'moment';
+import {saveSvgAsPng} from 'save-svg-as-png';
 
+import SvgSaver from './util/svgsaver';
 import generateId from './util/generateId';
-import {decode_plot_data} from './util/decode'
+import {decode_plot_data} from './util/decode';
 import d3plot from './d3plot';
 import './css/d3plot.css';
 
@@ -10,11 +13,14 @@ import './css/Plot.css';
 
 import Tabs from './Tabs';
 
+var svgsaver = new SvgSaver();
+
 export default class Plot extends React.Component {
   constructor(props) {
     super(props);
 
     this.svgid = generateId();
+    this.plotSaveFormats = ['PNG', 'SVG'];
     this.plotId = 0;
     this.dirtyRender = false;
 
@@ -31,6 +37,7 @@ export default class Plot extends React.Component {
 
     this.handlePlotChange = this.handlePlotChange.bind(this);
     this.handleFormatChange = this.handleFormatChange.bind(this);
+    this.handlePlotSave = this.handlePlotSave.bind(this);
     this.replot = this.replot.bind(this);
   }
 
@@ -67,6 +74,24 @@ export default class Plot extends React.Component {
       activePlotIndex: tabIndex
     });
     this.replot(tabIndex);
+  }
+
+  handlePlotSave() {
+    let format = this.plotSaveFormats[this.state.activeFormatIndex];
+    let name = 'plot';
+    if (this.props.experiment) {
+      name = `${this.props.experiment.name}_${this.props.experiment.plots[this.state.activePlotIndex]}_${moment().format('YYYY-MM-DD_hh-mm-ss')}`;
+    } else {
+      name = `${this.props.plot.layout.title.replace(/ /g,"_")}_${moment().format('YYYY-MM-DD_hh-mm-ss')}`;
+    }
+    if (format==='PNG') {
+      saveSvgAsPng(document.querySelector('#'+this.svgid), name+'.png', {
+        scale: 2,
+        backgroundColor: 'white'
+      });
+    } else if (format==='SVG') {
+      svgsaver.asSvg(document.querySelector('#'+this.svgid), name+'.svg');
+    }
   }
 
   handleFormatChange(tabIndex) {
@@ -106,7 +131,6 @@ export default class Plot extends React.Component {
   render() {
     const experiment = this.props.experiment || {};
     const plotNames = experiment.plots || [];
-    const formats = ['PNG', 'SVG'];
 
     return (
       <div className="plot-container">
@@ -120,11 +144,11 @@ export default class Plot extends React.Component {
           {!this.props.hideTabs &&
             <div className="plot-export-controls">
               <Tabs
-                tabNames={formats}
+                tabNames={this.plotSaveFormats}
                 activeIndex={this.state.activeFormatIndex}
                 onTabChange={this.handleFormatChange}
               />
-              <div className="button">Save</div>
+              <div className="button" onClick={this.handlePlotSave}>Save</div>
             </div>
           }
         </div>

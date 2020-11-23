@@ -265,15 +265,15 @@ this.open(true);}/**
  */WebSocketClient.CLOSED=WebSocket.CLOSED;exports.default=WebSocketClient;
 },{"./backoff":2}],4:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/assign"), __esModule: true };
-},{"core-js/library/fn/object/assign":17}],5:[function(require,module,exports){
+},{"core-js/library/fn/object/assign":18}],5:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/create"), __esModule: true };
-},{"core-js/library/fn/object/create":18}],6:[function(require,module,exports){
+},{"core-js/library/fn/object/create":19}],6:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/object/set-prototype-of"), __esModule: true };
-},{"core-js/library/fn/object/set-prototype-of":19}],7:[function(require,module,exports){
+},{"core-js/library/fn/object/set-prototype-of":20}],7:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/symbol"), __esModule: true };
-},{"core-js/library/fn/symbol":20}],8:[function(require,module,exports){
+},{"core-js/library/fn/symbol":21}],8:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/symbol/iterator"), __esModule: true };
-},{"core-js/library/fn/symbol/iterator":21}],9:[function(require,module,exports){
+},{"core-js/library/fn/symbol/iterator":22}],9:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -529,49 +529,118 @@ module.exports = {
 }());
 
 },{}],17:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var isDefined = function isDefined(a) {
+  return typeof a !== 'undefined';
+};
+var isObject = function isObject(a) {
+  return a !== null && typeof a === 'object';
+};
+
+// from https://github.com/npm-dom/is-dom/blob/master/index.js
+function isNode(val) {
+  if (!isObject(val)) return false;
+  if (isDefined(window) && isObject(window.Node)) return val instanceof window.Node;
+  return 'number' == typeof val.nodeType && 'string' == typeof val.nodeName;
+}
+
+var useComputedStyles = isDefined(window) && isDefined(window.getComputedStyle);
+
+/**
+* Returns a collection of CSS property-value pairs
+* @param  {Element} node A DOM element to copy styles from
+* @param  {Object} [target] An optional object to copy styles to
+* @param {(Object|Boolean)} [default=true] A collection of CSS property-value pairs, false: copy none, true: copy all
+* @return {object} collection of CSS property-value pairs
+* @api public
+*/
+function computedStyles(node) {
+  var target = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  var styleList = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
+  if (!isNode(node)) {
+    throw new Error('parameter 1 is not of type \'Element\'');
+  }
+
+  if (styleList === false) return target;
+
+  if (useComputedStyles) {
+    var computed = node.ownerDocument.defaultView.getComputedStyle(node, null);
+    var keysArray = styleList === true ? computed : Object.keys(styleList);
+  } else {
+    var computed = isDefined(node.currentStyle) ? node.currentStyle : node.style;
+    var keysArray = styleList === true ? Object.keys(computed) : Object.keys(styleList);
+  }
+
+  for (var i = 0, l = keysArray.length; i < l; i++) {
+    var key = keysArray[i];
+
+    var def = styleList === true || styleList[key];
+    if (def === false || !isDefined(def)) continue; // copy never
+
+    var value = useComputedStyles ? computed.getPropertyValue(key) : computed[key];
+    if (typeof value !== 'string' || value === '') continue; // invalid value
+
+    if (def === true || value !== def) {
+      // styleList === true || styleList[key] === true || styleList[key] !== value
+      target[key] = value;
+    }
+  }
+
+  return target;
+}
+
+exports['default'] = computedStyles;
+module.exports = exports['default'];
+},{}],18:[function(require,module,exports){
 require('../../modules/es6.object.assign');
 module.exports = require('../../modules/_core').Object.assign;
 
-},{"../../modules/_core":27,"../../modules/es6.object.assign":80}],18:[function(require,module,exports){
+},{"../../modules/_core":28,"../../modules/es6.object.assign":81}],19:[function(require,module,exports){
 require('../../modules/es6.object.create');
 var $Object = require('../../modules/_core').Object;
 module.exports = function create(P, D) {
   return $Object.create(P, D);
 };
 
-},{"../../modules/_core":27,"../../modules/es6.object.create":81}],19:[function(require,module,exports){
+},{"../../modules/_core":28,"../../modules/es6.object.create":82}],20:[function(require,module,exports){
 require('../../modules/es6.object.set-prototype-of');
 module.exports = require('../../modules/_core').Object.setPrototypeOf;
 
-},{"../../modules/_core":27,"../../modules/es6.object.set-prototype-of":82}],20:[function(require,module,exports){
+},{"../../modules/_core":28,"../../modules/es6.object.set-prototype-of":83}],21:[function(require,module,exports){
 require('../../modules/es6.symbol');
 require('../../modules/es6.object.to-string');
 require('../../modules/es7.symbol.async-iterator');
 require('../../modules/es7.symbol.observable');
 module.exports = require('../../modules/_core').Symbol;
 
-},{"../../modules/_core":27,"../../modules/es6.object.to-string":83,"../../modules/es6.symbol":85,"../../modules/es7.symbol.async-iterator":86,"../../modules/es7.symbol.observable":87}],21:[function(require,module,exports){
+},{"../../modules/_core":28,"../../modules/es6.object.to-string":84,"../../modules/es6.symbol":86,"../../modules/es7.symbol.async-iterator":87,"../../modules/es7.symbol.observable":88}],22:[function(require,module,exports){
 require('../../modules/es6.string.iterator');
 require('../../modules/web.dom.iterable');
 module.exports = require('../../modules/_wks-ext').f('iterator');
 
-},{"../../modules/_wks-ext":77,"../../modules/es6.string.iterator":84,"../../modules/web.dom.iterable":88}],22:[function(require,module,exports){
+},{"../../modules/_wks-ext":78,"../../modules/es6.string.iterator":85,"../../modules/web.dom.iterable":89}],23:[function(require,module,exports){
 module.exports = function (it) {
   if (typeof it != 'function') throw TypeError(it + ' is not a function!');
   return it;
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 module.exports = function () { /* empty */ };
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 var isObject = require('./_is-object');
 module.exports = function (it) {
   if (!isObject(it)) throw TypeError(it + ' is not an object!');
   return it;
 };
 
-},{"./_is-object":43}],25:[function(require,module,exports){
+},{"./_is-object":44}],26:[function(require,module,exports){
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = require('./_to-iobject');
@@ -596,18 +665,18 @@ module.exports = function (IS_INCLUDES) {
   };
 };
 
-},{"./_to-absolute-index":69,"./_to-iobject":71,"./_to-length":72}],26:[function(require,module,exports){
+},{"./_to-absolute-index":70,"./_to-iobject":72,"./_to-length":73}],27:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = function (it) {
   return toString.call(it).slice(8, -1);
 };
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 var core = module.exports = { version: '2.6.5' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 // optional / simple context binding
 var aFunction = require('./_a-function');
 module.exports = function (fn, that, length) {
@@ -629,20 +698,20 @@ module.exports = function (fn, that, length) {
   };
 };
 
-},{"./_a-function":22}],29:[function(require,module,exports){
+},{"./_a-function":23}],30:[function(require,module,exports){
 // 7.2.1 RequireObjectCoercible(argument)
 module.exports = function (it) {
   if (it == undefined) throw TypeError("Can't call method on  " + it);
   return it;
 };
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 // Thank's IE8 for his funny defineProperty
 module.exports = !require('./_fails')(function () {
   return Object.defineProperty({}, 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_fails":35}],31:[function(require,module,exports){
+},{"./_fails":36}],32:[function(require,module,exports){
 var isObject = require('./_is-object');
 var document = require('./_global').document;
 // typeof document.createElement is 'object' in old IE
@@ -651,13 +720,13 @@ module.exports = function (it) {
   return is ? document.createElement(it) : {};
 };
 
-},{"./_global":36,"./_is-object":43}],32:[function(require,module,exports){
+},{"./_global":37,"./_is-object":44}],33:[function(require,module,exports){
 // IE 8- don't enum bug keys
 module.exports = (
   'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
 ).split(',');
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 // all enumerable object keys, includes symbols
 var getKeys = require('./_object-keys');
 var gOPS = require('./_object-gops');
@@ -674,7 +743,7 @@ module.exports = function (it) {
   } return result;
 };
 
-},{"./_object-gops":57,"./_object-keys":60,"./_object-pie":61}],34:[function(require,module,exports){
+},{"./_object-gops":58,"./_object-keys":61,"./_object-pie":62}],35:[function(require,module,exports){
 var global = require('./_global');
 var core = require('./_core');
 var ctx = require('./_ctx');
@@ -738,7 +807,7 @@ $export.U = 64;  // safe
 $export.R = 128; // real proto method for `library`
 module.exports = $export;
 
-},{"./_core":27,"./_ctx":28,"./_global":36,"./_has":37,"./_hide":38}],35:[function(require,module,exports){
+},{"./_core":28,"./_ctx":29,"./_global":37,"./_has":38,"./_hide":39}],36:[function(require,module,exports){
 module.exports = function (exec) {
   try {
     return !!exec();
@@ -747,7 +816,7 @@ module.exports = function (exec) {
   }
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
 var global = module.exports = typeof window != 'undefined' && window.Math == Math
   ? window : typeof self != 'undefined' && self.Math == Math ? self
@@ -755,13 +824,13 @@ var global = module.exports = typeof window != 'undefined' && window.Math == Mat
   : Function('return this')();
 if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 var hasOwnProperty = {}.hasOwnProperty;
 module.exports = function (it, key) {
   return hasOwnProperty.call(it, key);
 };
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 var dP = require('./_object-dp');
 var createDesc = require('./_property-desc');
 module.exports = require('./_descriptors') ? function (object, key, value) {
@@ -771,16 +840,16 @@ module.exports = require('./_descriptors') ? function (object, key, value) {
   return object;
 };
 
-},{"./_descriptors":30,"./_object-dp":52,"./_property-desc":62}],39:[function(require,module,exports){
+},{"./_descriptors":31,"./_object-dp":53,"./_property-desc":63}],40:[function(require,module,exports){
 var document = require('./_global').document;
 module.exports = document && document.documentElement;
 
-},{"./_global":36}],40:[function(require,module,exports){
+},{"./_global":37}],41:[function(require,module,exports){
 module.exports = !require('./_descriptors') && !require('./_fails')(function () {
   return Object.defineProperty(require('./_dom-create')('div'), 'a', { get: function () { return 7; } }).a != 7;
 });
 
-},{"./_descriptors":30,"./_dom-create":31,"./_fails":35}],41:[function(require,module,exports){
+},{"./_descriptors":31,"./_dom-create":32,"./_fails":36}],42:[function(require,module,exports){
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
 var cof = require('./_cof');
 // eslint-disable-next-line no-prototype-builtins
@@ -788,19 +857,19 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
 };
 
-},{"./_cof":26}],42:[function(require,module,exports){
+},{"./_cof":27}],43:[function(require,module,exports){
 // 7.2.2 IsArray(argument)
 var cof = require('./_cof');
 module.exports = Array.isArray || function isArray(arg) {
   return cof(arg) == 'Array';
 };
 
-},{"./_cof":26}],43:[function(require,module,exports){
+},{"./_cof":27}],44:[function(require,module,exports){
 module.exports = function (it) {
   return typeof it === 'object' ? it !== null : typeof it === 'function';
 };
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 'use strict';
 var create = require('./_object-create');
 var descriptor = require('./_property-desc');
@@ -815,7 +884,7 @@ module.exports = function (Constructor, NAME, next) {
   setToStringTag(Constructor, NAME + ' Iterator');
 };
 
-},{"./_hide":38,"./_object-create":51,"./_property-desc":62,"./_set-to-string-tag":65,"./_wks":78}],45:[function(require,module,exports){
+},{"./_hide":39,"./_object-create":52,"./_property-desc":63,"./_set-to-string-tag":66,"./_wks":79}],46:[function(require,module,exports){
 'use strict';
 var LIBRARY = require('./_library');
 var $export = require('./_export');
@@ -886,18 +955,18 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
   return methods;
 };
 
-},{"./_export":34,"./_hide":38,"./_iter-create":44,"./_iterators":47,"./_library":48,"./_object-gpo":58,"./_redefine":63,"./_set-to-string-tag":65,"./_wks":78}],46:[function(require,module,exports){
+},{"./_export":35,"./_hide":39,"./_iter-create":45,"./_iterators":48,"./_library":49,"./_object-gpo":59,"./_redefine":64,"./_set-to-string-tag":66,"./_wks":79}],47:[function(require,module,exports){
 module.exports = function (done, value) {
   return { value: value, done: !!done };
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 module.exports = {};
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 module.exports = true;
 
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 var META = require('./_uid')('meta');
 var isObject = require('./_is-object');
 var has = require('./_has');
@@ -952,7 +1021,7 @@ var meta = module.exports = {
   onFreeze: onFreeze
 };
 
-},{"./_fails":35,"./_has":37,"./_is-object":43,"./_object-dp":52,"./_uid":75}],50:[function(require,module,exports){
+},{"./_fails":36,"./_has":38,"./_is-object":44,"./_object-dp":53,"./_uid":76}],51:[function(require,module,exports){
 'use strict';
 // 19.1.2.1 Object.assign(target, source, ...)
 var getKeys = require('./_object-keys');
@@ -988,7 +1057,7 @@ module.exports = !$assign || require('./_fails')(function () {
   } return T;
 } : $assign;
 
-},{"./_fails":35,"./_iobject":41,"./_object-gops":57,"./_object-keys":60,"./_object-pie":61,"./_to-object":73}],51:[function(require,module,exports){
+},{"./_fails":36,"./_iobject":42,"./_object-gops":58,"./_object-keys":61,"./_object-pie":62,"./_to-object":74}],52:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -1031,7 +1100,7 @@ module.exports = Object.create || function create(O, Properties) {
   return Properties === undefined ? result : dPs(result, Properties);
 };
 
-},{"./_an-object":24,"./_dom-create":31,"./_enum-bug-keys":32,"./_html":39,"./_object-dps":53,"./_shared-key":66}],52:[function(require,module,exports){
+},{"./_an-object":25,"./_dom-create":32,"./_enum-bug-keys":33,"./_html":40,"./_object-dps":54,"./_shared-key":67}],53:[function(require,module,exports){
 var anObject = require('./_an-object');
 var IE8_DOM_DEFINE = require('./_ie8-dom-define');
 var toPrimitive = require('./_to-primitive');
@@ -1049,7 +1118,7 @@ exports.f = require('./_descriptors') ? Object.defineProperty : function defineP
   return O;
 };
 
-},{"./_an-object":24,"./_descriptors":30,"./_ie8-dom-define":40,"./_to-primitive":74}],53:[function(require,module,exports){
+},{"./_an-object":25,"./_descriptors":31,"./_ie8-dom-define":41,"./_to-primitive":75}],54:[function(require,module,exports){
 var dP = require('./_object-dp');
 var anObject = require('./_an-object');
 var getKeys = require('./_object-keys');
@@ -1064,7 +1133,7 @@ module.exports = require('./_descriptors') ? Object.defineProperties : function 
   return O;
 };
 
-},{"./_an-object":24,"./_descriptors":30,"./_object-dp":52,"./_object-keys":60}],54:[function(require,module,exports){
+},{"./_an-object":25,"./_descriptors":31,"./_object-dp":53,"./_object-keys":61}],55:[function(require,module,exports){
 var pIE = require('./_object-pie');
 var createDesc = require('./_property-desc');
 var toIObject = require('./_to-iobject');
@@ -1082,7 +1151,7 @@ exports.f = require('./_descriptors') ? gOPD : function getOwnPropertyDescriptor
   if (has(O, P)) return createDesc(!pIE.f.call(O, P), O[P]);
 };
 
-},{"./_descriptors":30,"./_has":37,"./_ie8-dom-define":40,"./_object-pie":61,"./_property-desc":62,"./_to-iobject":71,"./_to-primitive":74}],55:[function(require,module,exports){
+},{"./_descriptors":31,"./_has":38,"./_ie8-dom-define":41,"./_object-pie":62,"./_property-desc":63,"./_to-iobject":72,"./_to-primitive":75}],56:[function(require,module,exports){
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
 var toIObject = require('./_to-iobject');
 var gOPN = require('./_object-gopn').f;
@@ -1103,7 +1172,7 @@ module.exports.f = function getOwnPropertyNames(it) {
   return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
 };
 
-},{"./_object-gopn":56,"./_to-iobject":71}],56:[function(require,module,exports){
+},{"./_object-gopn":57,"./_to-iobject":72}],57:[function(require,module,exports){
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
 var $keys = require('./_object-keys-internal');
 var hiddenKeys = require('./_enum-bug-keys').concat('length', 'prototype');
@@ -1112,10 +1181,10 @@ exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return $keys(O, hiddenKeys);
 };
 
-},{"./_enum-bug-keys":32,"./_object-keys-internal":59}],57:[function(require,module,exports){
+},{"./_enum-bug-keys":33,"./_object-keys-internal":60}],58:[function(require,module,exports){
 exports.f = Object.getOwnPropertySymbols;
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = require('./_has');
 var toObject = require('./_to-object');
@@ -1130,7 +1199,7 @@ module.exports = Object.getPrototypeOf || function (O) {
   } return O instanceof Object ? ObjectProto : null;
 };
 
-},{"./_has":37,"./_shared-key":66,"./_to-object":73}],59:[function(require,module,exports){
+},{"./_has":38,"./_shared-key":67,"./_to-object":74}],60:[function(require,module,exports){
 var has = require('./_has');
 var toIObject = require('./_to-iobject');
 var arrayIndexOf = require('./_array-includes')(false);
@@ -1149,7 +1218,7 @@ module.exports = function (object, names) {
   return result;
 };
 
-},{"./_array-includes":25,"./_has":37,"./_shared-key":66,"./_to-iobject":71}],60:[function(require,module,exports){
+},{"./_array-includes":26,"./_has":38,"./_shared-key":67,"./_to-iobject":72}],61:[function(require,module,exports){
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
 var $keys = require('./_object-keys-internal');
 var enumBugKeys = require('./_enum-bug-keys');
@@ -1158,10 +1227,10 @@ module.exports = Object.keys || function keys(O) {
   return $keys(O, enumBugKeys);
 };
 
-},{"./_enum-bug-keys":32,"./_object-keys-internal":59}],61:[function(require,module,exports){
+},{"./_enum-bug-keys":33,"./_object-keys-internal":60}],62:[function(require,module,exports){
 exports.f = {}.propertyIsEnumerable;
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = function (bitmap, value) {
   return {
     enumerable: !(bitmap & 1),
@@ -1171,10 +1240,10 @@ module.exports = function (bitmap, value) {
   };
 };
 
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 module.exports = require('./_hide');
 
-},{"./_hide":38}],64:[function(require,module,exports){
+},{"./_hide":39}],65:[function(require,module,exports){
 // Works with __proto__ only. Old v8 can't work with null proto objects.
 /* eslint-disable no-proto */
 var isObject = require('./_is-object');
@@ -1201,7 +1270,7 @@ module.exports = {
   check: check
 };
 
-},{"./_an-object":24,"./_ctx":28,"./_is-object":43,"./_object-gopd":54}],65:[function(require,module,exports){
+},{"./_an-object":25,"./_ctx":29,"./_is-object":44,"./_object-gopd":55}],66:[function(require,module,exports){
 var def = require('./_object-dp').f;
 var has = require('./_has');
 var TAG = require('./_wks')('toStringTag');
@@ -1210,14 +1279,14 @@ module.exports = function (it, tag, stat) {
   if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
 };
 
-},{"./_has":37,"./_object-dp":52,"./_wks":78}],66:[function(require,module,exports){
+},{"./_has":38,"./_object-dp":53,"./_wks":79}],67:[function(require,module,exports){
 var shared = require('./_shared')('keys');
 var uid = require('./_uid');
 module.exports = function (key) {
   return shared[key] || (shared[key] = uid(key));
 };
 
-},{"./_shared":67,"./_uid":75}],67:[function(require,module,exports){
+},{"./_shared":68,"./_uid":76}],68:[function(require,module,exports){
 var core = require('./_core');
 var global = require('./_global');
 var SHARED = '__core-js_shared__';
@@ -1231,7 +1300,7 @@ var store = global[SHARED] || (global[SHARED] = {});
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
 
-},{"./_core":27,"./_global":36,"./_library":48}],68:[function(require,module,exports){
+},{"./_core":28,"./_global":37,"./_library":49}],69:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var defined = require('./_defined');
 // true  -> String#at
@@ -1250,7 +1319,7 @@ module.exports = function (TO_STRING) {
   };
 };
 
-},{"./_defined":29,"./_to-integer":70}],69:[function(require,module,exports){
+},{"./_defined":30,"./_to-integer":71}],70:[function(require,module,exports){
 var toInteger = require('./_to-integer');
 var max = Math.max;
 var min = Math.min;
@@ -1259,7 +1328,7 @@ module.exports = function (index, length) {
   return index < 0 ? max(index + length, 0) : min(index, length);
 };
 
-},{"./_to-integer":70}],70:[function(require,module,exports){
+},{"./_to-integer":71}],71:[function(require,module,exports){
 // 7.1.4 ToInteger
 var ceil = Math.ceil;
 var floor = Math.floor;
@@ -1267,7 +1336,7 @@ module.exports = function (it) {
   return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
 };
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 // to indexed object, toObject with fallback for non-array-like ES3 strings
 var IObject = require('./_iobject');
 var defined = require('./_defined');
@@ -1275,7 +1344,7 @@ module.exports = function (it) {
   return IObject(defined(it));
 };
 
-},{"./_defined":29,"./_iobject":41}],72:[function(require,module,exports){
+},{"./_defined":30,"./_iobject":42}],73:[function(require,module,exports){
 // 7.1.15 ToLength
 var toInteger = require('./_to-integer');
 var min = Math.min;
@@ -1283,14 +1352,14 @@ module.exports = function (it) {
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
 
-},{"./_to-integer":70}],73:[function(require,module,exports){
+},{"./_to-integer":71}],74:[function(require,module,exports){
 // 7.1.13 ToObject(argument)
 var defined = require('./_defined');
 module.exports = function (it) {
   return Object(defined(it));
 };
 
-},{"./_defined":29}],74:[function(require,module,exports){
+},{"./_defined":30}],75:[function(require,module,exports){
 // 7.1.1 ToPrimitive(input [, PreferredType])
 var isObject = require('./_is-object');
 // instead of the ES6 spec version, we didn't implement @@toPrimitive case
@@ -1304,14 +1373,14 @@ module.exports = function (it, S) {
   throw TypeError("Can't convert object to primitive value");
 };
 
-},{"./_is-object":43}],75:[function(require,module,exports){
+},{"./_is-object":44}],76:[function(require,module,exports){
 var id = 0;
 var px = Math.random();
 module.exports = function (key) {
   return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
 };
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 var global = require('./_global');
 var core = require('./_core');
 var LIBRARY = require('./_library');
@@ -1322,10 +1391,10 @@ module.exports = function (name) {
   if (name.charAt(0) != '_' && !(name in $Symbol)) defineProperty($Symbol, name, { value: wksExt.f(name) });
 };
 
-},{"./_core":27,"./_global":36,"./_library":48,"./_object-dp":52,"./_wks-ext":77}],77:[function(require,module,exports){
+},{"./_core":28,"./_global":37,"./_library":49,"./_object-dp":53,"./_wks-ext":78}],78:[function(require,module,exports){
 exports.f = require('./_wks');
 
-},{"./_wks":78}],78:[function(require,module,exports){
+},{"./_wks":79}],79:[function(require,module,exports){
 var store = require('./_shared')('wks');
 var uid = require('./_uid');
 var Symbol = require('./_global').Symbol;
@@ -1338,7 +1407,7 @@ var $exports = module.exports = function (name) {
 
 $exports.store = store;
 
-},{"./_global":36,"./_shared":67,"./_uid":75}],79:[function(require,module,exports){
+},{"./_global":37,"./_shared":68,"./_uid":76}],80:[function(require,module,exports){
 'use strict';
 var addToUnscopables = require('./_add-to-unscopables');
 var step = require('./_iter-step');
@@ -1374,25 +1443,25 @@ addToUnscopables('keys');
 addToUnscopables('values');
 addToUnscopables('entries');
 
-},{"./_add-to-unscopables":23,"./_iter-define":45,"./_iter-step":46,"./_iterators":47,"./_to-iobject":71}],80:[function(require,module,exports){
+},{"./_add-to-unscopables":24,"./_iter-define":46,"./_iter-step":47,"./_iterators":48,"./_to-iobject":72}],81:[function(require,module,exports){
 // 19.1.3.1 Object.assign(target, source)
 var $export = require('./_export');
 
 $export($export.S + $export.F, 'Object', { assign: require('./_object-assign') });
 
-},{"./_export":34,"./_object-assign":50}],81:[function(require,module,exports){
+},{"./_export":35,"./_object-assign":51}],82:[function(require,module,exports){
 var $export = require('./_export');
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 $export($export.S, 'Object', { create: require('./_object-create') });
 
-},{"./_export":34,"./_object-create":51}],82:[function(require,module,exports){
+},{"./_export":35,"./_object-create":52}],83:[function(require,module,exports){
 // 19.1.3.19 Object.setPrototypeOf(O, proto)
 var $export = require('./_export');
 $export($export.S, 'Object', { setPrototypeOf: require('./_set-proto').set });
 
-},{"./_export":34,"./_set-proto":64}],83:[function(require,module,exports){
+},{"./_export":35,"./_set-proto":65}],84:[function(require,module,exports){
 
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 'use strict';
 var $at = require('./_string-at')(true);
 
@@ -1411,7 +1480,7 @@ require('./_iter-define')(String, 'String', function (iterated) {
   return { value: point, done: false };
 });
 
-},{"./_iter-define":45,"./_string-at":68}],85:[function(require,module,exports){
+},{"./_iter-define":46,"./_string-at":69}],86:[function(require,module,exports){
 'use strict';
 // ECMAScript 6 symbols shim
 var global = require('./_global');
@@ -1647,13 +1716,13 @@ setToStringTag(Math, 'Math', true);
 // 24.3.3 JSON[@@toStringTag]
 setToStringTag(global.JSON, 'JSON', true);
 
-},{"./_an-object":24,"./_descriptors":30,"./_enum-keys":33,"./_export":34,"./_fails":35,"./_global":36,"./_has":37,"./_hide":38,"./_is-array":42,"./_is-object":43,"./_library":48,"./_meta":49,"./_object-create":51,"./_object-dp":52,"./_object-gopd":54,"./_object-gopn":56,"./_object-gopn-ext":55,"./_object-gops":57,"./_object-keys":60,"./_object-pie":61,"./_property-desc":62,"./_redefine":63,"./_set-to-string-tag":65,"./_shared":67,"./_to-iobject":71,"./_to-primitive":74,"./_uid":75,"./_wks":78,"./_wks-define":76,"./_wks-ext":77}],86:[function(require,module,exports){
+},{"./_an-object":25,"./_descriptors":31,"./_enum-keys":34,"./_export":35,"./_fails":36,"./_global":37,"./_has":38,"./_hide":39,"./_is-array":43,"./_is-object":44,"./_library":49,"./_meta":50,"./_object-create":52,"./_object-dp":53,"./_object-gopd":55,"./_object-gopn":57,"./_object-gopn-ext":56,"./_object-gops":58,"./_object-keys":61,"./_object-pie":62,"./_property-desc":63,"./_redefine":64,"./_set-to-string-tag":66,"./_shared":68,"./_to-iobject":72,"./_to-primitive":75,"./_uid":76,"./_wks":79,"./_wks-define":77,"./_wks-ext":78}],87:[function(require,module,exports){
 require('./_wks-define')('asyncIterator');
 
-},{"./_wks-define":76}],87:[function(require,module,exports){
+},{"./_wks-define":77}],88:[function(require,module,exports){
 require('./_wks-define')('observable');
 
-},{"./_wks-define":76}],88:[function(require,module,exports){
+},{"./_wks-define":77}],89:[function(require,module,exports){
 require('./es6.array.iterator');
 var global = require('./_global');
 var hide = require('./_hide');
@@ -1674,7 +1743,7 @@ for (var i = 0; i < DOMIterables.length; i++) {
   Iterators[NAME] = Iterators.Array;
 }
 
-},{"./_global":36,"./_hide":38,"./_iterators":47,"./_wks":78,"./es6.array.iterator":79}],89:[function(require,module,exports){
+},{"./_global":37,"./_hide":39,"./_iterators":48,"./_wks":79,"./es6.array.iterator":80}],90:[function(require,module,exports){
 // https://d3js.org/d3-array/ v1.2.4 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -2266,7 +2335,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],90:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 // https://d3js.org/d3-axis/ v1.0.12 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -2461,7 +2530,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 // https://d3js.org/d3-brush/ v1.1.6 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
@@ -3082,7 +3151,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{"d3-dispatch":96,"d3-drag":97,"d3-interpolate":105,"d3-selection":112,"d3-transition":117}],92:[function(require,module,exports){
+},{"d3-dispatch":97,"d3-drag":98,"d3-interpolate":106,"d3-selection":113,"d3-transition":118}],93:[function(require,module,exports){
 // https://d3js.org/d3-chord/ v1.0.6 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
@@ -3314,7 +3383,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":89,"d3-path":106}],93:[function(require,module,exports){
+},{"d3-array":90,"d3-path":107}],94:[function(require,module,exports){
 // https://d3js.org/d3-collection/ v1.0.7 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3533,7 +3602,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 // https://d3js.org/d3-color/ v1.2.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4084,7 +4153,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],95:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 // https://d3js.org/d3-contour/ v1.3.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
@@ -4517,7 +4586,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":89}],96:[function(require,module,exports){
+},{"d3-array":90}],97:[function(require,module,exports){
 // https://d3js.org/d3-dispatch/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4614,7 +4683,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],97:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 // https://d3js.org/d3-drag/ v1.2.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch')) :
@@ -4850,7 +4919,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":96,"d3-selection":112}],98:[function(require,module,exports){
+},{"d3-dispatch":97,"d3-selection":113}],99:[function(require,module,exports){
 // https://d3js.org/d3-dsv/ v1.2.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5085,7 +5154,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{}],99:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 // https://d3js.org/d3-ease/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -5346,7 +5415,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],100:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 // https://d3js.org/d3-fetch/ v1.2.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
@@ -5451,7 +5520,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{"d3-dsv":98}],101:[function(require,module,exports){
+},{"d3-dsv":99}],102:[function(require,module,exports){
 // https://d3js.org/d3-force/ v1.2.1 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
@@ -6121,7 +6190,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-collection":93,"d3-dispatch":96,"d3-quadtree":108,"d3-timer":116}],102:[function(require,module,exports){
+},{"d3-collection":94,"d3-dispatch":97,"d3-quadtree":109,"d3-timer":117}],103:[function(require,module,exports){
 // https://d3js.org/d3-format/ v1.4.5 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -6468,7 +6537,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 // https://d3js.org/d3-geo/ v1.12.1 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
@@ -9635,7 +9704,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":89}],104:[function(require,module,exports){
+},{"d3-array":90}],105:[function(require,module,exports){
 // https://d3js.org/d3-hierarchy/ v1.1.9 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10927,7 +10996,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{}],105:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 // https://d3js.org/d3-interpolate/ v1.3.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
@@ -11501,7 +11570,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":94}],106:[function(require,module,exports){
+},{"d3-color":95}],107:[function(require,module,exports){
 // https://d3js.org/d3-path/ v1.0.9 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11644,7 +11713,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{}],107:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 // https://d3js.org/d3-polygon/ v1.0.6 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11796,7 +11865,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 // https://d3js.org/d3-quadtree/ v1.0.7 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -12217,7 +12286,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 // https://d3js.org/d3-random/ v1.1.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -12334,7 +12403,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],110:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 // https://d3js.org/d3-scale-chromatic/ v1.5.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-interpolate'), require('d3-color')) :
@@ -12857,7 +12926,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{"d3-color":94,"d3-interpolate":105}],111:[function(require,module,exports){
+},{"d3-color":95,"d3-interpolate":106}],112:[function(require,module,exports){
 // https://d3js.org/d3-scale/ v2.2.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
@@ -14024,7 +14093,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":89,"d3-collection":93,"d3-format":102,"d3-interpolate":105,"d3-time":115,"d3-time-format":114}],112:[function(require,module,exports){
+},{"d3-array":90,"d3-collection":94,"d3-format":103,"d3-interpolate":106,"d3-time":116,"d3-time-format":115}],113:[function(require,module,exports){
 // https://d3js.org/d3-selection/ v1.4.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -15013,7 +15082,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],113:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 // https://d3js.org/d3-shape/ v1.3.7 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
@@ -16964,7 +17033,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{"d3-path":106}],114:[function(require,module,exports){
+},{"d3-path":107}],115:[function(require,module,exports){
 // https://d3js.org/d3-time-format/ v2.3.0 Copyright 2020 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
@@ -17709,7 +17778,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{"d3-time":115}],115:[function(require,module,exports){
+},{"d3-time":116}],116:[function(require,module,exports){
 // https://d3js.org/d3-time/ v1.1.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -18084,7 +18153,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 // https://d3js.org/d3-timer/ v1.0.9 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -18235,7 +18304,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],117:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 // https://d3js.org/d3-transition/ v1.2.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-timer'), require('d3-color'), require('d3-interpolate'), require('d3-selection'), require('d3-ease')) :
@@ -19091,7 +19160,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":94,"d3-dispatch":96,"d3-ease":99,"d3-interpolate":105,"d3-selection":112,"d3-timer":116}],118:[function(require,module,exports){
+},{"d3-color":95,"d3-dispatch":97,"d3-ease":100,"d3-interpolate":106,"d3-selection":113,"d3-timer":117}],119:[function(require,module,exports){
 // https://d3js.org/d3-voronoi/ v1.1.4 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -20092,7 +20161,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],119:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
   typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -20648,7 +20717,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-},{"d3-dispatch":96,"d3-drag":97,"d3-interpolate":105,"d3-selection":112,"d3-transition":117}],120:[function(require,module,exports){
+},{"d3-dispatch":97,"d3-drag":98,"d3-interpolate":106,"d3-selection":113,"d3-transition":118}],121:[function(require,module,exports){
 // https://d3js.org/d3-zoom/ v1.8.3 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
@@ -21147,7 +21216,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 
-},{"d3-dispatch":96,"d3-drag":97,"d3-interpolate":105,"d3-selection":112,"d3-transition":117}],121:[function(require,module,exports){
+},{"d3-dispatch":97,"d3-drag":98,"d3-interpolate":106,"d3-selection":113,"d3-transition":118}],122:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -21436,7 +21505,13 @@ Object.keys(d3Zoom).forEach(function (k) {
 });
 exports.version = version;
 
-},{"d3-array":89,"d3-axis":90,"d3-brush":91,"d3-chord":92,"d3-collection":93,"d3-color":94,"d3-contour":95,"d3-dispatch":96,"d3-drag":97,"d3-dsv":98,"d3-ease":99,"d3-fetch":100,"d3-force":101,"d3-format":102,"d3-geo":103,"d3-hierarchy":104,"d3-interpolate":105,"d3-path":106,"d3-polygon":107,"d3-quadtree":108,"d3-random":109,"d3-scale":111,"d3-scale-chromatic":110,"d3-selection":112,"d3-shape":113,"d3-time":115,"d3-time-format":114,"d3-timer":116,"d3-transition":117,"d3-voronoi":118,"d3-zoom":120}],122:[function(require,module,exports){
+},{"d3-array":90,"d3-axis":91,"d3-brush":92,"d3-chord":93,"d3-collection":94,"d3-color":95,"d3-contour":96,"d3-dispatch":97,"d3-drag":98,"d3-dsv":99,"d3-ease":100,"d3-fetch":101,"d3-force":102,"d3-format":103,"d3-geo":104,"d3-hierarchy":105,"d3-interpolate":106,"d3-path":107,"d3-polygon":108,"d3-quadtree":109,"d3-random":110,"d3-scale":112,"d3-scale-chromatic":111,"d3-selection":113,"d3-shape":114,"d3-time":116,"d3-time-format":115,"d3-timer":117,"d3-transition":118,"d3-voronoi":119,"d3-zoom":121}],123:[function(require,module,exports){
+(function (global){(function (){
+(function(a,b){if("function"==typeof define&&define.amd)define([],b);else if("undefined"!=typeof exports)b();else{b(),a.FileSaver={exports:{}}.exports}})(this,function(){"use strict";function b(a,b){return"undefined"==typeof b?b={autoBom:!1}:"object"!=typeof b&&(console.warn("Deprecated: Expected third argument to be a object"),b={autoBom:!b}),b.autoBom&&/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(a.type)?new Blob(["\uFEFF",a],{type:a.type}):a}function c(a,b,c){var d=new XMLHttpRequest;d.open("GET",a),d.responseType="blob",d.onload=function(){g(d.response,b,c)},d.onerror=function(){console.error("could not download file")},d.send()}function d(a){var b=new XMLHttpRequest;b.open("HEAD",a,!1);try{b.send()}catch(a){}return 200<=b.status&&299>=b.status}function e(a){try{a.dispatchEvent(new MouseEvent("click"))}catch(c){var b=document.createEvent("MouseEvents");b.initMouseEvent("click",!0,!0,window,0,0,0,80,20,!1,!1,!1,!1,0,null),a.dispatchEvent(b)}}var f="object"==typeof window&&window.window===window?window:"object"==typeof self&&self.self===self?self:"object"==typeof global&&global.global===global?global:void 0,a=f.navigator&&/Macintosh/.test(navigator.userAgent)&&/AppleWebKit/.test(navigator.userAgent)&&!/Safari/.test(navigator.userAgent),g=f.saveAs||("object"!=typeof window||window!==f?function(){}:"download"in HTMLAnchorElement.prototype&&!a?function(b,g,h){var i=f.URL||f.webkitURL,j=document.createElement("a");g=g||b.name||"download",j.download=g,j.rel="noopener","string"==typeof b?(j.href=b,j.origin===location.origin?e(j):d(j.href)?c(b,g,h):e(j,j.target="_blank")):(j.href=i.createObjectURL(b),setTimeout(function(){i.revokeObjectURL(j.href)},4E4),setTimeout(function(){e(j)},0))}:"msSaveOrOpenBlob"in navigator?function(f,g,h){if(g=g||f.name||"download","string"!=typeof f)navigator.msSaveOrOpenBlob(b(f,h),g);else if(d(f))c(f,g,h);else{var i=document.createElement("a");i.href=f,i.target="_blank",setTimeout(function(){e(i)})}}:function(b,d,e,g){if(g=g||open("","_blank"),g&&(g.document.title=g.document.body.innerText="downloading..."),"string"==typeof b)return c(b,d,e);var h="application/octet-stream"===b.type,i=/constructor/i.test(f.HTMLElement)||f.safari,j=/CriOS\/[\d]+/.test(navigator.userAgent);if((j||h&&i||a)&&"undefined"!=typeof FileReader){var k=new FileReader;k.onloadend=function(){var a=k.result;a=j?a:a.replace(/^data:[^;]*;/,"data:attachment/file;"),g?g.location.href=a:location=a,g=null},k.readAsDataURL(b)}else{var l=f.URL||f.webkitURL,m=l.createObjectURL(b);g?g.location=m:location.href=m,g=null,setTimeout(function(){l.revokeObjectURL(m)},4E4)}});f.saveAs=g.saveAs=g,"undefined"!=typeof module&&(module.exports=g)});
+
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],124:[function(require,module,exports){
 var invariant = require('invariant');
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -21711,7 +21786,7 @@ function invariantMapOrSet(target, command) {
   );
 }
 
-},{"invariant":123}],123:[function(require,module,exports){
+},{"invariant":125}],125:[function(require,module,exports){
 (function (process){(function (){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -21764,7 +21839,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 module.exports = invariant;
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":1}],124:[function(require,module,exports){
+},{"_process":1}],126:[function(require,module,exports){
 //! moment.js
 
 ;(function (global, factory) {
@@ -26368,7 +26443,7 @@ module.exports = invariant;
 
 })));
 
-},{}],125:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -26460,7 +26535,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],126:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 (function (process){(function (){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -26566,7 +26641,7 @@ checkPropTypes.resetWarningCache = function() {
 module.exports = checkPropTypes;
 
 }).call(this)}).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":130,"_process":1}],127:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":132,"_process":1}],129:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -26632,7 +26707,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":130}],128:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":132}],130:[function(require,module,exports){
 (function (process){(function (){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -27227,7 +27302,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 };
 
 }).call(this)}).call(this,require('_process'))
-},{"./checkPropTypes":126,"./lib/ReactPropTypesSecret":130,"_process":1,"object-assign":125,"react-is":142}],129:[function(require,module,exports){
+},{"./checkPropTypes":128,"./lib/ReactPropTypesSecret":132,"_process":1,"object-assign":127,"react-is":144}],131:[function(require,module,exports){
 (function (process){(function (){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -27250,7 +27325,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./factoryWithThrowingShims":127,"./factoryWithTypeCheckers":128,"_process":1,"react-is":142}],130:[function(require,module,exports){
+},{"./factoryWithThrowingShims":129,"./factoryWithTypeCheckers":130,"_process":1,"react-is":144}],132:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -27264,7 +27339,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],131:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27457,7 +27532,7 @@ Circle.defaultProps = (0, _extends3['default'])({}, _types.defaultProps, {
 
 exports['default'] = (0, _enhancer2['default'])(Circle);
 module.exports = exports['default'];
-},{"./enhancer":133,"./types":135,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/extends":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/objectWithoutProperties":12,"babel-runtime/helpers/possibleConstructorReturn":13,"prop-types":129,"react":159}],132:[function(require,module,exports){
+},{"./enhancer":135,"./types":137,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/extends":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/objectWithoutProperties":12,"babel-runtime/helpers/possibleConstructorReturn":13,"prop-types":131,"react":161}],134:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27589,7 +27664,7 @@ Line.defaultProps = _types.defaultProps;
 
 exports['default'] = (0, _enhancer2['default'])(Line);
 module.exports = exports['default'];
-},{"./enhancer":133,"./types":135,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/extends":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/objectWithoutProperties":12,"babel-runtime/helpers/possibleConstructorReturn":13,"react":159}],133:[function(require,module,exports){
+},{"./enhancer":135,"./types":137,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/extends":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/objectWithoutProperties":12,"babel-runtime/helpers/possibleConstructorReturn":13,"react":161}],135:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27654,7 +27729,7 @@ var enhancer = function enhancer(WrappedComponent) {
 
 exports['default'] = enhancer;
 module.exports = exports['default'];
-},{"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/possibleConstructorReturn":13}],134:[function(require,module,exports){
+},{"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/possibleConstructorReturn":13}],136:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27676,7 +27751,7 @@ exports['default'] = {
   Line: _Line2['default'],
   Circle: _Circle2['default']
 };
-},{"./Circle":131,"./Line":132}],135:[function(require,module,exports){
+},{"./Circle":133,"./Line":134}],137:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27713,7 +27788,7 @@ var propTypes = exports.propTypes = {
   trailColor: _propTypes2['default'].string,
   trailWidth: mixedType
 };
-},{"prop-types":129}],136:[function(require,module,exports){
+},{"prop-types":131}],138:[function(require,module,exports){
 (function (process){(function (){
 /** @license React v16.8.6
  * react-dom.development.js
@@ -48995,7 +49070,7 @@ module.exports = reactDom;
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":1,"object-assign":125,"prop-types/checkPropTypes":126,"react":159,"scheduler":164,"scheduler/tracing":165}],137:[function(require,module,exports){
+},{"_process":1,"object-assign":127,"prop-types/checkPropTypes":128,"react":161,"scheduler":167,"scheduler/tracing":168}],139:[function(require,module,exports){
 /** @license React v16.8.6
  * react-dom.production.min.js
  *
@@ -49266,7 +49341,7 @@ x("38"):void 0;return Si(a,b,c,!1,d)},unmountComponentAtNode:function(a){Qi(a)?v
 X;X=!0;try{ki(a)}finally{(X=b)||W||Yh(1073741823,!1)}},__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{Events:[Ia,Ja,Ka,Ba.injectEventPluginsByName,pa,Qa,function(a){ya(a,Pa)},Eb,Fb,Dd,Da]}};function Ui(a,b){Qi(a)?void 0:x("299","unstable_createRoot");return new Pi(a,!0,null!=b&&!0===b.hydrate)}
 (function(a){var b=a.findFiberByHostInstance;return Te(n({},a,{overrideProps:null,currentDispatcherRef:Tb.ReactCurrentDispatcher,findHostInstanceByFiber:function(a){a=hd(a);return null===a?null:a.stateNode},findFiberByHostInstance:function(a){return b?b(a):null}}))})({findFiberByHostInstance:Ha,bundleType:0,version:"16.8.6",rendererPackageName:"react-dom"});var Wi={default:Vi},Xi=Wi&&Vi||Wi;module.exports=Xi.default||Xi;
 
-},{"object-assign":125,"react":159,"scheduler":164}],138:[function(require,module,exports){
+},{"object-assign":127,"react":161,"scheduler":167}],140:[function(require,module,exports){
 (function (process){(function (){
 'use strict';
 
@@ -49308,7 +49383,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./cjs/react-dom.development.js":136,"./cjs/react-dom.production.min.js":137,"_process":1}],139:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":138,"./cjs/react-dom.production.min.js":139,"_process":1}],141:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49577,7 +49652,7 @@ AutosizeInput.defaultProps = {
 };
 
 exports.default = AutosizeInput;
-},{"prop-types":129,"react":159}],140:[function(require,module,exports){
+},{"prop-types":131,"react":161}],142:[function(require,module,exports){
 (function (process){(function (){
 /** @license React v16.8.6
  * react-is.development.js
@@ -49808,7 +49883,7 @@ exports.isSuspense = isSuspense;
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":1}],141:[function(require,module,exports){
+},{"_process":1}],143:[function(require,module,exports){
 /** @license React v16.8.6
  * react-is.production.min.js
  *
@@ -49825,7 +49900,7 @@ exports.Fragment=e;exports.Lazy=r;exports.Memo=q;exports.Portal=d;exports.Profil
 exports.isContextProvider=function(a){return t(a)===h};exports.isElement=function(a){return"object"===typeof a&&null!==a&&a.$$typeof===c};exports.isForwardRef=function(a){return t(a)===n};exports.isFragment=function(a){return t(a)===e};exports.isLazy=function(a){return t(a)===r};exports.isMemo=function(a){return t(a)===q};exports.isPortal=function(a){return t(a)===d};exports.isProfiler=function(a){return t(a)===g};exports.isStrictMode=function(a){return t(a)===f};
 exports.isSuspense=function(a){return t(a)===p};
 
-},{}],142:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 (function (process){(function (){
 'use strict';
 
@@ -49836,7 +49911,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./cjs/react-is.development.js":140,"./cjs/react-is.production.min.js":141,"_process":1}],143:[function(require,module,exports){
+},{"./cjs/react-is.development.js":142,"./cjs/react-is.production.min.js":143,"_process":1}],145:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50108,7 +50183,7 @@ exports.default = Async;
 
 Async.propTypes = propTypes;
 Async.defaultProps = defaultProps;
-},{"./Select":147,"./utils/stripDiacritics":155,"prop-types":129,"react":159}],144:[function(require,module,exports){
+},{"./Select":149,"./utils/stripDiacritics":157,"prop-types":131,"react":161}],146:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50214,7 +50289,7 @@ AsyncCreatableSelect.defaultProps = {
 };
 
 exports.default = AsyncCreatableSelect;
-},{"./Async":143,"./Creatable":145,"./Select":147,"prop-types":129,"react":159}],145:[function(require,module,exports){
+},{"./Async":145,"./Creatable":147,"./Select":149,"prop-types":131,"react":161}],147:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50598,7 +50673,7 @@ CreatableSelect.propTypes = {
 };
 
 exports.default = CreatableSelect;
-},{"./Select":147,"./utils/defaultFilterOptions":153,"./utils/defaultMenuRenderer":154,"prop-types":129,"react":159}],146:[function(require,module,exports){
+},{"./Select":149,"./utils/defaultFilterOptions":155,"./utils/defaultMenuRenderer":156,"prop-types":131,"react":161}],148:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50747,7 +50822,7 @@ Option.propTypes = {
 };
 
 exports.default = Option;
-},{"./utils/blockEvent":150,"classnames":16,"prop-types":129,"react":159}],147:[function(require,module,exports){
+},{"./utils/blockEvent":152,"classnames":16,"prop-types":131,"react":161}],149:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52206,7 +52281,7 @@ Select.defaultProps = {
 };
 
 exports.default = Select;
-},{"./Option":146,"./Value":148,"./utils/defaultArrowRenderer":151,"./utils/defaultClearRenderer":152,"./utils/defaultFilterOptions":153,"./utils/defaultMenuRenderer":154,"classnames":16,"prop-types":129,"react":159,"react-dom":138,"react-input-autosize":139}],148:[function(require,module,exports){
+},{"./Option":148,"./Value":150,"./utils/defaultArrowRenderer":153,"./utils/defaultClearRenderer":154,"./utils/defaultFilterOptions":155,"./utils/defaultMenuRenderer":156,"classnames":16,"prop-types":131,"react":161,"react-dom":140,"react-input-autosize":141}],150:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52352,7 +52427,7 @@ Value.propTypes = {
 };
 
 exports.default = Value;
-},{"classnames":16,"prop-types":129,"react":159}],149:[function(require,module,exports){
+},{"classnames":16,"prop-types":131,"react":161}],151:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52418,7 +52493,7 @@ exports.defaultMenuRenderer = _defaultMenuRenderer2.default;
 exports.defaultArrowRenderer = _defaultArrowRenderer2.default;
 exports.defaultClearRenderer = _defaultClearRenderer2.default;
 exports.defaultFilterOptions = _defaultFilterOptions2.default;
-},{"./Async":143,"./AsyncCreatable":144,"./Creatable":145,"./Option":146,"./Select":147,"./Value":148,"./utils/defaultArrowRenderer":151,"./utils/defaultClearRenderer":152,"./utils/defaultFilterOptions":153,"./utils/defaultMenuRenderer":154}],150:[function(require,module,exports){
+},{"./Async":145,"./AsyncCreatable":146,"./Creatable":147,"./Option":148,"./Select":149,"./Value":150,"./utils/defaultArrowRenderer":153,"./utils/defaultClearRenderer":154,"./utils/defaultFilterOptions":155,"./utils/defaultMenuRenderer":156}],152:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52437,7 +52512,7 @@ exports.default = function (event) {
 		window.location.href = event.target.href;
 	}
 };
-},{}],151:[function(require,module,exports){
+},{}],153:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52468,7 +52543,7 @@ arrowRenderer.propTypes = {
 };
 
 exports.default = arrowRenderer;
-},{"prop-types":129,"react":159}],152:[function(require,module,exports){
+},{"prop-types":131,"react":161}],154:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52489,7 +52564,7 @@ var clearRenderer = function clearRenderer() {
 };
 
 exports.default = clearRenderer;
-},{"react":159}],153:[function(require,module,exports){
+},{"react":161}],155:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52559,7 +52634,7 @@ var filterOptions = function filterOptions(options, filterValue, excludeOptions,
 };
 
 exports.default = filterOptions;
-},{"./stripDiacritics":155,"./trim":156}],154:[function(require,module,exports){
+},{"./stripDiacritics":157,"./trim":158}],156:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52656,7 +52731,7 @@ menuRenderer.propTypes = {
 };
 
 exports.default = menuRenderer;
-},{"classnames":16,"prop-types":129,"react":159}],155:[function(require,module,exports){
+},{"classnames":16,"prop-types":131,"react":161}],157:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52672,7 +52747,7 @@ var stripDiacritics = function stripDiacritics(str) {
 };
 
 exports.default = stripDiacritics;
-},{}],156:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -52683,7 +52758,7 @@ var trim = function trim(str) {
 };
 
 exports.default = trim;
-},{}],157:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
 (function (process){(function (){
 /** @license React v16.8.6
  * react.development.js
@@ -54588,7 +54663,7 @@ module.exports = react;
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":1,"object-assign":125,"prop-types/checkPropTypes":126}],158:[function(require,module,exports){
+},{"_process":1,"object-assign":127,"prop-types/checkPropTypes":128}],160:[function(require,module,exports){
 /** @license React v16.8.6
  * react.production.min.js
  *
@@ -54615,7 +54690,7 @@ b,d){return W().useImperativeHandle(a,b,d)},useDebugValue:function(){},useLayout
 b){void 0!==b.ref&&(h=b.ref,f=J.current);void 0!==b.key&&(g=""+b.key);var l=void 0;a.type&&a.type.defaultProps&&(l=a.type.defaultProps);for(c in b)K.call(b,c)&&!L.hasOwnProperty(c)&&(e[c]=void 0===b[c]&&void 0!==l?l[c]:b[c])}c=arguments.length-2;if(1===c)e.children=d;else if(1<c){l=Array(c);for(var m=0;m<c;m++)l[m]=arguments[m+2];e.children=l}return{$$typeof:p,type:a.type,key:g,ref:h,props:e,_owner:f}},createFactory:function(a){var b=M.bind(null,a);b.type=a;return b},isValidElement:N,version:"16.8.6",
 unstable_ConcurrentMode:x,unstable_Profiler:u,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentDispatcher:I,ReactCurrentOwner:J,assign:k}},Y={default:X},Z=Y&&X||Y;module.exports=Z.default||Z;
 
-},{"object-assign":125}],159:[function(require,module,exports){
+},{"object-assign":127}],161:[function(require,module,exports){
 (function (process){(function (){
 'use strict';
 
@@ -54626,7 +54701,453 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./cjs/react.development.js":157,"./cjs/react.production.min.js":158,"_process":1}],160:[function(require,module,exports){
+},{"./cjs/react.development.js":159,"./cjs/react.production.min.js":160,"_process":1}],162:[function(require,module,exports){
+'use strict';
+
+(function () {
+  var out$ = typeof exports != 'undefined' && exports || typeof define != 'undefined' && {} || this || window;
+  if (typeof define !== 'undefined') define('save-svg-as-png', [], function () {
+    return out$;
+  });
+  out$.default = out$;
+
+  var xmlNs = 'http://www.w3.org/2000/xmlns/';
+  var xhtmlNs = 'http://www.w3.org/1999/xhtml';
+  var svgNs = 'http://www.w3.org/2000/svg';
+  var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [<!ENTITY nbsp "&#160;">]>';
+  var urlRegex = /url\(["']?(.+?)["']?\)/;
+  var fontFormats = {
+    woff2: 'font/woff2',
+    woff: 'font/woff',
+    otf: 'application/x-font-opentype',
+    ttf: 'application/x-font-ttf',
+    eot: 'application/vnd.ms-fontobject',
+    sfnt: 'application/font-sfnt',
+    svg: 'image/svg+xml'
+  };
+
+  var isElement = function isElement(obj) {
+    return obj instanceof HTMLElement || obj instanceof SVGElement;
+  };
+  var requireDomNode = function requireDomNode(el) {
+    if (!isElement(el)) throw new Error('an HTMLElement or SVGElement is required; got ' + el);
+  };
+  var requireDomNodePromise = function requireDomNodePromise(el) {
+    return new Promise(function (resolve, reject) {
+      if (isElement(el)) resolve(el);else reject(new Error('an HTMLElement or SVGElement is required; got ' + el));
+    });
+  };
+  var isExternal = function isExternal(url) {
+    return url && url.lastIndexOf('http', 0) === 0 && url.lastIndexOf(window.location.host) === -1;
+  };
+
+  var getFontMimeTypeFromUrl = function getFontMimeTypeFromUrl(fontUrl) {
+    var formats = Object.keys(fontFormats).filter(function (extension) {
+      return fontUrl.indexOf('.' + extension) > 0;
+    }).map(function (extension) {
+      return fontFormats[extension];
+    });
+    if (formats) return formats[0];
+    console.error('Unknown font format for ' + fontUrl + '. Fonts may not be working correctly.');
+    return 'application/octet-stream';
+  };
+
+  var arrayBufferToBase64 = function arrayBufferToBase64(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    for (var i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }return window.btoa(binary);
+  };
+
+  var getDimension = function getDimension(el, clone, dim) {
+    var v = el.viewBox && el.viewBox.baseVal && el.viewBox.baseVal[dim] || clone.getAttribute(dim) !== null && !clone.getAttribute(dim).match(/%$/) && parseInt(clone.getAttribute(dim)) || el.getBoundingClientRect()[dim] || parseInt(clone.style[dim]) || parseInt(window.getComputedStyle(el).getPropertyValue(dim));
+    return typeof v === 'undefined' || v === null || isNaN(parseFloat(v)) ? 0 : v;
+  };
+
+  var getDimensions = function getDimensions(el, clone, width, height) {
+    if (el.tagName === 'svg') return {
+      width: width || getDimension(el, clone, 'width'),
+      height: height || getDimension(el, clone, 'height')
+    };else if (el.getBBox) {
+      var _el$getBBox = el.getBBox(),
+          x = _el$getBBox.x,
+          y = _el$getBBox.y,
+          _width = _el$getBBox.width,
+          _height = _el$getBBox.height;
+
+      return {
+        width: x + _width,
+        height: y + _height
+      };
+    }
+  };
+
+  var reEncode = function reEncode(data) {
+    return decodeURIComponent(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+      var c = String.fromCharCode('0x' + p1);
+      return c === '%' ? '%25' : c;
+    }));
+  };
+
+  var uriToBlob = function uriToBlob(uri) {
+    var byteString = window.atob(uri.split(',')[1]);
+    var mimeString = uri.split(',')[0].split(':')[1].split(';')[0];
+    var buffer = new ArrayBuffer(byteString.length);
+    var intArray = new Uint8Array(buffer);
+    for (var i = 0; i < byteString.length; i++) {
+      intArray[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([buffer], { type: mimeString });
+  };
+
+  var query = function query(el, selector) {
+    if (!selector) return;
+    try {
+      return el.querySelector(selector) || el.parentNode && el.parentNode.querySelector(selector);
+    } catch (err) {
+      console.warn('Invalid CSS selector "' + selector + '"', err);
+    }
+  };
+
+  var detectCssFont = function detectCssFont(rule, href) {
+    // Match CSS font-face rules to external links.
+    // @font-face {
+    //   src: local('Abel'), url(https://fonts.gstatic.com/s/abel/v6/UzN-iejR1VoXU2Oc-7LsbvesZW2xOQ-xsNqO47m55DA.woff2);
+    // }
+    var match = rule.cssText.match(urlRegex);
+    var url = match && match[1] || '';
+    if (!url || url.match(/^data:/) || url === 'about:blank') return;
+    var fullUrl = url.startsWith('../') ? href + '/../' + url : url.startsWith('./') ? href + '/.' + url : url;
+    return {
+      text: rule.cssText,
+      format: getFontMimeTypeFromUrl(fullUrl),
+      url: fullUrl
+    };
+  };
+
+  var inlineImages = function inlineImages(el) {
+    return Promise.all(Array.from(el.querySelectorAll('image')).map(function (image) {
+      var href = image.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || image.getAttribute('href');
+      if (!href) return Promise.resolve(null);
+      if (isExternal(href)) {
+        href += (href.indexOf('?') === -1 ? '?' : '&') + 't=' + new Date().valueOf();
+      }
+      return new Promise(function (resolve, reject) {
+        var canvas = document.createElement('canvas');
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = href;
+        img.onerror = function () {
+          return reject(new Error('Could not load ' + href));
+        };
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          canvas.getContext('2d').drawImage(img, 0, 0);
+          image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', canvas.toDataURL('image/png'));
+          resolve(true);
+        };
+      });
+    }));
+  };
+
+  var cachedFonts = {};
+  var inlineFonts = function inlineFonts(fonts) {
+    return Promise.all(fonts.map(function (font) {
+      return new Promise(function (resolve, reject) {
+        if (cachedFonts[font.url]) return resolve(cachedFonts[font.url]);
+
+        var req = new XMLHttpRequest();
+        req.addEventListener('load', function () {
+          // TODO: it may also be worth it to wait until fonts are fully loaded before
+          // attempting to rasterize them. (e.g. use https://developer.mozilla.org/en-US/docs/Web/API/FontFaceSet)
+          var fontInBase64 = arrayBufferToBase64(req.response);
+          var fontUri = font.text.replace(urlRegex, 'url("data:' + font.format + ';base64,' + fontInBase64 + '")') + '\n';
+          cachedFonts[font.url] = fontUri;
+          resolve(fontUri);
+        });
+        req.addEventListener('error', function (e) {
+          console.warn('Failed to load font from: ' + font.url, e);
+          cachedFonts[font.url] = null;
+          resolve(null);
+        });
+        req.addEventListener('abort', function (e) {
+          console.warn('Aborted loading font from: ' + font.url, e);
+          resolve(null);
+        });
+        req.open('GET', font.url);
+        req.responseType = 'arraybuffer';
+        req.send();
+      });
+    })).then(function (fontCss) {
+      return fontCss.filter(function (x) {
+        return x;
+      }).join('');
+    });
+  };
+
+  var cachedRules = null;
+  var styleSheetRules = function styleSheetRules() {
+    if (cachedRules) return cachedRules;
+    return cachedRules = Array.from(document.styleSheets).map(function (sheet) {
+      try {
+        return { rules: sheet.cssRules, href: sheet.href };
+      } catch (e) {
+        console.warn('Stylesheet could not be loaded: ' + sheet.href, e);
+        return {};
+      }
+    });
+  };
+
+  var inlineCss = function inlineCss(el, options) {
+    var _ref = options || {},
+        selectorRemap = _ref.selectorRemap,
+        modifyStyle = _ref.modifyStyle,
+        modifyCss = _ref.modifyCss,
+        fonts = _ref.fonts,
+        excludeUnusedCss = _ref.excludeUnusedCss;
+
+    var generateCss = modifyCss || function (selector, properties) {
+      var sel = selectorRemap ? selectorRemap(selector) : selector;
+      var props = modifyStyle ? modifyStyle(properties) : properties;
+      return sel + '{' + props + '}\n';
+    };
+    var css = [];
+    var detectFonts = typeof fonts === 'undefined';
+    var fontList = fonts || [];
+    styleSheetRules().forEach(function (_ref2) {
+      var rules = _ref2.rules,
+          href = _ref2.href;
+
+      if (!rules) return;
+      Array.from(rules).forEach(function (rule) {
+        if (typeof rule.style != 'undefined') {
+          if (query(el, rule.selectorText)) css.push(generateCss(rule.selectorText, rule.style.cssText));else if (detectFonts && rule.cssText.match(/^@font-face/)) {
+            var font = detectCssFont(rule, href);
+            if (font) fontList.push(font);
+          } else if (!excludeUnusedCss) {
+            css.push(rule.cssText);
+          }
+        }
+      });
+    });
+
+    return inlineFonts(fontList).then(function (fontCss) {
+      return css.join('\n') + fontCss;
+    });
+  };
+
+  var downloadOptions = function downloadOptions() {
+    if (!navigator.msSaveOrOpenBlob && !('download' in document.createElement('a'))) {
+      return { popup: window.open() };
+    }
+  };
+
+  out$.prepareSvg = function (el, options, done) {
+    requireDomNode(el);
+
+    var _ref3 = options || {},
+        _ref3$left = _ref3.left,
+        left = _ref3$left === undefined ? 0 : _ref3$left,
+        _ref3$top = _ref3.top,
+        top = _ref3$top === undefined ? 0 : _ref3$top,
+        w = _ref3.width,
+        h = _ref3.height,
+        _ref3$scale = _ref3.scale,
+        scale = _ref3$scale === undefined ? 1 : _ref3$scale,
+        _ref3$responsive = _ref3.responsive,
+        responsive = _ref3$responsive === undefined ? false : _ref3$responsive,
+        _ref3$excludeCss = _ref3.excludeCss,
+        excludeCss = _ref3$excludeCss === undefined ? false : _ref3$excludeCss;
+
+    return inlineImages(el).then(function () {
+      var clone = el.cloneNode(true);
+      clone.style.backgroundColor = (options || {}).backgroundColor || el.style.backgroundColor;
+
+      var _getDimensions = getDimensions(el, clone, w, h),
+          width = _getDimensions.width,
+          height = _getDimensions.height;
+
+      if (el.tagName !== 'svg') {
+        if (el.getBBox) {
+          if (clone.getAttribute('transform') != null) {
+            clone.setAttribute('transform', clone.getAttribute('transform').replace(/translate\(.*?\)/, ''));
+          }
+          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.appendChild(clone);
+          clone = svg;
+        } else {
+          console.error('Attempted to render non-SVG element', el);
+          return;
+        }
+      }
+
+      clone.setAttribute('version', '1.1');
+      clone.setAttribute('viewBox', [left, top, width, height].join(' '));
+      if (!clone.getAttribute('xmlns')) clone.setAttributeNS(xmlNs, 'xmlns', svgNs);
+      if (!clone.getAttribute('xmlns:xlink')) clone.setAttributeNS(xmlNs, 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+      if (responsive) {
+        clone.removeAttribute('width');
+        clone.removeAttribute('height');
+        clone.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+      } else {
+        clone.setAttribute('width', width * scale);
+        clone.setAttribute('height', height * scale);
+      }
+
+      Array.from(clone.querySelectorAll('foreignObject > *')).forEach(function (foreignObject) {
+        foreignObject.setAttributeNS(xmlNs, 'xmlns', foreignObject.tagName === 'svg' ? svgNs : xhtmlNs);
+      });
+
+      if (excludeCss) {
+        var outer = document.createElement('div');
+        outer.appendChild(clone);
+        var src = outer.innerHTML;
+        if (typeof done === 'function') done(src, width, height);else return { src: src, width: width, height: height };
+      } else {
+        return inlineCss(el, options).then(function (css) {
+          var style = document.createElement('style');
+          style.setAttribute('type', 'text/css');
+          style.innerHTML = '<![CDATA[\n' + css + '\n]]>';
+
+          var defs = document.createElement('defs');
+          defs.appendChild(style);
+          clone.insertBefore(defs, clone.firstChild);
+
+          var outer = document.createElement('div');
+          outer.appendChild(clone);
+          var src = outer.innerHTML.replace(/NS\d+:href/gi, 'xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href');
+
+          if (typeof done === 'function') done(src, width, height);else return { src: src, width: width, height: height };
+        });
+      }
+    });
+  };
+
+  out$.svgAsDataUri = function (el, options, done) {
+    requireDomNode(el);
+    return out$.prepareSvg(el, options).then(function (_ref4) {
+      var src = _ref4.src,
+          width = _ref4.width,
+          height = _ref4.height;
+
+      var svgXml = 'data:image/svg+xml;base64,' + window.btoa(reEncode(doctype + src));
+      if (typeof done === 'function') {
+        done(svgXml, width, height);
+      }
+      return svgXml;
+    });
+  };
+
+  out$.svgAsPngUri = function (el, options, done) {
+    requireDomNode(el);
+
+    var _ref5 = options || {},
+        _ref5$encoderType = _ref5.encoderType,
+        encoderType = _ref5$encoderType === undefined ? 'image/png' : _ref5$encoderType,
+        _ref5$encoderOptions = _ref5.encoderOptions,
+        encoderOptions = _ref5$encoderOptions === undefined ? 0.8 : _ref5$encoderOptions,
+        canvg = _ref5.canvg;
+
+    var convertToPng = function convertToPng(_ref6) {
+      var src = _ref6.src,
+          width = _ref6.width,
+          height = _ref6.height;
+
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      canvas.width = width * pixelRatio;
+      canvas.height = height * pixelRatio;
+      canvas.style.width = canvas.width + 'px';
+      canvas.style.height = canvas.height + 'px';
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+      if (canvg) canvg(canvas, src);else context.drawImage(src, 0, 0);
+
+      var png = void 0;
+      try {
+        png = canvas.toDataURL(encoderType, encoderOptions);
+      } catch (e) {
+        if (typeof SecurityError !== 'undefined' && e instanceof SecurityError || e.name === 'SecurityError') {
+          console.error('Rendered SVG images cannot be downloaded in this browser.');
+          return;
+        } else throw e;
+      }
+      if (typeof done === 'function') done(png, canvas.width, canvas.height);
+      return Promise.resolve(png);
+    };
+
+    if (canvg) return out$.prepareSvg(el, options).then(convertToPng);else return out$.svgAsDataUri(el, options).then(function (uri) {
+      return new Promise(function (resolve, reject) {
+        var image = new Image();
+        image.onload = function () {
+          return resolve(convertToPng({
+            src: image,
+            width: image.width,
+            height: image.height
+          }));
+        };
+        image.onerror = function () {
+          reject('There was an error loading the data URI as an image on the following SVG\n' + window.atob(uri.slice(26)) + 'Open the following link to see browser\'s diagnosis\n' + uri);
+        };
+        image.src = uri;
+      });
+    });
+  };
+
+  out$.download = function (name, uri, options) {
+    if (navigator.msSaveOrOpenBlob) navigator.msSaveOrOpenBlob(uriToBlob(uri), name);else {
+      var saveLink = document.createElement('a');
+      if ('download' in saveLink) {
+        saveLink.download = name;
+        saveLink.style.display = 'none';
+        document.body.appendChild(saveLink);
+        try {
+          var blob = uriToBlob(uri);
+          var url = URL.createObjectURL(blob);
+          saveLink.href = url;
+          saveLink.onclick = function () {
+            return requestAnimationFrame(function () {
+              return URL.revokeObjectURL(url);
+            });
+          };
+        } catch (e) {
+          console.error(e);
+          console.warn('Error while getting object URL. Falling back to string URL.');
+          saveLink.href = uri;
+        }
+        saveLink.click();
+        document.body.removeChild(saveLink);
+      } else if (options && options.popup) {
+        options.popup.document.title = name;
+        options.popup.location.replace(uri);
+      }
+    }
+  };
+
+  out$.saveSvg = function (el, name, options) {
+    var downloadOpts = downloadOptions(); // don't inline, can't be async
+    return requireDomNodePromise(el).then(function (el) {
+      return out$.svgAsDataUri(el, options || {});
+    }).then(function (uri) {
+      return out$.download(name, uri, downloadOpts);
+    });
+  };
+
+  out$.saveSvgAsPng = function (el, name, options) {
+    var downloadOpts = downloadOptions(); // don't inline, can't be async
+    return requireDomNodePromise(el).then(function (el) {
+      return out$.svgAsPngUri(el, options || {});
+    }).then(function (uri) {
+      return out$.download(name, uri, downloadOpts);
+    });
+  };
+})();
+},{}],163:[function(require,module,exports){
 (function (process){(function (){
 /** @license React v0.13.6
  * scheduler-tracing.development.js
@@ -55053,7 +55574,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"_process":1}],161:[function(require,module,exports){
+},{"_process":1}],164:[function(require,module,exports){
 /** @license React v0.13.6
  * scheduler-tracing.production.min.js
  *
@@ -55065,7 +55586,7 @@ exports.unstable_unsubscribe = unstable_unsubscribe;
 
 'use strict';Object.defineProperty(exports,"__esModule",{value:!0});var b=0;exports.__interactionsRef=null;exports.__subscriberRef=null;exports.unstable_clear=function(a){return a()};exports.unstable_getCurrent=function(){return null};exports.unstable_getThreadID=function(){return++b};exports.unstable_trace=function(a,d,c){return c()};exports.unstable_wrap=function(a){return a};exports.unstable_subscribe=function(){};exports.unstable_unsubscribe=function(){};
 
-},{}],162:[function(require,module,exports){
+},{}],165:[function(require,module,exports){
 (function (process,global){(function (){
 /** @license React v0.13.6
  * scheduler.development.js
@@ -55768,7 +56289,7 @@ exports.unstable_getFirstCallbackNode = unstable_getFirstCallbackNode;
 }
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":1}],163:[function(require,module,exports){
+},{"_process":1}],166:[function(require,module,exports){
 (function (global){(function (){
 /** @license React v0.13.6
  * scheduler.production.min.js
@@ -55793,7 +56314,7 @@ b=c.previous;b.next=c.previous=a;a.next=c;a.previous=b}return a};exports.unstabl
 exports.unstable_shouldYield=function(){return!e&&(null!==d&&d.expirationTime<l||w())};exports.unstable_continueExecution=function(){null!==d&&p()};exports.unstable_pauseExecution=function(){};exports.unstable_getFirstCallbackNode=function(){return d};
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],164:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
 (function (process){(function (){
 'use strict';
 
@@ -55804,7 +56325,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./cjs/scheduler.development.js":162,"./cjs/scheduler.production.min.js":163,"_process":1}],165:[function(require,module,exports){
+},{"./cjs/scheduler.development.js":165,"./cjs/scheduler.production.min.js":166,"_process":1}],168:[function(require,module,exports){
 (function (process){(function (){
 'use strict';
 
@@ -55815,7 +56336,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this)}).call(this,require('_process'))
-},{"./cjs/scheduler-tracing.development.js":160,"./cjs/scheduler-tracing.production.min.js":161,"_process":1}],166:[function(require,module,exports){
+},{"./cjs/scheduler-tracing.development.js":163,"./cjs/scheduler-tracing.production.min.js":164,"_process":1}],169:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56145,7 +56666,7 @@ var App = function (_React$Component) {
 
 exports.default = App;
 
-},{"./TabPanes":177,"./Tabs":178,"./css/App.css":180,"./css/Buttons.css":181,"./util/shortUID":198,"@gamestdio/websocket":3,"immutability-helper":122,"react":159}],167:[function(require,module,exports){
+},{"./TabPanes":180,"./Tabs":181,"./css/App.css":183,"./css/Buttons.css":184,"./util/shortUID":201,"@gamestdio/websocket":3,"immutability-helper":124,"react":161}],170:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56545,7 +57066,7 @@ var Experiment = function (_React$Component) {
 
 exports.default = Experiment;
 
-},{"./ExportControls":168,"./MessageBox":169,"./ParameterBox":171,"./ParameterControls":172,"./ParameterPanes":173,"./Plot":174,"./Progress":175,"./RunControls":176,"./Tabs":178,"./css/Experiment.css":182,"classnames":16,"immutability-helper":122,"react":159}],168:[function(require,module,exports){
+},{"./ExportControls":171,"./MessageBox":172,"./ParameterBox":174,"./ParameterControls":175,"./ParameterPanes":176,"./Plot":177,"./Progress":178,"./RunControls":179,"./Tabs":181,"./css/Experiment.css":185,"classnames":16,"immutability-helper":124,"react":161}],171:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56677,7 +57198,7 @@ function downloadBytes(bytes, fileName) {
   link.click();
 }
 
-},{"./css/ExportControls.css":183,"moment":124,"react":159,"react-select":149}],169:[function(require,module,exports){
+},{"./css/ExportControls.css":186,"moment":126,"react":161,"react-select":151}],172:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56750,7 +57271,7 @@ var MessageBox = function (_React$Component) {
 
 exports.default = MessageBox;
 
-},{"./css/MessageBox.css":184,"classnames":16,"react":159}],170:[function(require,module,exports){
+},{"./css/MessageBox.css":187,"classnames":16,"react":161}],173:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56847,7 +57368,7 @@ var Parameter = function (_React$Component) {
 
 exports.default = Parameter;
 
-},{"./css/Parameter.css":185,"./util/generateId":197,"classnames":16,"react":159}],171:[function(require,module,exports){
+},{"./css/Parameter.css":188,"./util/generateId":200,"classnames":16,"react":161}],174:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56926,7 +57447,7 @@ var ParameterBox = function (_React$Component) {
 
 exports.default = ParameterBox;
 
-},{"./Parameter":170,"classnames":16,"react":159}],172:[function(require,module,exports){
+},{"./Parameter":173,"classnames":16,"react":161}],175:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57034,7 +57555,7 @@ var ParameterControls = function (_React$Component) {
 
 exports.default = ParameterControls;
 
-},{"./css/ParameterControls.css":186,"./css/Select.css":190,"react":159,"react-select":149}],173:[function(require,module,exports){
+},{"./css/ParameterControls.css":189,"./css/Select.css":193,"react":161,"react-select":151}],176:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57099,7 +57620,7 @@ var ParameterPanes = function (_React$Component) {
 
 exports.default = ParameterPanes;
 
-},{"./ParameterBox":171,"react":159}],174:[function(require,module,exports){
+},{"./ParameterBox":174,"react":161}],177:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57115,6 +57636,16 @@ var _react2 = _interopRequireDefault(_react);
 var _d = require('d3');
 
 var d3 = _interopRequireWildcard(_d);
+
+var _moment = require('moment');
+
+var _moment2 = _interopRequireDefault(_moment);
+
+var _saveSvgAsPng = require('save-svg-as-png');
+
+var _svgsaver = require('./util/svgsaver');
+
+var _svgsaver2 = _interopRequireDefault(_svgsaver);
 
 var _generateId = require('./util/generateId');
 
@@ -57144,6 +57675,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var svgsaver = new _svgsaver2.default();
+
 var Plot = function (_React$Component) {
   _inherits(Plot, _React$Component);
 
@@ -57153,6 +57686,7 @@ var Plot = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, (Plot.__proto__ || Object.getPrototypeOf(Plot)).call(this, props));
 
     _this.svgid = (0, _generateId2.default)();
+    _this.plotSaveFormats = ['PNG', 'SVG'];
     _this.plotId = 0;
     _this.dirtyRender = false;
 
@@ -57169,6 +57703,7 @@ var Plot = function (_React$Component) {
 
     _this.handlePlotChange = _this.handlePlotChange.bind(_this);
     _this.handleFormatChange = _this.handleFormatChange.bind(_this);
+    _this.handlePlotSave = _this.handlePlotSave.bind(_this);
     _this.replot = _this.replot.bind(_this);
     return _this;
   }
@@ -57211,6 +57746,25 @@ var Plot = function (_React$Component) {
       this.replot(tabIndex);
     }
   }, {
+    key: 'handlePlotSave',
+    value: function handlePlotSave() {
+      var format = this.plotSaveFormats[this.state.activeFormatIndex];
+      var name = 'plot';
+      if (this.props.experiment) {
+        name = this.props.experiment.name + '_' + this.props.experiment.plots[this.state.activePlotIndex] + '_' + (0, _moment2.default)().format('YYYY-MM-DD_hh-mm-ss');
+      } else {
+        name = this.props.plot.layout.title.replace(/ /g, "_") + '_' + (0, _moment2.default)().format('YYYY-MM-DD_hh-mm-ss');
+      }
+      if (format === 'PNG') {
+        (0, _saveSvgAsPng.saveSvgAsPng)(document.querySelector('#' + this.svgid), name + '.png', {
+          scale: 2,
+          backgroundColor: 'white'
+        });
+      } else if (format === 'SVG') {
+        svgsaver.asSvg(document.querySelector('#' + this.svgid), name + '.svg');
+      }
+    }
+  }, {
     key: 'handleFormatChange',
     value: function handleFormatChange(tabIndex) {
       this.setState({
@@ -57251,7 +57805,6 @@ var Plot = function (_React$Component) {
     value: function render() {
       var experiment = this.props.experiment || {};
       var plotNames = experiment.plots || [];
-      var formats = ['PNG', 'SVG'];
 
       return _react2.default.createElement(
         'div',
@@ -57269,13 +57822,13 @@ var Plot = function (_React$Component) {
             'div',
             { className: 'plot-export-controls' },
             _react2.default.createElement(_Tabs2.default, {
-              tabNames: formats,
+              tabNames: this.plotSaveFormats,
               activeIndex: this.state.activeFormatIndex,
               onTabChange: this.handleFormatChange
             }),
             _react2.default.createElement(
               'div',
-              { className: 'button' },
+              { className: 'button', onClick: this.handlePlotSave },
               'Save'
             )
           )
@@ -57290,7 +57843,7 @@ var Plot = function (_React$Component) {
 
 exports.default = Plot;
 
-},{"./Tabs":178,"./css/Plot.css":187,"./css/d3plot.css":193,"./d3plot":194,"./util/decode":196,"./util/generateId":197,"d3":121,"react":159}],175:[function(require,module,exports){
+},{"./Tabs":181,"./css/Plot.css":190,"./css/d3plot.css":196,"./d3plot":197,"./util/decode":199,"./util/generateId":200,"./util/svgsaver":202,"d3":122,"moment":126,"react":161,"save-svg-as-png":162}],178:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57341,7 +57894,7 @@ var ProgressBar = function (_React$Component) {
 
 exports.default = ProgressBar;
 
-},{"./css/Progress.css":188,"rc-progress":134,"react":159}],176:[function(require,module,exports){
+},{"./css/Progress.css":191,"rc-progress":136,"react":161}],179:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57425,7 +57978,7 @@ var RunControls = function (_React$Component) {
 
 exports.default = RunControls;
 
-},{"./css/RunControls.css":189,"classnames":16,"react":159}],177:[function(require,module,exports){
+},{"./css/RunControls.css":192,"classnames":16,"react":161}],180:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57519,7 +58072,7 @@ var TabPanes = function (_React$Component) {
 
 exports.default = TabPanes;
 
-},{"./Experiment":167,"./Temperature":179,"./css/TabPanes.css":191,"react":159}],178:[function(require,module,exports){
+},{"./Experiment":170,"./Temperature":182,"./css/TabPanes.css":194,"react":161}],181:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57599,7 +58152,7 @@ var Tabs = function (_React$Component) {
 
 exports.default = Tabs;
 
-},{"./css/Tabs.css":192,"classnames":16,"react":159}],179:[function(require,module,exports){
+},{"./css/Tabs.css":195,"classnames":16,"react":161}],182:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57837,35 +58390,35 @@ var Temperature = function (_React$Component) {
 
 exports.default = Temperature;
 
-},{"./MessageBox":169,"./ParameterBox":171,"./ParameterPanes":173,"./Plot":174,"./Tabs":178,"./css/Experiment.css":182,"classnames":16,"immutability-helper":122,"react":159}],180:[function(require,module,exports){
+},{"./MessageBox":172,"./ParameterBox":174,"./ParameterPanes":176,"./Plot":177,"./Tabs":181,"./css/Experiment.css":185,"classnames":16,"immutability-helper":124,"react":161}],183:[function(require,module,exports){
 var css = "html,\nbody {\n  padding: 0px;\n  margin: 0px;\n  font-family: Helvetica Neue,Helvetica,Arial,sans-serif;\n  font-size: 15px;\n  cursor: default;\n  user-select: none;\n}\n.app-container {\n  height: 100vh;\n  width: 100vw;\n  background-color: #ededed;\n  display: flex;\n  flex-direction: column;\n}\n.app-container>.tab-bar {\n  background-color: #617463;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\App.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":15}],181:[function(require,module,exports){
-var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":15}],182:[function(require,module,exports){
-var css = ".tab-content {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n}\n.plots-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-controls-row {\n  flex-basis: 30%;\n  display: flex;\n  flex-direction: row;\n}\n.parameters-block {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.own-parameters-parcontrols-row {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n.controls-block {\n  flex-basis: 30%;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
-},{"browserify-css":15}],183:[function(require,module,exports){
-var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 2px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],184:[function(require,module,exports){
-var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".button-group {\n  display: flex;\n  flex-direction: row;\n}\n.button-group>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.button-group>.button:last-child {\n  margin-right: 0;\n}\n.button {\n  border: 1px solid #666;\n  border-radius: 5px;\n  padding: 5px;\n  /*inside border*/\n  text-align: center;\n  color: #000;\n  background-color: #fff;\n  cursor: default;\n}\n.button:hover {\n  border-color: #62ab37;\n  background-color: #f8f8f8;\n}\n.button:active {\n  box-shadow: inset 0px 1px 5px #62ab37;\n}\n.button.disabled {\n  color: #666;\n}\n.button.disabled:hover {\n  border-color: #666;\n  background-color: #fff;\n}\n.button.disabled:active {\n  box-shadow: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Buttons.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],185:[function(require,module,exports){
-var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".tab-content {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n}\n.plots-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  justify-content: center;\n}\n.parameters-controls-row {\n  flex-basis: 30%;\n  display: flex;\n  flex-direction: row;\n}\n.parameters-block {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.own-parameters-parcontrols-row {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n}\n.controls-block {\n  flex-basis: 30%;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.parameters-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  align-content: flex-start;\n  align-items: flex-start;\n  margin: 0px 3px 3px;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n}\n.own-parameters {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n}\n.shared-parameters {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n}\n.own-parameters .title-tab-bar {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.par-box-title {\n  font-size: 16px;\n  padding: 2px;\n  margin-right: 3px;\n}\n.own-parameters .tab-bar {\n  background-color: white;\n}\n.own-parameters .tab-link {\n  border: 1px solid #A8A8A8;\n  padding: 2px 5px;\n  margin: 2px 1px;\n  min-width: 60px;\n  color: #617463;\n}\n.own-parameters .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.own-parameters .tab-link:active,\n.own-parameters .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n.own-parameters .parameters-container {\n  background-color: #eee;\n}\n.shared-parameters .parameters-container {\n  background-color: #eee;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Experiment.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],186:[function(require,module,exports){
-var css = ".parameter-controls {\n  flex-basis: 25%;\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n.parameter-controls-container > *:not(:last-child) {\n  margin-bottom: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".export-controls {\n  display: flex;\n  flex-direction: row;\n  margin-top: 2px;\n}\n.export-controls>.Select {\n  flex-grow: 1;\n  flex-basis: 0;\n  margin-right: 2px;\n}\n.export-controls>.button {\n  flex-grow: 1;\n  flex-basis: 0;\n}\n/* make select drop down instead of up */\n.export-controls>.Select .Select-menu-outer {\n  top: 100%;\n  bottom: auto;\n}\n.export-controls>.Select .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.export-controls>.Select.is-open>.Select-control .Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-width: 0px 5px 5px;\n}\n.export-controls>.Select.is-open>.Select-control {\n  border-radius: 5px;\n  border-bottom-left-radius: 0;\n  border-bottom-right-radius: 0;\n}\n.export-controls>.Select .Select-menu-outer {\n  border-bottom-right-radius: 5px;\n  border-bottom-left-radius: 5px;\n  border-top-right-radius: 0;\n  border-top-left-radius: 0;\n  border-top-color: #e6e6e6;\n  border-bottom-color: #666;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ExportControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],187:[function(require,module,exports){
-var css = ".plot-container {\n  flex-basis: 50%;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".message-box {\n  background: white;\n  margin-top: 5px;\n  padding: 5px;\n  overflow-y: scroll;\n  height: 2em;\n  flex-grow: 1;\n  flex-shrink: 0;\n}\n.message-box div {\n  opacity: 0.7;\n}\n.message-box div:nth-last-child(2) {\n  opacity: 1.0;\n}\n.message-box .error {\n  color: #ff0000;\n}\n.message-box .warning {\n  color: #dd6c00;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\MessageBox.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],188:[function(require,module,exports){
-var css = ".progress-container {\n  margin-top: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter {\n  display: flex;\n  flex-direction: row;\n  justify-content: flex-end;\n  align-items: center;\n  width: 200px;\n  margin-right: 20px;\n  margin-top: 5px;\n}\n.par-name {\n  margin-right: 5px;\n}\n.par-unit {\n  width: 40px;\n}\n.par-input {\n  width: 60px;\n  margin-right: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Parameter.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],189:[function(require,module,exports){
-var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".parameter-controls {\n  flex-basis: 25%;\n  display: flex;\n  flex-direction: column;\n}\n.parameter-controls-title {\n  padding: 5px 2px;\n  font-size: 16px;\n}\n.parameter-controls-container {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-between;\n  background-color: #eee;\n  //box-shadow: 0.5px 0.5px 3px 0px #aaa;\n  margin: 0px 3px 3px;\n  padding: 5px 2px 5px;\n}\n.parameter-controls-container > *:not(:last-child) {\n  margin-bottom: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\ParameterControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],190:[function(require,module,exports){
-var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".plot-container {\n  flex-basis: 50%;\n  display: flex;\n  flex-direction: column;\n  background-color: white;\n  margin: 3px;\n  padding: 3px;\n  box-shadow: inset 0 0 3px #aaa;\n}\n.plot-controls {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n}\n.plot {\n  flex-grow: 1;\n}\n.plot-export-controls {\n  flex-grow: 1;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: flex-end;\n}\n.plot-controls .tab-link {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n  border-color: #a8a8a8;\n  color: #617463;\n}\n.plot-export-controls .tab-link {\n  min-width: 40px;\n}\n.plot-export-controls .button {\n  font-size: 15px;\n  padding: 1px 5px;\n  margin: 1px;\n  min-width: 60px;\n}\n.plot-controls .tab-link:hover {\n  border-color: #62ab37;\n  background-color: #F8F8F8;\n}\n.plot-controls .tab-link:active,\n.plot-controls .tab-link.active {\n  background-color: #426735;\n  border-color: #426735;\n  color: #fff;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Plot.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],191:[function(require,module,exports){
-var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".progress-container {\n  margin-top: 2px;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Progress.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],192:[function(require,module,exports){
-var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 2px 5px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".run-controls {\n  display: flex;\n  flex-direction: row;\n}\n.run-controls>.button {\n  flex-grow: 1;\n  margin-right: 2px;\n}\n.run-controls>.button:last-child {\n  margin-right: 0;\n}\n.run-controls>.abort:hover {\n  border-color: #c97064;\n}\n.run-controls>.abort:active {\n  box-shadow: inset 0px 1px 5px #c97064;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\RunControls.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],193:[function(require,module,exports){
-var css = "rect {\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  vector-effect: non-scaling-stroke;\n}\ntext {\n  font-family: sans-serif;\n  fill: black;\n}\n.axis path,\n.axis line {\n  vector-effect: non-scaling-stroke;\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  fill: none;\n  stroke: black;\n}\n.axis .tick text {\n  font-size: 12px;\n}\n.focus text {\n  fill: white;\n  fill-opacity: 1;\n  whitespace: pre;\n}\nline.focus {\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\n.overlay {\n  fill: none;\n  pointer-events: all;\n}\nline.border {\n  stroke: black;\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\nrect.zoom {\n  stroke: steelblue;\n  fill-opacity: 0.5;\n}\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\d3plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+var css = ".Select {\n  position: relative;\n  box-sizing: border-box;\n}\n.Select-control {\n  box-sizing: border-box;\n  width: 100%;\n  position: relative;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  border: 1px solid #666;\n  border-radius: 5px;\n  background-color: #fff;\n  height: 29px;\n}\n.Select.is-open>.Select-control {\n  border-top-left-radius: 0;\n  border-top-right-radius: 0;\n}\n.Select-multi-value-wrapper {\n  flex-grow: 1;\n}\n.Select-input input {\n  border: none;\n  outline: none;\n  font-size: 15px;\n}\n.Select-input {\n  box-sizing: border-box;\n  width: 100%;\n  padding: 0px 5px;\n  line-height: 27px;\n}\n.Select-placeholder,\n.Select-value {\n  bottom: 0;\n  left: 0;\n  padding: 0px 6px;\n  line-height: 27px;\n  position: absolute;\n  right: 0;\n  top: 0;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.Select-placeholder {\n  color: #aaa;\n}\n.Select-value {\n  color: #000;\n}\n.Select-clear-zone {\n  -webkit-animation: Select-animation-fadeIn .2s;\n  -o-animation: Select-animation-fadeIn .2s;\n  animation: Select-animation-fadeIn .2s;\n  color: #999;\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 17px;\n}\n.Select-clear-zone:hover {\n  color: #d0021b;\n}\n.Select-clear {\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.Select-arrow-zone {\n  cursor: pointer;\n  display: table-cell;\n  position: relative;\n  text-align: center;\n  vertical-align: middle;\n  width: 25px;\n}\n.Select-arrow-zone:hover>.Select-arrow {\n  border-top-color: #666;\n}\n.Select-arrow {\n  top: -3px;\n  border-color: transparent transparent #999;\n  border-style: solid;\n  border-width: 0px 5px 5px;\n  display: inline-block;\n  height: 0;\n  width: 0;\n  position: relative;\n}\n.Select.is-open>.Select-control .Select-arrow {\n  top: 0;\n  border-color: #999 transparent transparent;\n  border-width: 5px 5px 2.5px;\n}\n.Select-menu-outer {\n  border-top-right-radius: 5px;\n  border-top-left-radius: 5px;\n  background-color: #fff;\n  border: 1px solid #666;\n  border-bottom-color: #e6e6e6;\n  box-shadow: 0 1px 0 rgba(0,0,0,.06);\n  box-sizing: border-box;\n  margin-bottom: -1px;\n  max-height: 200px;\n  position: absolute;\n  bottom: 100%;\n  width: 100%;\n  z-index: 1;\n  -webkit-overflow-scrolling: touch;\n}\n.Select-menu {\n  max-height: 198px;\n  overflow-y: auto;\n}\n.Select-option {\n  box-sizing: border-box;\n  color: #333;\n  cursor: pointer;\n  display: block;\n  padding: 0px 6px;\n  line-height: 27px;\n}\n.Select-option.is-focused {\n  background-color: #ebf5ff;\n  background-color: rgba(0,126,255,.08);\n  color: #333;\n}\n.Select-option.is-selected {\n  background-color: #f5faff;\n  background-color: rgba(0,126,255,.04);\n  color: #333;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Select.css" }, { "insertAt": "bottom" })); module.exports = css;
 },{"browserify-css":15}],194:[function(require,module,exports){
+var css = ".tab-panes {\n  flex-grow: 1;\n  display: flex;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\TabPanes.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":15}],195:[function(require,module,exports){
+var css = ".tab-bar {\n  display: inline-block;\n}\n.tab-link {\n  padding: 2px 5px;\n  margin: 2px 2px;\n  float: left;\n  border: 1px solid white;\n  border-radius: 5px;\n  text-align: center;\n  min-width: 100px;\n  color: #fff;\n  font-family: Helvetica, sans-serif;\n  font-size: 16px;\n  font-weight: 80;\n  transition: 0.3s;\n}\n.tab-link:hover {\n  border-color: #62AB37;\n}\n.tab-link:active,\n.tab-link.active {\n  background-color: white;\n  border-color: #617463;\n  color: #426735;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\Tabs.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":15}],196:[function(require,module,exports){
+var css = "rect {\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  vector-effect: non-scaling-stroke;\n}\ntext {\n  font-family: sans-serif;\n  fill: black;\n}\n.axis path,\n.axis line {\n  vector-effect: non-scaling-stroke;\n  shape-rendering: crispEdges;\n  stroke-width: 1;\n  fill: none;\n  stroke: black;\n}\n.axis .tick text {\n  font-size: 12px;\n}\n.focus text {\n  fill: white;\n  fill-opacity: 1;\n  whitespace: pre;\n}\nline.focus {\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\n.overlay {\n  fill: none;\n  pointer-events: all;\n}\nline.border {\n  stroke: black;\n  vector-effect: non-scaling-stroke;\n  stroke-width: 1;\n  shape-rendering: crispEdges;\n}\nrect.zoom {\n  stroke: steelblue;\n  fill-opacity: 0.5;\n}\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n"; (require("browserify-css").createStyle(css, { "href": "src\\css\\d3plot.css" }, { "insertAt": "bottom" })); module.exports = css;
+},{"browserify-css":15}],197:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -58252,7 +58805,7 @@ function d3plot(svg, plotDef, width, height) {
   }
 }
 
-},{"d3":121,"d3-xyzoom":119}],195:[function(require,module,exports){
+},{"d3":122,"d3-xyzoom":120}],198:[function(require,module,exports){
 'use strict';
 
 var _reactDom = require('react-dom');
@@ -58271,7 +58824,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 _reactDom2.default.render(_react2.default.createElement(_App2.default, { server: 'ws://' + window.location.hostname + ':8765' }), document.getElementById('app'));
 
-},{"./App":166,"react":159,"react-dom":138}],196:[function(require,module,exports){
+},{"./App":169,"react":161,"react-dom":140}],199:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -58304,7 +58857,7 @@ function decode_plot_data(data) {
 exports.decode_plot_data = decode_plot_data;
 exports.decode_data = decode_data;
 
-},{}],197:[function(require,module,exports){
+},{}],200:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -58323,7 +58876,7 @@ function resetIdCounter() {
   current = 0;
 }
 
-},{}],198:[function(require,module,exports){
+},{}],201:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -58340,4 +58893,466 @@ function shortUID() {
     return firstPart + secondPart;
 }
 
-},{}]},{},[195]);
+},{}],202:[function(require,module,exports){
+'use strict';
+
+// modified from https://github.com/Hypercubed/svgsaver
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ('value' in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError('Cannot call a class as a function');
+  }
+}
+
+var _computedStyles = require('computed-styles');
+
+var _computedStyles2 = _interopRequireDefault(_computedStyles);
+
+var _fileSaver = require('file-saver');
+
+var _fileSaver2 = _interopRequireDefault(_fileSaver);
+
+var svgStyles = { // Whitelist of CSS styles and default values
+  'alignment-baseline': 'auto',
+  'baseline-shift': 'baseline',
+  'clip': 'auto',
+  'clip-path': 'none',
+  'clip-rule': 'nonzero',
+  'color': 'rgb(51, 51, 51)',
+  'color-interpolation': 'srgb',
+  'color-interpolation-filters': 'linearrgb',
+  'color-profile': 'auto',
+  'color-rendering': 'auto',
+  'cursor': 'auto',
+  'direction': 'ltr',
+  'display': 'inline',
+  'dominant-baseline': 'auto',
+  'enable-background': '',
+  'fill': 'rgb(0, 0, 0)',
+  'fill-opacity': '1',
+  'fill-rule': 'nonzero',
+  'filter': 'none',
+  'flood-color': 'rgb(0, 0, 0)',
+  'flood-opacity': '1',
+  'font': '',
+  'font-family': 'normal',
+  'font-size': 'medium',
+  'font-size-adjust': 'auto',
+  'font-stretch': 'normal',
+  'font-style': 'normal',
+  'font-variant': 'normal',
+  'font-weight': '400',
+  'glyph-orientation-horizontal': '0deg',
+  'glyph-orientation-vertical': 'auto',
+  'image-rendering': 'auto',
+  'kerning': 'auto',
+  'letter-spacing': '0',
+  'lighting-color': 'rgb(255, 255, 255)',
+  'marker': '',
+  'marker-end': 'none',
+  'marker-mid': 'none',
+  'marker-start': 'none',
+  'mask': 'none',
+  'opacity': '1',
+  'overflow': 'visible',
+  'paint-order': 'fill',
+  'pointer-events': 'auto',
+  'shape-rendering': 'auto',
+  'stop-color': 'rgb(0, 0, 0)',
+  'stop-opacity': '1',
+  'stroke': 'none',
+  'stroke-dasharray': 'none',
+  'stroke-dashoffset': '0',
+  'stroke-linecap': 'butt',
+  'stroke-linejoin': 'miter',
+  'stroke-miterlimit': '4',
+  'stroke-opacity': '1',
+  'stroke-width': '1',
+  'text-anchor': 'start',
+  'text-decoration': 'none',
+  'text-rendering': 'auto',
+  'unicode-bidi': 'normal',
+  'visibility': 'visible',
+  'word-spacing': '0px',
+  'writing-mode': 'lr-tb'
+};
+
+var svgAttrs = [// white list of attributes
+'id', 'xml: base', 'xml: lang', 'xml: space', // Core
+'height', 'result', 'width', 'x', 'y', // Primitive
+'xlink: href', // Xlink attribute
+'href', 'style', 'class', 'd', 'pathLength', // Path
+'x', 'y', 'dx', 'dy', 'glyphRef', 'format', 'x1', 'y1', 'x2', 'y2', 'rotate', 'textLength', 'cx', 'cy', 'r', 'rx', 'ry', 'fx', 'fy', 'width', 'height', 'refX', 'refY', 'orient', 'markerUnits', 'markerWidth', 'markerHeight', 'maskUnits', 'transform', 'viewBox', 'version', // Container
+'preserveAspectRatio', 'xmlns', 'points', // Polygons
+'offset', 'xlink:href'];
+
+// http://www.w3.org/TR/SVG/propidx.html
+// via https://github.com/svg/svgo/blob/master/plugins/_collections.js
+var inheritableAttrs = ['clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cursor', 'direction', 'fill', 'fill-opacity', 'fill-rule', 'font', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'glyph-orientation-horizontal', 'glyph-orientation-vertical', 'image-rendering', 'kerning', 'letter-spacing', 'marker', 'marker-end', 'marker-mid', 'marker-start', 'pointer-events', 'shape-rendering', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'text-anchor', 'text-rendering', 'transform', 'visibility', 'white-space', 'word-spacing', 'writing-mode'];
+
+/* Some simple utilities */
+
+var isFunction = function isFunction(a) {
+  return typeof a === 'function';
+};
+var isDefined = function isDefined(a) {
+  return typeof a !== 'undefined';
+};
+var isUndefined = function isUndefined(a) {
+  return typeof a === 'undefined';
+};
+var isObject = function isObject(a) {
+  return a !== null && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object';
+};
+
+// from https://github.com/npm-dom/is-dom/blob/master/index.js
+function isNode(val) {
+  if (!isObject(val)) {
+    return false;
+  }
+  if (isDefined(window) && isObject(window.Node)) {
+    return val instanceof window.Node;
+  }
+  return typeof val.nodeType === 'number' && typeof val.nodeName === 'string';
+}
+
+/* Some utilities for cloning SVGs with inline styles */
+// Removes attributes that are not valid for SVGs
+function cleanAttrs(el, attrs, styles) {
+  // attrs === false - remove all, attrs === true - allow all
+  if (attrs === true) {
+    return;
+  }
+
+  Array.prototype.slice.call(el.attributes).forEach(function (attr) {
+    // remove if it is not style nor on attrs  whitelist
+    // keeping attributes that are also styles because attributes override
+    if (attr.specified) {
+      if (attrs === '' || attrs === false || isUndefined(styles[attr.name]) && attrs.indexOf(attr.name) < 0) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+}
+
+function cleanStyle(tgt, parentStyles) {
+  parentStyles = parentStyles || tgt.parentNode.style;
+  inheritableAttrs.forEach(function (key) {
+    if (tgt.style[key] === parentStyles[key]) {
+      tgt.style.removeProperty(key);
+    }
+  });
+}
+
+function domWalk(src, tgt, down, up) {
+  down(src, tgt);
+  var children = src.childNodes;
+  for (var i = 0; i < children.length; i++) {
+    domWalk(children[i], tgt.childNodes[i], down, up);
+  }
+  up(src, tgt);
+}
+
+// Clones an SVGElement, copies approprate atttributes and styles.
+function cloneSvg(src, attrs, styles) {
+  var clonedSvg = src.cloneNode(true);
+
+  domWalk(src, clonedSvg, function (src, tgt) {
+    if (tgt.style) {
+      (0, _computedStyles2['default'])(src, tgt.style, styles);
+    }
+  }, function (src, tgt) {
+    if (tgt.style && tgt.parentNode) {
+      cleanStyle(tgt);
+    }
+    if (tgt.attributes) {
+      cleanAttrs(tgt, attrs, styles);
+    }
+  });
+
+  return clonedSvg;
+}
+
+/* global Image, MouseEvent */
+
+/* Some simple utilities for saving SVGs, including an alternative to saveAs */
+
+// detection
+var DownloadAttributeSupport = typeof document !== 'undefined' && 'download' in document.createElement('a') && typeof MouseEvent === 'function';
+
+function saveUri(uri, name) {
+  if (DownloadAttributeSupport) {
+    var dl = document.createElement('a');
+    dl.setAttribute('href', uri);
+    dl.setAttribute('download', name);
+    // firefox doesn't support `.click()`...
+    // from https://github.com/sindresorhus/multi-download/blob/gh-pages/index.js
+    dl.dispatchEvent(new MouseEvent('click'));
+    return true;
+  } else if (typeof window !== 'undefined') {
+    window.open(uri, '_blank', '');
+    return true;
+  }
+
+  return false;
+}
+
+function createCanvas(uri, name, cb) {
+  var canvas = document.createElement('canvas');
+  var context = canvas.getContext('2d');
+
+  var image = new Image();
+  image.onload = function () {
+    canvas.width = image.width;
+    canvas.height = image.height;
+    context.drawImage(image, 0, 0);
+
+    cb(canvas);
+  };
+  image.src = uri;
+  return true;
+}
+
+function savePng(uri, name) {
+  return createCanvas(uri, name, function (canvas) {
+    if (isDefined(canvas.toBlob)) {
+      canvas.toBlob(function (blob) {
+        _fileSaver2['default'].saveAs(blob, name);
+      });
+    } else {
+      saveUri(canvas.toDataURL('image/png'), name);
+    }
+  });
+}
+
+/* global Blob */
+
+var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
+
+// inheritable styles may be overridden by parent, always copy for now
+inheritableAttrs.forEach(function (k) {
+  if (k in svgStyles) {
+    svgStyles[k] = true;
+  }
+});
+
+var SvgSaver = function () {
+  _createClass(SvgSaver, null, [{
+    key: 'getSvg',
+    value: function getSvg(el) {
+      if (isUndefined(el) || el === '') {
+        el = document.body.querySelector('svg');
+      } else if (typeof el === 'string') {
+        el = document.body.querySelector(el);
+      }
+      if (el && el.tagName !== 'svg') {
+        el = el.querySelector('svg');
+      }
+      if (!isNode(el)) {
+        throw new Error('svgsaver: Can\'t find an svg element');
+      }
+      return el;
+    }
+  }, {
+    key: 'getFilename',
+    value: function getFilename(el, filename, ext) {
+      if (!filename || filename === '') {
+        filename = (el.getAttribute('title') || 'untitled') + '.' + ext;
+      }
+      return encodeURI(filename);
+    }
+
+    /**
+    * SvgSaver constructor.
+    * @constructs SvgSaver
+    * @api public
+    *
+    * @example
+    * var svgsaver = new SvgSaver();                      // creates a new instance
+    * var svg = document.querySelector('#mysvg');         // find the SVG element
+    * svgsaver.asSvg(svg);                                // save as SVG
+    */
+  }]);
+
+  function SvgSaver() {
+    var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    var attrs = _ref.attrs;
+    var styles = _ref.styles;
+
+    _classCallCheck(this, SvgSaver);
+
+    this.attrs = attrs === undefined ? svgAttrs : attrs;
+    this.styles = styles === undefined ? svgStyles : styles;
+  }
+
+  /**
+  * Return the cloned SVG after cleaning
+  *
+  * @param {SVGElement} el The element to copy.
+  * @returns {SVGElement} SVG text after cleaning
+  * @api public
+  */
+
+  _createClass(SvgSaver, [{
+    key: 'cloneSVG',
+    value: function cloneSVG(el) {
+      el = SvgSaver.getSvg(el);
+      var svg = cloneSvg(el, this.attrs, this.styles);
+
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+      svg.setAttribute('version', 1.1);
+
+      // height and width needed to download in FireFox
+      //svg.setAttribute('width', svg.getAttribute('width') || '500');
+      //svg.setAttribute('height', svg.getAttribute('height') || '900');
+
+      return svg;
+    }
+
+    /**
+    * Return the SVG HTML text after cleaning
+    *
+    * @param {SVGElement} el The element to copy.
+    * @returns {String} SVG text after cleaning
+    * @api public
+    */
+  }, {
+    key: 'getHTML',
+    value: function getHTML(el) {
+      var svg = this.cloneSVG(el);
+
+      var html = svg.outerHTML;
+      if (html) {
+        return html;
+      }
+
+      // see http://stackoverflow.com/questions/19610089/unwanted-namespaces-on-svg-markup-when-using-xmlserializer-in-javascript-with-ie
+      svg.removeAttribute('xmlns');
+      svg.removeAttribute('xmlns:xlink');
+
+      svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', 'http://www.w3.org/2000/svg');
+      svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+      return new window.XMLSerializer().serializeToString(svg);
+    }
+
+    /**
+    * Return the SVG, after cleaning, as a text/xml Blob
+    *
+    * @param {SVGElement} el The element to copy.
+    * @returns {Blog} SVG as a text/xml Blob
+    * @api public
+    */
+  }, {
+    key: 'getBlob',
+    value: function getBlob(el) {
+      var html = this.getHTML(el);
+      return new Blob([html], { type: 'text/xml' });
+    }
+
+    /**
+    * Return the SVG, after cleaning, as a image/svg+xml;base64 URI encoded string
+    *
+    * @param {SVGElement} el The element to copy.
+    * @returns {String} SVG as image/svg+xml;base64 URI encoded string
+    * @api public
+    */
+  }, {
+    key: 'getUri',
+    value: function getUri(el) {
+      var html = encodeURIComponent(this.getHTML(el));
+      if (isDefined(window.btoa)) {
+        // see http://stackoverflow.com/questions/23223718/failed-to-execute-btoa-on-window-the-string-to-be-encoded-contains-characte
+        return 'data:image/svg+xml;base64,' + window.btoa(unescape(html));
+      }
+      return 'data:image/svg+xml,' + html;
+    }
+
+    /**
+    * Saves the SVG as a SVG file using method compatible with the browser
+    *
+    * @param {SVGElement} el The element to copy.
+    * @param {string} [filename] The filename to save, defaults to the SVG title or 'untitled.svg'
+    * @returns {SvgSaver} The SvgSaver instance
+    * @api public
+    */
+  }, {
+    key: 'asSvg',
+    value: function asSvg(el, filename) {
+      el = SvgSaver.getSvg(el);
+      filename = SvgSaver.getFilename(el, filename, 'svg');
+      if (isFunction(Blob)) {
+        return _fileSaver2['default'].saveAs(this.getBlob(el), filename);
+      }
+      return saveUri(this.getUri(el), filename);
+    }
+
+    /**
+    * Gets the SVG as a PNG data URI.
+    *
+    * @param {SVGElement} el The element to copy.
+    * @param {Function} cb Call back called with the PNG data uri.
+    * @api public
+    */
+  }, {
+    key: 'getPngUri',
+    value: function getPngUri(el, cb) {
+      if (isIE11) {
+        console.error('svgsaver: getPngUri not supported on IE11');
+      }
+      el = SvgSaver.getSvg(el);
+      var filename = SvgSaver.getFilename(el, null, 'png');
+      return createCanvas(this.getUri(el), filename, function (canvas) {
+        cb(canvas.toDataURL('image/png'));
+      });
+    }
+
+    /**
+    * Saves the SVG as a PNG file using method compatible with the browser
+    *
+    * @param {SVGElement} el The element to copy.
+    * @param {string} [filename] The filename to save, defaults to the SVG title or 'untitled.png'
+    * @returns {SvgSaver} The SvgSaver instance
+    * @api public
+    */
+  }, {
+    key: 'asPng',
+    value: function asPng(el, filename) {
+      if (isIE11) {
+        console.error('svgsaver: asPng not supported on IE11');
+      }
+      el = SvgSaver.getSvg(el);
+      filename = SvgSaver.getFilename(el, filename, 'png');
+      return savePng(this.getUri(el), filename);
+    }
+  }]);
+
+  return SvgSaver;
+}();
+
+exports['default'] = SvgSaver;
+module.exports = exports['default'];
+
+},{"computed-styles":17,"file-saver":123}]},{},[198]);
