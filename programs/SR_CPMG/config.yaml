@@ -60,7 +60,7 @@ parameters:
   width_90:
     offset: 0xa8
     dtype: uint32
-    min: 1
+    min: 2
     max: 500
     unit: us
     scaling: 1000
@@ -69,7 +69,7 @@ parameters:
   width_180:
     offset: 0xac
     dtype: uint32
-    min: 1
+    min: 2
     max: 500
     unit: us
     scaling: 1000

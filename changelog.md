@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.3d] - 2020-12-07
+### Fixed
+- T1 FID, SR-CPMG, IR-CPMG: timing issue with short pulses (<16us), can now use RF pulses down to 2us.
+
 ## [1.2.3c] - 2020-11-13
 ### Fixed
 - DIFF CPMG T2 fitting issue.
