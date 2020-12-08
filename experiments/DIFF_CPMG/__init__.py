@@ -15,6 +15,7 @@ import numpy as np
 class Experiment(BaseExperiment): # must be named 'Experiment'
     def override(self):
         del self.par_def['echo_time']
+        del self.par_def['echo_count']
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
@@ -23,22 +24,25 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             np.log10(self.par['TE_end']),
             int(self.par['TE_steps']),
             endpoint=True)).astype(np.int)
-        self.data = None
+        self.echo_counts = np.round(np.logspace(
+            np.log10(self.par['NE_start']),
+            np.log10(self.par['NE_end']),
+            int(self.par['TE_steps']),
+            endpoint=True)).astype(np.int)
+
+        self.data = np.zeros((self.echo_counts.shape[0], self.echo_counts.max()), dtype=np.complex64)
         self.T2s = []
         self.last_index = 0
-        for i, TE in enumerate(self.echo_times):
+        for i, (TE, NE) in enumerate(zip(self.echo_times, self.echo_counts)):
             if progress_handler is not None:
                 progress_handler(i, len(self.echo_times))
             self.programs['DIFF_CPMG'].set_par('echo_time', TE)
+            self.programs['DIFF_CPMG'].set_par('echo_count', NE)
             await self.programs['DIFF_CPMG'].run(message_handler=message_handler)
             run_data = self.programs['DIFF_CPMG'].data.view(np.complex64)
             samples = int(self.par['samples'])
-            echo_count = int(self.par['echo_count'])
-            y = np.mean(np.reshape(run_data, (echo_count, samples)), axis=1)
-            if self.data is None:
-                self.data = np.array([y])
-            else:
-                self.data = np.append(self.data, [y], axis=0)
+            y = np.mean(np.reshape(run_data, (NE, samples)), axis=1)
+            self.data[i, :NE] = y
 
             # exp fitting
             x = np.linspace(0, TE*1e-6 * len(y), len(y), endpoint=False)
@@ -56,14 +60,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             progress_handler(len(self.echo_times), len(self.echo_times))
 
     def export_Raw(self):
-        phase = np.angle(np.sum(self.raw_data()[0, :]))
+        phase = np.angle(np.sum(self.raw_data()[0, :self.echo_counts[0]]))
         data = self.raw_data() * np.exp(1j * -phase)
         data /= 1000000  # uV -> V
         TE_axis = np.array(self.echo_times)/1000000  # us -> s
         NE_axis = np.array(range(data.shape[1]))
         return {
             'echo_time_axis': TE_axis[:, np.newaxis],
-            'echo_number_axis': NE_axis[np.newaxis, :],
+            'echo_count_axis': self.echo_counts[:, np.newaxis],
+            'echo_index_axis': NE_axis[np.newaxis, :],
             'y_real': data.real,
             'y_imag': data.imag,
             'y_units': 'V',
@@ -71,7 +76,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         }
     
     def plot_CPMG(self):
-        y = self.autophase(self.raw_data()[self.last_index, :])
+        y = self.autophase(self.raw_data()[self.last_index, :self.echo_counts[self.last_index]])
         x = np.linspace(0, self.echo_times[self.last_index] * len(y), len(y), endpoint=False)
         y /= 1000000  # μV->V
         x /= 1000000  # μs->s

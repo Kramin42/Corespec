@@ -12,6 +12,14 @@ parameters:
     dtype: float
     unit: us
     group: TE
+  NE_start:
+    dtype: int
+    unit: ''
+    group: TE
+  NE_end:
+    dtype: int
+    unit: ''
+    group: TE
   TE_steps:
     dtype: int
     group: TE
