@@ -1,5 +1,16 @@
 <h1>Changelog</h1>
 
+<h2>[1.2.3e] - 2020-12-08</h2>
+
+<h3>Changed</h3>
+
+<ul>
+<li>Added variable echo count option to DIFF_CPMG experiment:
+The echo count will be log-spaced to the nearest integer between NE_start and NE_end.
+If the ratios TE_start:TE_end and NE_end:NE_start are the same, all CPMG trains will have the same duration.
+The exported data is a full 2D array, padded with zeroes, use the added 'echo_count_axis' column vector to read the correct length for each row.</li>
+</ul>
+
 <h2>[1.2.3d] - 2020-12-07</h2>
 
 <h3>Fixed</h3>

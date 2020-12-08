@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3e] - 2020-12-08
+### Changed
+- Added variable echo count option to DIFF\_CPMG experiment:
+The echo count will be log-spaced to the nearest integer between NE\_start and NE\_end.
+If the ratios TE\_start:TE\_end and NE\_end:NE\_start are the same, all CPMG trains will have the same duration.
+The exported data is a full 2D array, padded with zeroes, use the added 'echo\_count\_axis' column vector to read the correct length for each row.
+
 ## [1.2.3d] - 2020-12-07
 ### Fixed
 - T1 FID, SR-CPMG, IR-CPMG: timing issue with short pulses (<16us), can now use RF pulses down to 2us.
