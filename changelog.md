@@ -24,9 +24,9 @@
 ### Changed
 - Reworked GUI to better fit into various screen sizes.
 - Implemented T2 decay baseline correction for flow rate calculations.
-The baseline is determined by a multi-exponential (number set by "N_exp", 0 to disable) fit of the static decay CPMG curve.
-The "Static T2" experiment will internally save the baseline fit parameters, to be loaded by "Flow T2" (set "remove_baseline" to 1 to enable).
-Set "baseline_clip" to a small fraction (e.g. 0.1) to prevent over-amplification of noise with a rapidly decaying baseline.
+The baseline is determined by a multi-exponential (number set by "N\_exp", 0 to disable) fit of the static decay CPMG curve.
+The "Static T2" experiment will internally save the baseline fit parameters, to be loaded by "Flow T2" (set "remove\_baseline" to 1 to enable).
+Set "baseline\_clip" to a small fraction (e.g. 0.1) to prevent over-amplification of noise with a rapidly decaying baseline.
 - Improved disconnect/reconnect behaviour to allow operation without a client computer always connected.
 
 ### Fixed
@@ -42,7 +42,7 @@ Set "baseline_clip" to a small fraction (e.g. 0.1) to prevent over-amplification
 
 ## [1.1.13] - 2019-03-12
 ### Added
-- Flowmeter and Flow_T2 experiments now take the parameters flow\_crop,
+- Flowmeter and Flow\_T2 experiments now take the parameters flow\_crop,
   flow\_thresh\_l, and flow\_thresh\_h to define the region of the CPMG curve
   to be linearly fit. Use 0, 0.0, and 1.0 respectively to fit the whole curve.
 
@@ -81,7 +81,7 @@ reading is detected
 
 ## [1.1.6] - 2018-10-12
 ### Added
-- T1_FID experiment using inversion recovery with FID acquisition.
+- T1\_FID experiment using inversion recovery with FID acquisition.
 
 ## [1.1.5] - 2018-10-11
 ### Added
@@ -91,6 +91,6 @@ reading is detected
 ## [1.1.4] - 2018-09-28
 ### Added
 - FID Magnitude curve on time domain and frequency domain plots.
-- Estimated f_0 frequency in title of FID frequency domain plot.
+- Estimated f\_0 frequency in title of FID frequency domain plot.
 - Exported data files include parameter values.
 - CPMG SNR estimate message.
