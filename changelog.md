@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.5] - 2021-02-26
+### Changed
+- Parameterized Slope and Intercept calibration values for Pipe Pressure and Temperature.
+- Flowmeter: Clip Flow Mass in Flow plot to be non-negative. Exported data is not clipped.
+
 ## [1.2.4] - 2020-11-23
 ### Added
 - Support for external pipe temperature/pressure sensor, and monitoring plots in the Temperature tab.
