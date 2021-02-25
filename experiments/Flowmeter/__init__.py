@@ -303,15 +303,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Water',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['flow_water'][-10000:]}, {
+                    'y': np.clip(data['flow_water'][-10000:], 0, None)}, {
                     'name': 'Oil',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['flow_oil'][-10000:]}, {
+                    'y': np.clip(data['flow_oil'][-10000:], 0, None)}, {
                     'name': 'Gas',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['flow_gas'][-10000:]}],
+                    'y': np.clip(data['flow_gas'][-10000:], 0, None)}],
                 'layout': {
                     'title': 'Flow Readings',
                     'yaxis': {'title': 'Flow Mass (%s)' % data['flow_unit']},
