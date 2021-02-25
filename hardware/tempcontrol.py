@@ -32,12 +32,16 @@ amp_enabled = False
 parameters = {
     'setpoint': 30.0,
     'P': 0.5,
-    'I': 0.001
+    'I': 0.001,
+    'PT_Cal_A': 7.5,
+    'PT_Cal_B': -50,
+    'PP_Cal_A': 1.25,
+    'PP_Cal_B': -5
 }
 
 try:
     with open(os.path.join(dir_path, PAR_FILE), 'r') as f:
-        parameters = yaml.load(f.read())
+        parameters.update(yaml.load(f.read()))
 except Exception as e:
     logger.exception(e)
 
@@ -75,12 +79,12 @@ def handler_raw(cmd):
     if cmd[0:CMD_SIZE] == b'$IIA':
         data['name'] = 'pipe-pressure'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        data['value'] = (1.25*current - 5)*1000000  # MPa -> Pa
+        data['value'] = (parameters['PP_Cal_A']*current + parameters['PP_Cal_B'])*1000000  # MPa -> Pa
         data['time'] = int(time() - start_time)
     if cmd[0:CMD_SIZE] == b'$IIB':
         data['name'] = 'pipe-temperature'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        data['value'] = 7.5*current - 50
+        data['value'] = parameters['PT_Cal_A']*current + parameters['PT_Cal_B']
         data['time'] = int(time() - start_time)
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'
@@ -136,10 +140,12 @@ def amp_off():
     write(b'$AMPOFF#')
 
 def set_parameters(**pars):
+    global parameters
     for key in pars: # ensure they are floats
         pars[key] = float(pars[key])
+    parameters.update(pars)
     with open(os.path.join(dir_path, PAR_FILE), 'w') as f:
-        yaml.dump(pars, f, default_flow_style=False)
+        yaml.dump(parameters, f, default_flow_style=False)
     if not mcs_ready:
         raise Exception('Temperature control not ready')
     logger.debug('setting tempcontrol parameters %.2f %.3f %.5f' % (pars['setpoint'], pars['P'], pars['I']))

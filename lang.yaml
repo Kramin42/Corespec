@@ -104,3 +104,11 @@ english:
       label: Flow Vel Cal
     tube_ID:
       label: Tube ID
+    PP_Cal_A:
+      label: Slope
+    PP_Cal_B:
+      label: Intercept
+    PT_Cal_A:
+      label: Slope
+    PT_Cal_B:
+      label: Intercept

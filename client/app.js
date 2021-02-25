@@ -56623,7 +56623,11 @@ var App = function (_React$Component) {
             group: 'basic'
           },
           P: { group: 'advanced' },
-          I: { group: 'advanced' }
+          I: { group: 'advanced' },
+          PT_Cal_A: { group: 'pipe temp. cal.' },
+          PT_Cal_B: { group: 'pipe temp. cal.' },
+          PP_Cal_A: { group: 'pipe pressure cal.' },
+          PP_Cal_B: { group: 'pipe pressure cal.' }
         }
       }];
 
