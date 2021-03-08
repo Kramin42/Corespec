@@ -145,13 +145,6 @@ parameters:
     unit: us
     scaling: 1000
     group: gradient
-  grad_pre_time:
-    dtype: uint32
-    min: 10
-    max: 4000000000
-    unit: us
-    scaling: 1000
-    group: gradient
   grad_stab_time:
     dtype: uint32
     min: 10
@@ -185,20 +178,20 @@ derived_parameters:
   T4:
     offset: 0x140
     dtype: uint32
-    value: ${{grad_pre_time}}
+    value: 10000
   T5:
     offset: 0x144
     dtype: uint32
-    value: ${{diff_time} - ({width_90} + {width_180})/2 - {damp_time} - {grad_pre_time} - ({grad_time}+2*{grad_ramp_time})}
+    value: ${{diff_time} - ({width_90} + {width_180})/2 - {damp_time} - 10000 - ({grad_time}+2*{grad_ramp_time})}
     min: ${{grad_stab_time}}
   T6:
     offset: 0x148
     dtype: uint32
-    value: ${{grad_pre_time}}
+    value: 10000
   T7:
     offset: 0x14c
     dtype: uint32
-    value: ${{diff_time} - {width_180}/2 - {damp_time} - {grad_pre_time} - ({grad_time}+2*{grad_ramp_time}) + {echo_shift} - 7*{dwell_time}*10 - {samples}*{dwell_time}*5}
+    value: ${{diff_time} - {width_180}/2 - {damp_time} - 10000 - ({grad_time}+2*{grad_ramp_time}) + {echo_shift} - 7*{dwell_time}*10 - {samples}*{dwell_time}*5}
     min: ${{grad_stab_time}}
   duty_cycle:
     value: ${({width_180}*{echo_count})/{rep_time}}
