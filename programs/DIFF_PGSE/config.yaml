@@ -82,12 +82,6 @@ parameters:
     scaling: 1000
     shared: true
     group: pulse
-  echo_time:
-    dtype: uint32
-    min: 1
-    unit: us
-    scaling: 1000
-    group: pulse
   echo_shift:
     dtype: int32
     unit: us
@@ -119,7 +113,7 @@ parameters:
     dtype: uint32
     min: 1
     group: pulse
-  phase_grad:
+  grad_amp:
     offset: 0x10c
     dtype: int32
     min: -524288
@@ -127,8 +121,30 @@ parameters:
     group: gradient
   grad_time:
     dtype: uint32
-    min: 1
-    max: 100000
+    min: 10
+    max: 1000000
+    unit: us
+    scaling: 1000
+    group: gradient
+  grad_ramp_time:
+    offset: 0x150
+    dtype: uint32
+    min: 50
+    max: 1000000
+    unit: us
+    scaling: 1000
+    group: gradient
+  grad_pre_time:
+    dtype: uint32
+    min: 10
+    max: 4000000000
+    unit: us
+    scaling: 1000
+    group: gradient
+  grad_stab_time:
+    dtype: uint32
+    min: 10
+    max: 4000000000
     unit: us
     scaling: 1000
     group: gradient
@@ -144,25 +160,25 @@ derived_parameters:
     offset: 0xb0
     dtype: uint32
     value: ${{grad_time}}
-    min: 50000
-  T2:
-    offset: 0xb4
-    dtype: uint32
-    value: ${{echo_time}/2 - ({width_90} + {width_180})/2 - {damp_time} - {grad_time}}
-    min: 20000
-  T3:
-    offset: 0xb8
-    dtype: uint32
-    value: ${{diff_time} - {echo_time}/2 + ({width_90} - {width_180})/2}
-    min: 2000
+    min: 10000
   T4:
     offset: 0x140
     dtype: uint32
-    value: ${{echo_time} - {diff_time} - {width_90}/2 - {damp_time} - {grad_time} - ({samples}/2 + 7)*{dwell_time}*10}
-    min: 20000
-  duty_cycle:
-    value: ${({width_180}+{width_90})/{rep_time}}
-    max: 0.1
+    value: ${{grad_pre_time}}
+  T5:
+    offset: 0x144
+    dtype: uint32
+    value: ${{diff_time} - ({width_90} + {width_180})/2 - {damp_time} - {grad_pre_time} - ({grad_time}+2*{grad_ramp_time})}
+    min: ${{grad_stab_time}}
+  T6:
+    offset: 0x148
+    dtype: uint32
+    value: ${{grad_pre_time}}
+  T7:
+    offset: 0x14c
+    dtype: uint32
+    value: ${{diff_time} - {width_180}/2 - {damp_time} - {grad_pre_time} - ({grad_time}+2*{grad_ramp_time}) + {echo_shift} - 7*{dwell_time}*10 - {samples}*{dwell_time}*5}
+    min: ${{grad_stab_time}}
   ignore_samples:
     offset: 0xc8
     dtype: uint32

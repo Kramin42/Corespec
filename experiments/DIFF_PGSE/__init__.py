@@ -16,7 +16,7 @@ import numpy as np
 
 class Experiment(BaseExperiment):  # must be named 'Experiment'
     def override(self):
-        del self.par_def['phase_grad']
+        del self.par_def['grad_amp']
 
     # must be async or otherwise return an awaitable
     async def run(self, progress_handler=None, message_handler=None):
@@ -26,7 +26,7 @@ class Experiment(BaseExperiment):  # must be named 'Experiment'
         for i,G in enumerate(grads):
             if progress_handler is not None:
                 progress_handler(i, len(grads))
-            self.programs['DIFF_PGSE'].set_par('phase_grad', G)
+            self.programs['DIFF_PGSE'].set_par('grad_amp', G)
             self.programs['DIFF_PGSE'].set_par('echo_shift', self.par['echo_shift'] + self.par['sample_shift'])
             await self.programs['DIFF_PGSE'].run(progress_handler=None, message_handler=message_handler)
             self.data[i] = self.programs['DIFF_PGSE'].data.view(np.complex64)
