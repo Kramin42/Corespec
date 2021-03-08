@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4] - 2021-03-08
+### Changed
+- Implemented trapezoidal gradients in DIFF\_PGSE and DIFF\_D-T2 experiments, 
+with new parameter grad\_ramp\_time.
+- Removed manual echo time setting from DIFF\_PGSE and renamed phase\_grad to grad\_amp
+to make the parameters identical to DIFF\_D-T2.
+
 ## [1.2.3e] - 2020-12-08
 ### Changed
 - Added variable echo count option to DIFF\_CPMG experiment:
