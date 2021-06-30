@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.5b] - 2021-06-30
+### Fixed
+- Hardware startup timing issue causing the amplifier to fail to turn on.
+The system will now retry until it receives confirmation.
+
 ## [1.2.5] - 2021-02-26
 ### Changed
 - Parameterized Slope and Intercept calibration values for Pipe Pressure and Temperature.
