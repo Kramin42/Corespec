@@ -126,7 +126,9 @@ def get_parameters():
 
 async def amp_on_delayed():
     await asyncio.sleep(AMP_COOLDOWN_TIME)
-    amp_on()
+    if not amp_enabled:
+        asyncio.ensure_future(amp_on_delayed())  # schedule retry in case it fails for hardware reasons
+        amp_on()
 
 def amp_on():
     if not mcs_ready:
