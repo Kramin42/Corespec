@@ -18,7 +18,7 @@ PACKET_SIZE = CMD_SIZE + DATA_SIZE
 
 PAR_FILE = 'tempcontrol.yaml'
 
-AMP_COOLDOWN_TIME = 10 # seconds
+AMP_COOLDOWN_TIME = 20 # seconds
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
