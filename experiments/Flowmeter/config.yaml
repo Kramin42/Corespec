@@ -128,12 +128,12 @@ parameters:
     dtype: float
     min: 0
     group: baseline_fit
-  ambient_pressure:
+  amb_pressure:
     dtype: float
     min: 0
     unit: MPa
     group: gas_PVT_conv
-  ambient_temp:
+  amb_temp:
     dtype: float
     min: 0
     unit: K

@@ -241,9 +241,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 gas_conv_flow_rate = gas_volume_conversion(
                     self.par['gas_type'],
                     self.par['DensG_r'],
-                    self.par['ambient_pressure'],
+                    self.par['amb_pressure'],
                     pressure,
-                    self.par['ambient_temp'],
+                    self.par['amb_temp'],
                     temperature,
                     gas_flow_rate)
                 logger.debug('Gas Flow Rate (m^3/day): %.3f' % gas_flow_rate)
