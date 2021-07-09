@@ -4,6 +4,7 @@ import serial_asyncio
 import logging
 from time import time
 from struct import pack, unpack
+from libraries.gaspvt import record_pressure, record_temperature
 
 import yaml
 
@@ -79,12 +80,16 @@ def handler_raw(cmd):
     if cmd[0:CMD_SIZE] == b'$IIA':
         data['name'] = 'pipe-pressure'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        data['value'] = (parameters['PP_Cal_A']*current + parameters['PP_Cal_B'])*1000000  # MPa -> Pa
+        pressure = (parameters['PP_Cal_A']*current + parameters['PP_Cal_B'])  # in MPa
+        record_pressure(pressure)
+        data['value'] = pressure*1000000  # MPa -> Pa
         data['time'] = int(time() - start_time)
     if cmd[0:CMD_SIZE] == b'$IIB':
         data['name'] = 'pipe-temperature'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
-        data['value'] = parameters['PT_Cal_A']*current + parameters['PT_Cal_B']
+        temperature = parameters['PT_Cal_A']*current + parameters['PT_Cal_B']  # in degrees Centigrade
+        record_temperature(temperature + 273.15)  # record in Kelvin
+        data['value'] = temperature
         data['time'] = int(time() - start_time)
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'

@@ -2,6 +2,7 @@ from experiment import BaseExperiment # required
 from libraries.invlaplace import getT2Spectrum, compress
 from hardware.system import set_flow_enabled
 from libraries.expfitting import fit_multi_exp, multi_exp
+from libraries.gaspvt import get_pressure, get_temperature, gas_volume_conversion
 
 # for debugging
 import logging
@@ -13,6 +14,7 @@ from time import time
 import asyncio
 
 FLOW_DATA_SIZE_LIMIT = 100000
+PLOT_DATA_SIZE_LIMIT = 10000
 
 # All methods have access to the programs object, self.programs
 # which contains the pulse programs listed in config.yaml
@@ -38,10 +40,13 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.prop_water = []
         self.prop_oil = []
         self.prop_gas = []
+        self.pressure = []
+        self.temperature = []
         self.flow_t = []
         self.flow_water = []
         self.flow_oil = []
         self.flow_gas = []
+        self.flow_gas_conv = []
         self.aborted = False
         flow_num = int(self.par['flow_num'])
         baseline_N_exp = int(self.par['N_exp'])
@@ -55,11 +60,14 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_water = self.flow_water[flow_num:]
                 self.flow_oil = self.flow_oil[flow_num:]
                 self.flow_gas = self.flow_gas[flow_num:]
+                self.flow_gas_conv = self.flow_gas_conv[flow_num:]
 
                 self.prop_t = self.prop_t[1:]
                 self.prop_water = self.prop_water[1:]
                 self.prop_oil = self.prop_oil[1:]
                 self.prop_gas = self.prop_gas[1:]
+                self.pressure = self.pressure[1:]
+                self.temperature = self.temperature[1:]
 
             message_handler('Switching flow OFF')
             set_flow_enabled(False)
@@ -91,6 +99,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['CPMG'].set_par('freq', float(self.par['freq']))
             self.programs['FID'].set_par('freq', float(self.par['freq']))
             logger.debug('Setting frequency to %s' % self.par['freq'])
+
+            # record pipe pressure and temperature
+            pressure = get_pressure()
+            temperature = get_temperature()
+            self.pressure.append(pressure)
+            self.temperature.append(temperature)
 
             # Run static T2 measurement
             self.prop_t.append(time() - t_init)
@@ -223,7 +237,19 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 #message_handler('Gas Flow Rate (m^3/day): %.3f' % (vol_flow * 0.01 * percent_gas))
                 self.flow_water.append(vol_flow * 0.01 * percent_water)
                 self.flow_oil.append(vol_flow * 0.01 * percent_oil)
-                self.flow_gas.append(vol_flow * 0.01 * percent_gas)
+                gas_flow_rate = vol_flow * 0.01 * percent_gas
+                gas_conv_flow_rate = gas_volume_conversion(
+                    self.par('gas_type'),
+                    self.par('DensG_r'),
+                    self.par('ambient_pressure'),
+                    pressure,
+                    self.par('ambient_temp'),
+                    temperature,
+                    gas_flow_rate)
+                logger.debug('Gas Flow Rate (m^3/day): %.3f' % gas_flow_rate)
+                logger.debug('Gas Ambient Equivalent Flow Rate (m^3/day): %.3f' % gas_conv_flow_rate)
+                self.flow_gas.append(gas_flow_rate)
+                self.flow_gas_conv.append(gas_conv_flow_rate)
                 progress_handler(i+2, flow_num+1)
 
     def export_Raw(self):
@@ -237,10 +263,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'prop_oil': np.array(self.prop_oil, dtype=np.float32),
                 'prop_gas': np.array(self.prop_gas, dtype=np.float32),
                 'prop_unit': '%',
+                'pressure': np.array(self.pressure, dtype=np.float32),
+                'pressure_unit': 'MPa',
+                'temperature': np.array(self.temperature, dtype=np.float32),
+                'temperature_unit': 'K',
                 'flow_t': np.array(self.flow_t, dtype=np.float32),
                 'flow_water': np.array(self.flow_water, dtype=np.float32),
                 'flow_oil': np.array(self.flow_oil, dtype=np.float32),
                 'flow_gas': np.array(self.flow_gas, dtype=np.float32),
+                'flow_gas_conv': np.array(self.flow_gas_conv, dtype=np.float32),
                 'time_unit': 's',
                 'flow_unit': 'm^3/day'}
         except AttributeError:
@@ -253,16 +284,21 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'prop_oil': self.prop_oil[-1],
                 'prop_gas': self.prop_gas[-1],
                 'prop_unit': '%',
+                'pressure': self.pressure[-1],
+                'pressure_unit': 'MPa',
+                'temperature': self.temperature[-1],
+                'temperature_unit': 'K',
                 'flow_water': self.flow_water[-1],
                 'flow_oil': self.flow_oil[-1],
                 'flow_gas': self.flow_gas[-1],
+                'flow_gas_conv': self.flow_gas_conv[-1],
                 'flow_unit': 'm^3/day'}
         except AttributeError:
             raise Exception('No Data')
 
     def plot_Content(self):
         data = self.export_Raw()
-        t = data['prop_t'][-10000:]
+        t = data['prop_t'][-PLOT_DATA_SIZE_LIMIT:]
         t_unit = 's'
         if t[-1] > 300:
             t /= 60
@@ -274,15 +310,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Water',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['prop_water'][-10000:]}, {
+                    'y': data['prop_water'][-PLOT_DATA_SIZE_LIMIT:]}, {
                     'name': 'Oil',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['prop_oil'][-10000:]}, {
+                    'y': data['prop_oil'][-PLOT_DATA_SIZE_LIMIT:]}, {
                     'name': 'Gas',
                     'type': 'scatter',
                     'x': t,
-                    'y': data['prop_gas'][-10000:]}],
+                    'y': data['prop_gas'][-PLOT_DATA_SIZE_LIMIT:]}],
                 'layout': {
                     'title': 'Static Readings',
                     'yaxis': {'title': 'Relative Content (%s)' % data['prop_unit']},
@@ -291,7 +327,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Flow(self):
         data = self.export_Raw()
-        t = data['flow_t'][-10000:]
+        t = data['flow_t'][-PLOT_DATA_SIZE_LIMIT:]
         t_unit = 's'
         if t[-1] > 300:
             t /= 60
@@ -303,23 +339,53 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Water',
                     'type': 'scatter',
                     'x': t,
-                    'y': np.clip(data['flow_water'][-10000:], 0, None)}, {
+                    'y': np.clip(data['flow_water'][-PLOT_DATA_SIZE_LIMIT:], 0, None)}, {
                     'name': 'Oil',
                     'type': 'scatter',
                     'x': t,
-                    'y': np.clip(data['flow_oil'][-10000:], 0, None)}, {
-                    'name': 'Gas',
+                    'y': np.clip(data['flow_oil'][-PLOT_DATA_SIZE_LIMIT:], 0, None)}, {
+                    'name': 'Gas Raw',
                     'type': 'scatter',
                     'x': t,
-                    'y': np.clip(data['flow_gas'][-10000:], 0, None)}],
+                    'y': np.clip(data['flow_gas'][-PLOT_DATA_SIZE_LIMIT:], 0, None)}, {
+                    'name': 'Gas Conv',
+                    'type': 'scatter',
+                    'x': t,
+                    'y': np.clip(data['flow_gas_conv'][-PLOT_DATA_SIZE_LIMIT:], 0, None)}],
                 'layout': {
                     'title': 'Flow Readings',
                     'yaxis': {'title': 'Flow Mass (%s)' % data['flow_unit']},
                     'xaxis': {'title': 'Time (%s)' % t_unit}
                 }}
 
+    def plot_Pressure(self):
+        t, t_unit = self._get_static_time_axis()
+        return {'data': [{
+            'name': '',
+            'type': 'scatter',
+            'x': t,
+            'y': np.array(self.pressure[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
+            'layout': {
+                'title': 'Pressure Log',
+                'yaxis': {'title': 'Pressure (MPa)'},
+                'xaxis': {'title': 'Time (%s)' % t_unit}
+            }}
+
+    def plot_Temperature(self):
+        t, t_unit = self._get_static_time_axis()
+        return {'data': [{
+            'name': '',
+            'type': 'scatter',
+            'x': t,
+            'y': np.array(self.temperature[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
+            'layout': {
+                'title': 'Temperature Log',
+                'yaxis': {'title': 'Temperature (K)'},
+                'xaxis': {'title': 'Time (%s)' % t_unit}
+            }}
+
     def plot_Freq(self):
-        t = np.array(self.freq_t[-10000:], dtype=np.float32)
+        t = np.array(self.freq_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
         t_unit = 's'
         if t[-1] > 300:
             t /= 60
@@ -331,7 +397,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'name': 'Freq.',
                     'type': 'scatter',
                     'x': t,
-                    'y': np.array(self.freq_values[-10000:], dtype=np.float32)}],
+                    'y': np.array(self.freq_values[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
                 'layout': {
                     'title': 'Frequency Log',
                     'yaxis': {'title': 'NMR Frequency (MHz)'},
@@ -353,6 +419,17 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         for i in range(echo_count):
             y[i] = np.mean(data[i * samples:(i + 1) * samples])
         return y
+
+    def _get_static_time_axis(self):
+        t = np.array(self.freq_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
+        t_unit = 's'
+        if t[-1] > 300:
+            t /= 60
+            t_unit = 'min'
+            if t[-1] > 120:
+                t /= 60
+                t_unit = 'hours'
+        return t, t_unit
 
     def autophase(self, data):
         phase = np.angle(np.sum(data)) # get average phase

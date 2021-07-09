@@ -128,6 +128,27 @@ parameters:
     dtype: float
     min: 0
     group: baseline_fit
+  ambient_pressure:
+    dtype: float
+    min: 0
+    unit: MPa
+    group: gas_PVT_conv
+  ambient_temp:
+    dtype: float
+    min: 0
+    unit: K
+    group: gas_PVT_conv
+  DensG_r:
+    dtype: float
+    min: 0
+    unit: ''
+    group: gas_PVT_conv
+  gas_type:
+    dtype: int
+    min: 1
+    max: 2
+    unit: ''
+    group: gas_PVT_conv
 defaults:
   plots:
     - Content
