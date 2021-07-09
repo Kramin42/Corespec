@@ -1,7 +1,7 @@
 
 # module-level vars with getters/setters
-g_pressure = None  # MPa
-g_temperature = None  # K
+g_pressure = 0.101  # MPa, set default in case there is no sensor
+g_temperature = 293  # K, set default in case there is no sensor
 
 
 def record_pressure(pressure):

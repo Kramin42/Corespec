@@ -239,11 +239,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_oil.append(vol_flow * 0.01 * percent_oil)
                 gas_flow_rate = vol_flow * 0.01 * percent_gas
                 gas_conv_flow_rate = gas_volume_conversion(
-                    self.par('gas_type'),
-                    self.par('DensG_r'),
-                    self.par('ambient_pressure'),
+                    self.par['gas_type'],
+                    self.par['DensG_r'],
+                    self.par['ambient_pressure'],
                     pressure,
-                    self.par('ambient_temp'),
+                    self.par['ambient_temp'],
                     temperature,
                     gas_flow_rate)
                 logger.debug('Gas Flow Rate (m^3/day): %.3f' % gas_flow_rate)
