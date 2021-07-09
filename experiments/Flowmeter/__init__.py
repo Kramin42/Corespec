@@ -364,10 +364,10 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             'name': '',
             'type': 'scatter',
             'x': t,
-            'y': np.array(self.pressure[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
+            'y': 1e6*np.array(self.pressure[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
             'layout': {
                 'title': 'Pressure Log',
-                'yaxis': {'title': 'Pressure (MPa)'},
+                'yaxis': {'title': 'Pressure (Pa)'},
                 'xaxis': {'title': 'Time (%s)' % t_unit}
             }}
 
