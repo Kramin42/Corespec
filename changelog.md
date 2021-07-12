@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.6] - 2021-07-12
+### Added
+- PVT conversion of gas flow rate to equivalent flow rate at ambient conditions.
+Set parameters in the "gas PVT conv" tab in the Flowmeter experiment.
+Gas flow rate in the Flow plot is the converted rate, to see the raw rate look at the Gas Flow plot.
+- Chinese translation and heading to the /flowmeter page.
+
 ## [1.2.5b] - 2021-06-30
 ### Fixed
 - Hardware startup timing issue causing the amplifier to fail to turn on.
