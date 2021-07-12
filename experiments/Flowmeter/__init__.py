@@ -349,6 +349,27 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     'type': 'scatter',
                     'x': t,
                     'y': np.clip(data['flow_oil'][-PLOT_DATA_SIZE_LIMIT:], 0, None)}, {
+                    'name': 'Gas',
+                    'type': 'scatter',
+                    'x': t,
+                    'y': np.clip(data['flow_gas_conv'][-PLOT_DATA_SIZE_LIMIT:], 0, None)}],
+                'layout': {
+                    'title': 'Flow Readings',
+                    'yaxis': {'title': 'Flow Mass (%s)' % data['flow_unit']},
+                    'xaxis': {'title': 'Time (%s)' % t_unit}
+                }}
+
+    def plot_Gas_Flow(self):
+        data = self.export_Raw()
+        t = data['flow_t'][-PLOT_DATA_SIZE_LIMIT:]
+        t_unit = 's'
+        if t[-1] > 300:
+            t /= 60
+            t_unit = 'min'
+            if t[-1] > 120:
+                t /= 60
+                t_unit = 'hours'
+        return {'data': [{
                     'name': 'Gas Raw',
                     'type': 'scatter',
                     'x': t,

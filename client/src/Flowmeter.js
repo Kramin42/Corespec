@@ -33,7 +33,7 @@ export default class Flowmeter extends React.Component {
         prop_gas: '',
         flow_water: '',
         flow_oil: '',
-        flow_gas: ''
+        flow_gas_conv: ''
       },
       parValues: {},
       messages: [],
@@ -151,6 +151,10 @@ export default class Flowmeter extends React.Component {
 
     if (data.type === 'progress') {
       if (this.state.experiment.name === data.experiment) {
+        if (!this.state.experiment.running) {
+          this.setRunning(true);
+        }
+        
         let new_progress = {
           value: data.progress,
           max: data.max,
@@ -193,7 +197,7 @@ export default class Flowmeter extends React.Component {
             prop_gas: result.prop_gas.toFixed(2),
             flow_water: result.flow_water.toFixed(2),
             flow_oil: result.flow_oil.toFixed(2),
-            flow_gas: result.flow_gas.toFixed(2)
+            flow_gas_conv: result.flow_gas_conv.toFixed(2)
         }}
       }));
     }));
@@ -256,6 +260,7 @@ export default class Flowmeter extends React.Component {
       plots.push(
         <Plot key={i}
           ref={this.plotrefs[i]}
+          visible={true}
           plotMethod={'query'}
           defaultPlot={plotName}
           experiment={experiment}
@@ -283,8 +288,15 @@ export default class Flowmeter extends React.Component {
       return {name: k, parameters: parGroupsObj[k]}
     });
 
+    const m3PerDayUnit = <span>m<sup>3</sup>/day</span>;
+
     return (
       <div className="app-container">
+        <div className={classNames('flowmeter-header')}>
+          <span>Magnetic Resonance Multi-phase Flowmeter</span>
+          <br />
+          <span>磁共振多相流量计</span>
+        </div>
         <div className={classNames('tab-content')}>
           <div className={classNames('plots-container')}>
             {plots}
@@ -292,7 +304,7 @@ export default class Flowmeter extends React.Component {
           <div className={classNames('outputs-block')}>
             <Parameter
               key={0}
-              label={'Water Content'}
+              label={'Water Content 含水率'}
               name={'prop_water'}
               value={this.state.outputs.prop_water}
               def={{dtype: 'float', unit: '%'}}
@@ -300,15 +312,15 @@ export default class Flowmeter extends React.Component {
             />
             <Parameter
               key={1}
-              label={'Water Mass'}
+              label={'Water Mass 水量'}
               name={'flow_water'}
               value={this.state.outputs.flow_water}
-              def={{dtype: 'float', unit: ['m', <sup>3</sup>, '/day']}}
+              def={{dtype: 'float', unit: m3PerDayUnit}}
               onValueChange={newValue => 0}
             />
             <Parameter
               key={2}
-              label={'Oil Content'}
+              label={'Oil Content 含气率'}
               name={'prop_oil'}
               value={this.state.outputs.prop_oil}
               def={{dtype: 'float', unit: '%'}}
@@ -316,15 +328,15 @@ export default class Flowmeter extends React.Component {
             />
             <Parameter
               key={3}
-              label={'Oil Mass'}
+              label={'Oil Mass 油量'}
               name={'flow_oil'}
               value={this.state.outputs.flow_oil}
-              def={{dtype: 'float', unit: ['m', <sup>3</sup>, '/day']}}
+              def={{dtype: 'float', unit: m3PerDayUnit}}
               onValueChange={newValue => 0}
             />
             <Parameter
               key={4}
-              label={'Gas Content'}
+              label={'Gas Content 含油率'}
               name={'prop_gas'}
               value={this.state.outputs.prop_gas}
               def={{dtype: 'float', unit: '%'}}
@@ -332,10 +344,10 @@ export default class Flowmeter extends React.Component {
             />
             <Parameter
               key={5}
-              label={'Gas Mass'}
-              name={'flow_gas'}
-              value={this.state.outputs.flow_gas}
-              def={{dtype: 'float', unit: ['m', <sup>3</sup>, '/day']}}
+              label={'Gas Mass 气量'}
+              name={'flow_gas_conv'}
+              value={this.state.outputs.flow_gas_conv}
+              def={{dtype: 'float', unit: m3PerDayUnit}}
               onValueChange={newValue => 0}
             />
           </div>
@@ -347,7 +359,7 @@ export default class Flowmeter extends React.Component {
                   {'running': experiment.running},
                   {'stopped': !experiment.running}
                 )}
-              ><span>{experiment.running ? 'Running' : 'Stopped'}</span></div>
+              ><span>{experiment.running ? 'Running 运行' : 'Stopped 停止'}</span></div>
               <div
                 className={classNames(
                   'button',
@@ -361,7 +373,7 @@ export default class Flowmeter extends React.Component {
                     this.setRunning(false);
                   });
                 }}}
-              ><span>Run</span></div>
+              ><span>Run 运行</span></div>
               <div
                 className="button abort"
                 onClick={() => {
@@ -370,7 +382,7 @@ export default class Flowmeter extends React.Component {
                     this.setRunning(false);
                   });
                 }}
-              ><span>Stop</span></div>
+              ><span>Stop 停止</span></div>
             </div>
           </div>
         </div>
