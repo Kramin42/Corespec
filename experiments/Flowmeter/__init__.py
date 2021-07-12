@@ -238,18 +238,23 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_water.append(vol_flow * 0.01 * percent_water)
                 self.flow_oil.append(vol_flow * 0.01 * percent_oil)
                 gas_flow_rate = vol_flow * 0.01 * percent_gas
-                gas_conv_flow_rate = gas_volume_conversion(
-                    self.par['gas_type'],
-                    self.par['DensG_r'],
-                    self.par['amb_pressure'],
-                    pressure,
-                    self.par['amb_temp'],
-                    temperature,
-                    gas_flow_rate)
-                logger.debug('Gas Flow Rate (m^3/day): %.3f' % gas_flow_rate)
-                logger.debug('Gas Ambient Equivalent Flow Rate (m^3/day): %.3f' % gas_conv_flow_rate)
                 self.flow_gas.append(gas_flow_rate)
-                self.flow_gas_conv.append(gas_conv_flow_rate)
+                try:
+                    gas_conv_flow_rate = gas_volume_conversion(
+                        self.par['gas_type'],
+                        self.par['DensG_r'],
+                        self.par['amb_pressure'],
+                        pressure,
+                        self.par['amb_temp'],
+                        temperature,
+                        gas_flow_rate)
+                    logger.debug('Gas Flow Rate (m^3/day): %.3f' % gas_flow_rate)
+                    logger.debug('Gas Ambient Equivalent Flow Rate (m^3/day): %.3f' % gas_conv_flow_rate)
+                    self.flow_gas_conv.append(gas_conv_flow_rate)
+                except Exception as e:
+                    logger.exception(e)
+                    self.flow_gas_conv.append(float('nan'))
+                    message_handler('Could not convert gas volume: pressure/temperature out of bounds', 'error')
                 progress_handler(i+2, flow_num+1)
 
     def export_Raw(self):

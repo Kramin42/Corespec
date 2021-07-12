@@ -112,7 +112,7 @@ def Z_cal(P, T, Pc, Tc):
     elif 5.4 < Pr < 15 and 1.05 < Tr < 3.0:
         Z_imperfect = Pr*((3.66*Tr + 0.711)**(-1.4667)) - 1.637/(0.319*Tr + 0.522) + 2.071
     else:
-        raise Exception('Pr or Tr out of bounds')
+        raise Exception('Pr or Tr out of bounds, Pr: %.2f, Tr: %.2f' % (Pr, Tr))
     return Z_imperfect
 
 
