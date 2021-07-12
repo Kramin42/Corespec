@@ -253,7 +253,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                     self.flow_gas_conv.append(gas_conv_flow_rate)
                 except Exception as e:
                     logger.exception(e)
-                    self.flow_gas_conv.append(float('nan'))
+                    self.flow_gas_conv.append(-1)
                     message_handler('Could not convert gas volume: pressure/temperature out of bounds', 'error')
                 progress_handler(i+2, flow_num+1)
 
