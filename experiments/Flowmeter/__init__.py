@@ -40,8 +40,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
         self.prop_water = []
         self.prop_oil = []
         self.prop_gas = []
-        self.pressure = []
-        self.temperature = []
+        self.pressure = None
+        self.temperature = None
+        self.static_pressure = []
+        self.static_temperature = []
+        self.flow_pressure = []
+        self.flow_temperature = []
         self.flow_t = []
         self.flow_water = []
         self.flow_oil = []
@@ -61,13 +65,15 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 self.flow_oil = self.flow_oil[flow_num:]
                 self.flow_gas = self.flow_gas[flow_num:]
                 self.flow_gas_conv = self.flow_gas_conv[flow_num:]
+                self.flow_pressure = self.flow_pressure[flow_num:]
+                self.flow_temperature = self.flow_temperature[flow_num:]
 
                 self.prop_t = self.prop_t[1:]
                 self.prop_water = self.prop_water[1:]
                 self.prop_oil = self.prop_oil[1:]
                 self.prop_gas = self.prop_gas[1:]
-                self.pressure = self.pressure[1:]
-                self.temperature = self.temperature[1:]
+                self.static_pressure = self.static_pressure[1:]
+                self.static_temperature = self.static_temperature[1:]
 
             message_handler('Switching flow OFF')
             set_flow_enabled(False)
@@ -100,11 +106,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             self.programs['FID'].set_par('freq', float(self.par['freq']))
             logger.debug('Setting frequency to %s' % self.par['freq'])
 
-            # record pipe pressure and temperature
-            pressure = get_pressure()
-            temperature = get_temperature()
-            self.pressure.append(pressure)
-            self.temperature.append(temperature)
+            # record static pipe pressure and temperature
+            self.pressure = get_pressure()
+            self.temperature = get_temperature()
+            self.static_pressure.append(self.pressure)
+            self.static_temperature.append(self.temperature)
 
             # Run static T2 measurement
             self.prop_t.append(time() - t_init)
@@ -180,6 +186,12 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 if self.aborted:
                     break
 
+                # record static pipe pressure and temperature
+                self.pressure = get_pressure()
+                self.temperature = get_temperature()
+                self.flow_pressure.append(self.pressure)
+                self.flow_temperature.append(self.temperature)
+
                 # run flow T2 measurement
                 self.flow_t.append(time() - t_init)
                 self.programs['CPMG'].set_par('echo_time', float(self.par['flow_echo_time']))
@@ -244,9 +256,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                         self.par['gas_type'],
                         self.par['DensG_r'],
                         self.par['amb_pressure'],
-                        pressure,
+                        self.pressure,
                         self.par['amb_temp'],
-                        temperature,
+                        self.temperature,
                         gas_flow_rate)
                     logger.debug('Gas Flow Rate (m^3/day): %.3f' % gas_flow_rate)
                     logger.debug('Gas Ambient Equivalent Flow Rate (m^3/day): %.3f' % gas_conv_flow_rate)
@@ -268,9 +280,11 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'prop_oil': np.array(self.prop_oil, dtype=np.float32),
                 'prop_gas': np.array(self.prop_gas, dtype=np.float32),
                 'prop_unit': '%',
-                'pressure': np.array(self.pressure, dtype=np.float32),
+                'static_pressure': np.array(self.static_pressure, dtype=np.float32),
+                'flow_pressure': np.array(self.flow_pressure, dtype=np.float32),
                 'pressure_unit': 'MPa',
-                'temperature': np.array(self.temperature, dtype=np.float32),
+                'static_temperature': np.array(self.static_temperature, dtype=np.float32),
+                'flow_temperature': np.array(self.flow_temperature, dtype=np.float32),
                 'temperature_unit': 'K',
                 'flow_t': np.array(self.flow_t, dtype=np.float32),
                 'flow_water': np.array(self.flow_water, dtype=np.float32),
@@ -289,9 +303,9 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 'prop_oil': self.prop_oil[-1],
                 'prop_gas': self.prop_gas[-1],
                 'prop_unit': '%',
-                'pressure': self.pressure[-1],
+                'pressure': self.pressure,
                 'pressure_unit': 'MPa',
-                'temperature': self.temperature[-1],
+                'temperature': self.temperature,
                 'temperature_unit': 'K',
                 'flow_water': self.flow_water[-1],
                 'flow_oil': self.flow_oil[-1],
@@ -332,14 +346,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Flow(self):
         data = self.export_Raw()
-        t = data['flow_t'][-PLOT_DATA_SIZE_LIMIT:]
-        t_unit = 's'
-        if t[-1] > 300:
-            t /= 60
-            t_unit = 'min'
-            if t[-1] > 120:
-                t /= 60
-                t_unit = 'hours'
+        t, t_unit = self._get_flow_time_axis()
         return {'data': [{
                     'name': 'Water',
                     'type': 'scatter',
@@ -361,14 +368,7 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def plot_Gas_Flow(self):
         data = self.export_Raw()
-        t = data['flow_t'][-PLOT_DATA_SIZE_LIMIT:]
-        t_unit = 's'
-        if t[-1] > 300:
-            t /= 60
-            t_unit = 'min'
-            if t[-1] > 120:
-                t /= 60
-                t_unit = 'hours'
+        t, t_unit = self._get_flow_time_axis()
         return {'data': [{
                     'name': 'Gas Raw',
                     'type': 'scatter',
@@ -385,12 +385,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
                 }}
 
     def plot_Pressure(self):
-        t, t_unit = self._get_static_time_axis()
+        static_t = np.array(self.prop_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
+        flow_t = np.array(self.flow_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
+        t_unit = 's'
+        if static_t[-1] > 300:
+            static_t /= 60
+            flow_t /= 60
+            t_unit = 'min'
+            if static_t[-1] > 120:
+                static_t /= 60
+                flow_t /= 60
+                t_unit = 'hours'
         return {'data': [{
-            'name': '',
+            'name': 'static',
             'type': 'scatter',
-            'x': t,
-            'y': 1e6*np.array(self.pressure[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
+            'x': static_t,
+            'y': 1e6*np.array(self.static_pressure[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)},{
+            'name': 'flow',
+            'type': 'scatter',
+            'x': flow_t,
+            'y': 1e6 * np.array(self.flow_pressure[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
             'layout': {
                 'title': 'Pressure Log',
                 'yaxis': {'title': 'Pressure (Pa)'},
@@ -398,12 +412,26 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
             }}
 
     def plot_Temperature(self):
-        t, t_unit = self._get_static_time_axis()
+        static_t = np.array(self.prop_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
+        flow_t = np.array(self.flow_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
+        t_unit = 's'
+        if static_t[-1] > 300:
+            static_t /= 60
+            flow_t /= 60
+            t_unit = 'min'
+            if static_t[-1] > 120:
+                static_t /= 60
+                flow_t /= 60
+                t_unit = 'hours'
         return {'data': [{
-            'name': '',
+            'name': 'static',
             'type': 'scatter',
-            'x': t,
-            'y': np.array(self.temperature[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
+            'x': static_t,
+            'y': np.array(self.static_temperature[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)},{
+            'name': 'flow',
+            'type': 'scatter',
+            'x': flow_t,
+            'y': np.array(self.flow_temperature[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)}],
             'layout': {
                 'title': 'Temperature Log',
                 'yaxis': {'title': 'Temperature (K)'},
@@ -448,6 +476,17 @@ class Experiment(BaseExperiment): # must be named 'Experiment'
 
     def _get_static_time_axis(self):
         t = np.array(self.freq_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
+        t_unit = 's'
+        if t[-1] > 300:
+            t /= 60
+            t_unit = 'min'
+            if t[-1] > 120:
+                t /= 60
+                t_unit = 'hours'
+        return t, t_unit
+
+    def _get_flow_time_axis(self):
+        t = np.array(self.flow_t[-PLOT_DATA_SIZE_LIMIT:], dtype=np.float32)
         t_unit = 's'
         if t[-1] > 300:
             t /= 60

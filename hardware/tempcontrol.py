@@ -80,6 +80,7 @@ def handler_raw(cmd):
     if cmd[0:CMD_SIZE] == b'$IIA':
         data['name'] = 'pipe-pressure'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        # logger.debug('current A: %f' % current)
         pressure = (parameters['PP_Cal_A']*current + parameters['PP_Cal_B'])  # in MPa
         record_pressure(pressure)
         data['value'] = pressure*1000000  # MPa -> Pa
@@ -87,10 +88,17 @@ def handler_raw(cmd):
     if cmd[0:CMD_SIZE] == b'$IIB':
         data['name'] = 'pipe-temperature'
         current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        # logger.debug('current B: %f' % current)
         temperature = parameters['PT_Cal_A']*current + parameters['PT_Cal_B']  # in degrees Centigrade
         record_temperature(temperature + 273.15)  # record in Kelvin
         data['value'] = temperature
         data['time'] = int(time() - start_time)
+    if cmd[0:CMD_SIZE] == b'$IIC':
+        current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        # logger.debug('current C: %f' % current)
+    if cmd[0:CMD_SIZE] == b'$IID':
+        current = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]
+        # logger.debug('current D: %f' % current)
     if cmd[0:CMD_SIZE]==b'$TSP': # setpoint
         data['name'] = 'setpoint'
         data['value'] = unpack('>f', cmd[CMD_SIZE:PACKET_SIZE])[0]

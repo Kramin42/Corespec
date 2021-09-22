@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.7] - 2021-09-22
+### Added
+- Flowmeter experiment: Measure pipe temperature and pressure before each flow measurement,
+and use the latest readings for gas PVT conversion. Pipe temperature and pressure measurements
+are still also measured for each static measurement. Static and flow temperature/pressure measurements
+are saved to separate arrays: "static\_temperature", "static\_pressure", "flow\_temperature", and "flow\_pressure"
+in the exported data.
+
 ## [1.2.6] - 2021-07-12
 ### Added
 - PVT conversion of gas flow rate to equivalent flow rate at ambient conditions.
