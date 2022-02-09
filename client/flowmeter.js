@@ -50964,7 +50964,7 @@ var Flowmeter = function (_React$Component) {
             }),
             _react2.default.createElement(_Parameter2.default, {
               key: 2,
-              label: 'Oil Content 含气率',
+              label: 'Oil Content 含油率',
               name: 'prop_oil',
               value: this.state.outputs.prop_oil,
               def: { dtype: 'float', unit: '%' },
@@ -50984,7 +50984,7 @@ var Flowmeter = function (_React$Component) {
             }),
             _react2.default.createElement(_Parameter2.default, {
               key: 4,
-              label: 'Gas Content 含油率',
+              label: 'Gas Content 含气率',
               name: 'prop_gas',
               value: this.state.outputs.prop_gas,
               def: { dtype: 'float', unit: '%' },
