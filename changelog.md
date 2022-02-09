@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.7b] - 2022-02-09
+### Fixed
+- Chinese translation of Oil Content and Gas Content fixed.
+
 ## [1.2.7] - 2021-09-22
 ### Added
 - Flowmeter experiment: Measure pipe temperature and pressure before each flow measurement,
